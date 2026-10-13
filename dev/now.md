@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-PLANNED (discovery complete, M-0001 planned, no implementation)
+BUILD (T-0001 complete; T-0002/T-0003 unblocked, awaiting authorization)
 
 ## State Integrity
 
@@ -13,15 +13,15 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0001 — yt-adv-search v1 (PLANNED). See `dev/milestones/M-0001-yt-adv-search-v1.md`.
+M-0001 — yt-adv-search v1 (IN_PROGRESS). See `dev/milestones/M-0001-yt-adv-search-v1.md`.
 
 ## Current Task
 
-None — planning-only; implementation not authorized. Next when authorized: T-0001.
+None — T-0001 COMPLETE (see `dev/tasks/done/T-0001-worker-proxy.md`). Next when authorized: T-0002 or T-0003.
 
 ## Current Step
 
-Awaiting user authorization to start T-0001.
+T-0001 verified and closed. Awaiting user authorization to start T-0002/T-0003.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Build yt-adv-search v1: Worker proxy + search + tools + settings.
 
 ## Next Action
 
-Start T-0001 only when user explicitly authorizes implementation.
+Start T-0002 or T-0003 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -40,7 +40,9 @@ None.
 - `dev/project.md`
 - `dev/roadmap.md`
 - `dev/milestones/M-0001-yt-adv-search-v1.md`
-- `dev/tasks/T-0001-worker-proxy.md`
+- `dev/tasks/done/T-0001-worker-proxy.md`
+- `worker.js`
+- `wrangler.toml`
 - `ARCHITECTURE-MAP.md`
 - `dev/verification.md`
 
@@ -51,13 +53,15 @@ None.
 
 ## Verification Snapshot
 
-Status: PLANNING_VALIDATED
+Status: T-0001_VERIFIED
 
 Evidence:
 
-- M-0001 + T-0001..T-0004 created PLANNED with frontmatter.
-- Roadmap/milestone/now reconciled; parking lot empty (no promotions).
-- No code written; no tests run (planning-only).
+- `node --check worker.js` — PASS.
+- Mocked checks 32/32 PASS (rotation, operators, egress, channel, static, no-leak).
+- Live wrangler smoke: /, /tools, /settings 200; /nope 404; /api/search no-q 400;
+  dummy-key search + channel → rotated 502 clean, no key values in bodies.
+- Security L1 review recorded in `dev/tasks/done/T-0001-worker-proxy.md`.
 
 ## Commit Policy
 
@@ -69,7 +73,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-MILESTONE_PLANNED_M-0001
+TASK_COMPLETE_T-0001
 
 ## README Status
 
@@ -82,7 +86,7 @@ UPDATED_FOR_DISCOVERY — real scope recorded, no task diary.
 
 ## Do Not Change
 
-- Do not start T-0001 without explicit implementation authorization.
+- Do not expand T-0001 into page markup (T-0002..T-0004 own it).
 - Do not invent product scope beyond confirmed grill.
 
 ## Resume Instruction

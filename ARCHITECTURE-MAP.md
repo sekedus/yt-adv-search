@@ -2,7 +2,7 @@
 
 ## Status
 
-PLANNED v1 — no code yet; map reflects agreed design 2026-10-13.
+IN_PROGRESS v1 — `worker.js` landed (T-0001); pages pending T-0002..T-0004.
 
 ## Purpose
 

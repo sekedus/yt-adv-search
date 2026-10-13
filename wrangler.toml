@@ -1,0 +1,13 @@
+name = "yt-adv-search"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+
+# Local dev: `npx wrangler dev` reads `.dev.vars` (and `.env` in recent
+# wrangler). Copy `.env.example` to `.dev.vars` for local runs:
+#   YOUTUBE_API_KEYS=k1,k2
+# Prod: `wrangler secret put YOUTUBE_API_KEYS`
+#
+# Static pages (index.html, tools.html, settings.html, styles.css) land in
+# T-0002..T-0004 at the repo root and are served via the ASSETS binding when
+# configured. Until then the worker returns placeholder pages so the smoke
+# check (GET /, /tools, /settings) passes.

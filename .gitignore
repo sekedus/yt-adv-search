@@ -4,3 +4,7 @@
 # Local secrets — never commit real keys.
 .env
 !.env.example
+.dev.vars
+
+# Wrangler local state.
+.wrangler/
