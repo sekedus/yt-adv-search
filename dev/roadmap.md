@@ -4,11 +4,12 @@
 
 ## Current Milestone
 
-M-0001 — yt-adv-search v1 (COMPLETE)
+M-0002 — Improve UI/UX (PLANNED)
 
 ## Milestones
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
+- M-0002 — Improve UI/UX — PLANNED — Layout + filters + cards + settings polish.
 
 ## Task Index
 
@@ -16,6 +17,9 @@ M-0001 — yt-adv-search v1 (COMPLETE)
 - T-0002 — Search page (filters, results, theme) — COMPLETE (M-0001; HDT PASS)
 - T-0003 — Tools page (channel resolver) — COMPLETE (M-0001; HDT PASS)
 - T-0004 — Settings page + header/nav polish — COMPLETE (M-0001; HDT PASS)
+- T-0005 — Search layout + filter panel UX — PLANNED (M-0002)
+- T-0006 — Results cards + view modes + scopebar + dates — PLANNED (M-0002)
+- T-0007 — Settings polish + global responsive — PLANNED (M-0002)
 
 ## Roadmap Rules
 

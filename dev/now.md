@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-MILESTONE_COMPLETE (M-0001 done; no active work)
+MILESTONE_PLANNED (M-0002 planned; no active task)
 
 ## State Integrity
 
@@ -13,23 +13,23 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0001 — yt-adv-search v1 (COMPLETE). See `dev/milestones/M-0001-yt-adv-search-v1.md`.
+M-0002 — Improve UI/UX (PLANNED). See `dev/milestones/M-0002-improve-ui-ux.md`.
 
 ## Current Task
 
-None — all M-0001 tasks COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
+None — T-0005/T-0006/T-0007 are PLANNED, implementation not authorized.
 
 ## Current Step
 
-Milestone verified and closed. Awaiting next user direction.
+Milestone planned. Awaiting user direction (start a named task or adjust plan).
 
 ## Objective
 
-Build yt-adv-search v1: Worker proxy + search + tools + settings.
+Polish UI/UX: layout, filter panel, results cards, settings.
 
 ## Next Action
 
-Next user direction (new milestone or task when requested).
+Start T-0005 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -37,30 +37,29 @@ None.
 
 ## Relevant Files
 
-- `dev/project.md`
-- `dev/roadmap.md`
-- `dev/milestones/M-0001-yt-adv-search-v1.md`
-- `dev/tasks/done/T-0001-worker-proxy.md`
-- `worker.js`
-- `wrangler.toml`
-- `ARCHITECTURE-MAP.md`
+- `dev/milestones/M-0002-improve-ui-ux.md`
+- `dev/tasks/T-0005-search-filter-ux.md`
+- `dev/tasks/T-0006-results-cards-views.md`
+- `dev/tasks/T-0007-settings-polish.md`
+- `public/index.html`
+- `public/settings.html`
+- `public/styles.css`
 - `dev/verification.md`
 
 ## Constraints
 
 - Read `dev/constraints.md` before compatibility/platform decisions.
 - Keys server-only; enrichment OFF default.
+- Planning-only: no implementation started.
 
 ## Verification Snapshot
 
-Status: M-0001_VERIFIED
+Status: M-0002_PLANNED
 
 Evidence:
 
-- All exit criteria met: scoped proxy search, handle scoping, re-added
-  filters, tools resolver, persisted settings, checks + HDTs green.
-- T-0004: agent 11/11 + smoke PASS; HDT PASS (Save model: discard-on-reload,
-  invalid-region failure message, persistence + mirror, reset, clean console).
+- M-0002 + T-0005/T-0006/T-0007 created as PLANNED; roadmap reconciled.
+- Parking lot reviewed: empty, nothing to promote.
 
 ## Commit Policy
 
@@ -72,20 +71,21 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-MILESTONE_COMPLETE_M-0001
+PLAN_M-0002
 
 ## README Status
 
-UPDATED_FOR_T-0002 — search-live status recorded, no task diary.
+UNCHANGED — planning-only, no user-visible behavior changed.
 
 ## Important Context
 
-- Grill confirmed 2026-10-13; vanilla + Worker proxy + re-added filters + operators + separate /tools + /settings + opt-in enrichment.
-- Parking lot reviewed: empty, nothing to promote.
+- M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
+- Grid/list column counts assumed from screenshots; confirm at implementation.
+- Advanced filters need feasibility check (YT API vs client-side).
 
 ## Do Not Change
 
-- Do not invent product scope beyond confirmed grill.
+- Do not start implementation until user authorizes a named task.
 
 ## Resume Instruction
 
