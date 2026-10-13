@@ -14,11 +14,11 @@ A compact navigation map for the codebase. Points to where capabilities will liv
 
 | Domain / Area | Primary Path(s) | Responsibility | Key Dependencies | Consumers | Tests |
 |---|---|---|---|---|---|
-| Search UI | `index.html` (route `/`) | Bar, Filters, results grid, pagination, enrichment toggle | `/api/search`, shared `styles.css`, `localStorage` | Browser user | Browser HDT |
+| Search UI | `public/index.html` (route `/`) | Bar, Filters, results grid, pagination, enrichment toggle | `/api/search`, shared `public/styles.css`, `localStorage` | Browser user | Browser HDT |
 | Worker API | `worker.js` (`/api/search`, `/api/channel`) | Key rotation, operator resolution, `search.list`/`videos.list`/`channels.list` forwarding | `YOUTUBE_API_KEYS`, googleapis v3 | Search UI, Tools page | `node --check`, wrangler smoke |
-| Channel resolver | `tools.html` (route `/tools`) | URL/handle/username → ID + snippet + `Use in search` | `/api/channel` | Browser user | Browser HDT |
-| Settings | `settings.html` (route `/settings`) | Theme, defaults, enrichment opt-in, key-index status | `localStorage`, `/api/search` status | Search UI, Tools page | Browser HDT |
-| Shared style | `styles.css` | Auto-dark theme, Invidious-like filters/results | none | All pages | Visual check |
+| Channel resolver | `public/tools.html` (route `/tools`) | URL/handle/username → ID + snippet + `Use in search` | `/api/channel` | Browser user | Browser HDT |
+| Settings | `public/settings.html` (route `/settings`) | Theme, defaults, enrichment opt-in, key-index status | `localStorage`, `/api/search` status | Search UI, Tools page | Browser HDT |
+| Shared style | `public/styles.css` | Auto-dark theme, Invidious-like filters/results | none | All pages | Visual check |
 
 ### Entry Points
 
@@ -63,8 +63,8 @@ tools input (URL/@handle/UC../username)
 
 | Capability | Existing Implementation | How to Reuse |
 |---|---|---|
-| Theme (auto/dark) | `styles.css` (planned) | `prefers-color-scheme` + `localStorage` override |
-| Proxy fetch | `worker.js` helper (planned) | Same helper for search/channel/videos |
+| Theme (auto/dark) | `public/styles.css` + per-page head init | `prefers-color-scheme` + `localStorage` override |
+| Proxy fetch | `worker.js` helper | Same helper for search/channel/videos |
 
 ### Test Surface
 

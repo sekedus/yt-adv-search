@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>yt-adv-search</title>
+<link rel="stylesheet" href="/styles.css">
+<script>
+// Apply persisted theme before first paint (avoids a theme flash).
+// Contract (mirrored by /tools + /settings): localStorage "ytadv.theme"
+// holds "auto" (default), "dark" or "light".
+(function () {
+  try {
+    var t = localStorage.getItem("ytadv.theme") || "auto";
+    if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "auto");
+  }
+})();
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">YT Adv Search</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/" aria-current="page">Search</a><a href="/tools">Tools</a>
+    </nav>
+    <form class="searchform" id="searchForm" role="search" action="/" method="get">
+      <label class="visually-hidden" for="q">Search YouTube</label>
+      <input type="search" id="q" name="q" maxlength="500" autocomplete="off"
+             placeholder="Search — try handle:@fireship adobe">
+      <button class="primary" type="submit">Search</button>
+    </form>
+    <div class="topbar-actions">
+      <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
+      <a class="iconbtn" href="/settings">Settings</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <details class="filters" id="filtersPanel">
+    <summary>Filters</summary>
+    <div class="filtergrid">
+      <fieldset>
+        <legend>Upload date</legend>
+        <div class="radiorow">
+          <label><input type="radio" name="date" value="any" checked> Any time</label>
+          <label><input type="radio" name="date" value="hour"> Last Hour</label>
+          <label><input type="radio" name="date" value="today"> Today</label>
+          <label><input type="radio" name="date" value="week"> This week</label>
+          <label><input type="radio" name="date" value="month"> This month</label>
+          <label><input type="radio" name="date" value="year"> This year</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Type</legend>
+        <div class="radiorow">
+          <label><input type="radio" name="type" value="any" checked> Any</label>
+          <label><input type="radio" name="type" value="video"> Video</label>
+          <label><input type="radio" name="type" value="channel"> Channel</label>
+          <label><input type="radio" name="type" value="playlist"> Playlist</label>
+          <label><input type="radio" name="type" value="movie"> Movie</label>
+          <label><input type="radio" name="type" value="show"> Show</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Duration</legend>
+        <div class="radiorow">
+          <label><input type="radio" name="dur" value="any" checked> Any</label>
+          <label><input type="radio" name="dur" value="short"> Short (&lt; 4 min)</label>
+          <label><input type="radio" name="dur" value="medium"> Medium (4–20 min)</label>
+          <label><input type="radio" name="dur" value="long"> Long (&gt; 20 min)</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Features</legend>
+        <div class="checkrow">
+          <label><input type="checkbox" id="f-cc"> Captions</label>
+          <label><input type="checkbox" id="f-commons"> Creative Commons</label>
+          <label><input type="checkbox" id="f-live"> Live</label>
+          <label><input type="checkbox" id="f-hd"> HD</label>
+          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 4K</label>
+          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 360&deg;</label>
+          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> HDR</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Sort by</legend>
+        <select id="order">
+          <option value="relevance">Relevance</option>
+          <option value="date">Date</option>
+          <option value="rating">Rating</option>
+          <option value="viewCount">View count</option>
+          <option value="title">Title</option>
+        </select>
+      </fieldset>
+      <fieldset>
+        <legend>Page size</legend>
+        <select id="maxResults">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+        </select>
+      </fieldset>
+    </div>
+    <div class="filter-actions">
+      <button class="primary" id="applyBtn" type="button">Apply</button>
+      <label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label>
+    </div>
+  </details>
+
+  <p class="hint">Operators: <code>channel:UC…</code> <code>handle:@x</code>
+  <code>user:name</code> <code>before:YYYY-MM-DD</code> <code>after:YYYY-MM-DD</code>.
+  Anything else shaped like <code>word:value</code> is searched literally.
+  A date operator in the query wins over the Upload-date filter.</p>
+
+  <div class="scopebar" id="scopeBar" hidden></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <section class="results" id="results" aria-label="Results"></section>
+  <div class="pager">
+    <button id="prevBtn" type="button" disabled>Prev</button>
+    <button id="nextBtn" type="button" disabled>Next</button>
+  </div>
+</main>
+
+<script>
+(function () {
+"use strict";
+
+function $(id) { return document.getElementById(id); }
+function storeGet(k, fb) {
+  try { var v = localStorage.getItem(k); return v === null ? fb : v; }
+  catch (e) { return fb; }
+}
+function storeSet(k, v) {
+  try { localStorage.setItem(k, v); } catch (e) { /* private mode: prefs just don't persist */ }
+}
+// Escape API-supplied text before injecting into HTML (titles and
+// descriptions are untrusted user-generated content).
+function esc(s) {
+  return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+/* Theme toggle (cycles Auto -> Light -> Dark). */
+var themeBtn = $("themeBtn");
+function paintTheme(t) {
+  document.documentElement.dataset.theme = t;
+  themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+}
+var theme = storeGet("ytadv.theme", "auto");
+if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
+paintTheme(theme);
+themeBtn.addEventListener("click", function () {
+  theme = theme === "auto" ? "light" : (theme === "light" ? "dark" : "auto");
+  storeSet("ytadv.theme", theme);
+  paintTheme(theme);
+});
+
+/* Defaults shared with /settings (T-0004 reads/writes the same keys). */
+var maxSel = $("maxResults"), orderSel = $("order"), enrichBox = $("enrich");
+maxSel.value = storeGet("ytadv.maxResults", "25");
+if (maxSel.selectedIndex < 0) maxSel.value = "25";
+orderSel.value = storeGet("ytadv.order", "relevance");
+if (orderSel.selectedIndex < 0) orderSel.value = "relevance";
+enrichBox.checked = storeGet("ytadv.enrich", "0") === "1";
+
+/* Link-in contract from /tools: ?channel=UC… (or ?channelId=) scopes the
+ * search; ?q= prefills the query. Auto-runs when either is present. */
+var qs = new URLSearchParams(location.search);
+var qInput = $("q");
+if (qs.get("q")) qInput.value = qs.get("q").slice(0, 500);
+var scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
+var scopeBar = $("scopeBar");
+function paintScope() {
+  if (scopedChannel) {
+    scopeBar.hidden = false;
+    scopeBar.innerHTML = "";
+    var span = document.createElement("span");
+    span.textContent = "Scoped to channel ";
+    var code = document.createElement("code");
+    code.className = "mono";
+    code.textContent = scopedChannel;
+    var clear = document.createElement("a");
+    clear.href = "/";
+    clear.textContent = "Clear";
+    scopeBar.append(span, code, document.createTextNode(" "), clear);
+  } else {
+    scopeBar.hidden = true;
+    scopeBar.innerHTML = "";
+  }
+}
+paintScope();
+
+/* Filter -> search.list params. */
+var DATE_MS = { hour: 36e5, today: 24 * 36e5, week: 7 * 24 * 36e5, month: 30 * 24 * 36e5, year: 365 * 24 * 36e5 };
+function checkedRadio(name) {
+  var el = document.querySelector('input[name="' + name + '"]:checked');
+  return el ? el.value : "any";
+}
+
+var statusEl = $("status"), resultsEl = $("results");
+var prevBtn = $("prevBtn"), nextBtn = $("nextBtn");
+var pageTokens = { prev: null, next: null };
+
+function buildParams(pageToken) {
+  var p = new URLSearchParams();
+  var q = qInput.value.trim();
+  if (q) p.set("q", q);
+  if (scopedChannel) p.set("channelId", scopedChannel);
+
+  var hasDateOp = /(?:^|\s)(?:before|after):/i.test(q);
+  var dateP = checkedRadio("date");
+  if (dateP !== "any" && !hasDateOp && DATE_MS[dateP]) {
+    p.set("publishedAfter", new Date(Date.now() - DATE_MS[dateP]).toISOString());
+  }
+
+  var type = checkedRadio("type");
+  var wantVideoOnly = $("f-cc").checked || $("f-commons").checked || $("f-live").checked || $("f-hd").checked ||
+    checkedRadio("dur") !== "any";
+  // Duration/caption/license/live/HD only combine with type=video upstream,
+  // so they coerce an Any/Channel/Playlist pick to Video.
+  var coerced = false;
+  var effType = type;
+  if (wantVideoOnly && (type === "any" || type === "channel" || type === "playlist")) {
+    effType = "video";
+    coerced = true;
+  }
+  if (type === "movie") { p.set("type", "video"); p.set("videoType", "movie"); }
+  else if (type === "show") { p.set("type", "video"); p.set("videoType", "episode"); }
+  else if (effType !== "any") { p.set("type", effType); }
+
+  if (effType === "video" || type === "movie" || type === "show") {
+    var dur = checkedRadio("dur");
+    if (dur !== "any") p.set("videoDuration", dur);
+    if ($("f-cc").checked) p.set("videoCaption", "closedCaption");
+    if ($("f-commons").checked) p.set("videoLicense", "creativeCommon");
+    if ($("f-live").checked) p.set("eventType", "live");
+    if ($("f-hd").checked) p.set("videoDefinition", "high");
+  }
+
+  p.set("order", orderSel.value);
+  p.set("maxResults", maxSel.value);
+  p.set("safeSearch", storeGet("ytadv.safeSearch", "moderate"));
+  var region = storeGet("ytadv.region", ""), lang = storeGet("ytadv.lang", "");
+  if (region) p.set("regionCode", region);
+  if (lang) p.set("relevanceLanguage", lang);
+  if (enrichBox.checked) p.set("enrich", "true");
+  if (pageToken) p.set("pageToken", pageToken);
+
+  storeSet("ytadv.maxResults", maxSel.value);
+  storeSet("ytadv.order", orderSel.value);
+  storeSet("ytadv.enrich", enrichBox.checked ? "1" : "0");
+  return { params: p, coerced: coerced };
+}
+
+function fmtDuration(iso) {
+  var m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(String(iso || ""));
+  if (!m) return "";
+  var h = +(m[1] || 0), min = +(m[2] || 0), s = +(m[3] || 0);
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  return h > 0 ? h + ":" + pad(min) + ":" + pad(s) : min + ":" + pad(s);
+}
+
+function itemLink(it) {
+  if (!it || !it.id) return "https://www.youtube.com/";
+  if (it.id.kind === "youtube#video" && it.id.videoId) {
+    return "https://www.youtube.com/watch?v=" + encodeURIComponent(it.id.videoId);
+  }
+  if (it.id.kind === "youtube#channel" && it.id.channelId) {
+    return "https://www.youtube.com/channel/" + encodeURIComponent(it.id.channelId);
+  }
+  if (it.id.kind === "youtube#playlist" && it.id.playlistId) {
+    return "https://www.youtube.com/playlist?list=" + encodeURIComponent(it.id.playlistId);
+  }
+  return "https://www.youtube.com/";
+}
+
+function renderItems(items) {
+  resultsEl.innerHTML = "";
+  (items || []).forEach(function (it) {
+    var sn = it.snippet || {};
+    var thumbs = sn.thumbnails || {};
+    var turl = (thumbs.medium && thumbs.medium.url) || (thumbs.default && thumbs.default.url) || "";
+    var card = document.createElement("article");
+    card.className = "card";
+    var html = '<a class="thumb" target="_blank" rel="noopener">' +
+      (turl ? '<img loading="lazy" alt="">' : "") +
+      (it.enrichment && it.enrichment.duration ? '<span class="badge"></span>' : "") +
+      "</a>" +
+      '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener"></a></h3>' +
+      '<p class="card-meta"></p>' +
+      (it.enrichment && it.enrichment.viewCount ? '<p class="views"></p>' : "") +
+      '<p class="card-desc"></p></div>';
+    card.innerHTML = html;
+    var links = card.querySelectorAll("a");
+    links[0].href = itemLink(it);
+    links[1].href = itemLink(it);
+    links[1].textContent = sn.title || "(untitled)";
+    if (turl) card.querySelector("img").src = turl;
+    var badge = card.querySelector(".badge");
+    if (badge) badge.textContent = fmtDuration(it.enrichment.duration);
+    var meta = (sn.channelTitle || "") +
+      (sn.publishedAt ? " · " + new Date(sn.publishedAt).toLocaleDateString() : "");
+    card.querySelector(".card-meta").textContent = meta;
+    var views = card.querySelector(".views");
+    if (views) views.textContent = Number(it.enrichment.viewCount).toLocaleString("en-US") + " views";
+    card.querySelector(".card-desc").textContent = sn.description || "";
+    resultsEl.appendChild(card);
+  });
+}
+
+function setStatus(msg, isError) {
+  statusEl.textContent = msg;
+  statusEl.classList.toggle("error", !!isError);
+}
+
+function runSearch(pageToken) {
+  var built = buildParams(pageToken);
+  if (!qInput.value.trim() && !scopedChannel) {
+    setStatus("Type a query, or scope to a channel.", false);
+    return;
+  }
+  setStatus("Searching…", false);
+  resultsEl.innerHTML = "";
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  fetch("/api/search?" + built.params.toString(), { headers: { "accept": "application/json" } })
+    .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+    .then(function (out) {
+      if (!out.ok) {
+        setStatus((out.data && out.data.error) || "Search failed.", true);
+        return;
+      }
+      var items = out.data.items || [];
+      pageTokens.prev = out.data.prevPageToken || null;
+      pageTokens.next = out.data.nextPageToken || null;
+      prevBtn.disabled = !pageTokens.prev;
+      nextBtn.disabled = !pageTokens.next;
+      if (items.length === 0) {
+        setStatus("No results.", false);
+        return;
+      }
+      var note = items.length + " result" + (items.length === 1 ? "" : "s") + ".";
+      if (built.coerced) note += " (Video-only filters: type set to Video.)";
+      if (out.data.enrichmentError) note += " Duration/views unavailable.";
+      setStatus(note, false);
+      renderItems(items);
+    })
+    .catch(function () {
+      setStatus("Network error talking to the proxy.", true);
+    });
+}
+
+$("searchForm").addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  runSearch(null);
+});
+$("applyBtn").addEventListener("click", function () { runSearch(null); });
+prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
+nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
+
+if (qInput.value.trim() || scopedChannel) runSearch(null);
+})();
+</script>
+</body>
+</html>

@@ -34,7 +34,7 @@ Working search + tools + settings on one Cloudflare Worker with key-hiding rotat
 ## Tasks
 
 - [x] T-0001 — Worker proxy + key rotation + operator resolution
-- [ ] T-0002 — Search page (filters, operators client, results, theme)
+- [x] T-0002 — Search page (filters, operators client, results, theme)
 - [ ] T-0003 — Tools page (channel resolver)
 - [ ] T-0004 — Settings page + header/nav polish
 

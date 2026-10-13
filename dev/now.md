@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (T-0001 complete; T-0002/T-0003 unblocked, awaiting authorization)
+BUILD (T-0001, T-0002 complete; T-0003/T-0004 awaiting authorization)
 
 ## State Integrity
 
@@ -17,11 +17,11 @@ M-0001 — yt-adv-search v1 (IN_PROGRESS). See `dev/milestones/M-0001-yt-adv-sea
 
 ## Current Task
 
-None — T-0001 COMPLETE (see `dev/tasks/done/T-0001-worker-proxy.md`). Next when authorized: T-0002 or T-0003.
+None — T-0002 COMPLETE (see `dev/tasks/done/T-0002-search-page.md`, HDT PASS). Next when authorized: T-0003 or T-0004.
 
 ## Current Step
 
-T-0001 verified and closed. Awaiting user authorization to start T-0002/T-0003.
+T-0002 verified and closed. Awaiting user authorization to start T-0003/T-0004.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Build yt-adv-search v1: Worker proxy + search + tools + settings.
 
 ## Next Action
 
-Start T-0002 or T-0003 only when user explicitly authorizes implementation.
+Start T-0003 or T-0004 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -53,15 +53,17 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0001_VERIFIED
+Status: T-0002_VERIFIED
 
 Evidence:
 
-- `node --check worker.js` — PASS.
-- Mocked checks 32/32 PASS (rotation, operators, egress, channel, static, no-leak).
-- Live wrangler smoke: /, /tools, /settings 200; /nope 404; /api/search no-q 400;
-  dummy-key search + channel → rotated 502 clean, no key values in bodies.
-- Security L1 review recorded in `dev/tasks/done/T-0001-worker-proxy.md`.
+- `node --check worker.js` — PASS (untouched).
+- Static checks 36/36 PASS (syntax, ids, tooltips, options, safe rendering,
+  theme contract, prefs keys, `?channel=` link-in).
+- Live wrangler smoke: `/` serves real page, `/styles.css` serves CSS,
+  `/api/search` error path clean.
+- HDT PASS (user 2026-10-13): scoped search, filters + enrichment, tooltips,
+  pager, theme persistence, zero console errors.
 
 ## Commit Policy
 
@@ -73,11 +75,11 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-TASK_COMPLETE_T-0001
+TASK_COMPLETE_T-0002
 
 ## README Status
 
-UPDATED_FOR_DISCOVERY — real scope recorded, no task diary.
+UPDATED_FOR_T-0002 — search-live status recorded, no task diary.
 
 ## Important Context
 
@@ -86,7 +88,8 @@ UPDATED_FOR_DISCOVERY — real scope recorded, no task diary.
 
 ## Do Not Change
 
-- Do not expand T-0001 into page markup (T-0002..T-0004 own it).
+- Do not touch worker.js API behavior (T-0001 owns it).
+- Do not build Tools/Settings pages without authorization (T-0003/T-0004 own them).
 - Do not invent product scope beyond confirmed grill.
 
 ## Resume Instruction
