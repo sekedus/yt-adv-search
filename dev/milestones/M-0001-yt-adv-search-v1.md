@@ -1,6 +1,6 @@
 ---
 id: M-0001
-status: IN_PROGRESS
+status: COMPLETE
 created: "2026-10-13"
 updated: "2026-10-13"
 ---
@@ -24,19 +24,19 @@ Working search + tools + settings on one Cloudflare Worker with key-hiding rotat
 
 ## Exit Criteria
 
-- [ ] Search via proxy returns scoped results with no key leak
-- [ ] `handle:fireship` scopes to Fireship channel
-- [ ] Re-added filters (Last Hour, Rating/Date) work via API
-- [ ] Tools resolves `@Fireship` URL to `UCsBjURrPoezykLs9EqgamOA`
-- [ ] Settings persist; theme auto-dark; enrichment OFF default
-- [ ] `node --check` + wrangler smoke + required HDTs pass
+- [x] Search via proxy returns scoped results with no key leak
+- [x] `handle:fireship` scopes to Fireship channel
+- [x] Re-added filters (Last Hour, Rating/Date) work via API
+- [x] Tools resolves `@Fireship` URL to `UCsBjURrPoezykLs9EqgamOA`
+- [x] Settings persist; theme auto-dark; enrichment OFF default
+- [x] `node --check` + wrangler smoke + required HDTs pass
 
 ## Tasks
 
 - [x] T-0001 — Worker proxy + key rotation + operator resolution
 - [x] T-0002 — Search page (filters, operators client, results, theme)
 - [x] T-0003 — Tools page (channel resolver)
-- [ ] T-0004 — Settings page + header/nav polish
+- [x] T-0004 — Settings page + header/nav polish
 
 ## Related Parking-Lot Ideas
 

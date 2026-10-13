@@ -4,18 +4,18 @@
 
 ## Current Milestone
 
-M-0001 — yt-adv-search v1 (IN_PROGRESS)
+M-0001 — yt-adv-search v1 (COMPLETE)
 
 ## Milestones
 
-- M-0001 — yt-adv-search v1 — IN_PROGRESS — Worker proxy + search + tools + settings.
+- M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 
 ## Task Index
 
 - T-0001 — Worker proxy + key rotation + operator resolution — COMPLETE (M-0001, unblocks T-0002/T-0003)
 - T-0002 — Search page (filters, results, theme) — COMPLETE (M-0001; HDT PASS)
 - T-0003 — Tools page (channel resolver) — COMPLETE (M-0001; HDT PASS)
-- T-0004 — Settings page + header/nav polish — PLANNED (M-0001, blocked by T-0002)
+- T-0004 — Settings page + header/nav polish — COMPLETE (M-0001; HDT PASS)
 
 ## Roadmap Rules
 

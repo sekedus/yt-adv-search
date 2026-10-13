@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (T-0001..T-0003 complete; T-0004 awaiting authorization)
+MILESTONE_COMPLETE (M-0001 done; no active work)
 
 ## State Integrity
 
@@ -13,15 +13,15 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0001 — yt-adv-search v1 (IN_PROGRESS). See `dev/milestones/M-0001-yt-adv-search-v1.md`.
+M-0001 — yt-adv-search v1 (COMPLETE). See `dev/milestones/M-0001-yt-adv-search-v1.md`.
 
 ## Current Task
 
-None — T-0003 COMPLETE (see `dev/tasks/done/T-0003-tools-page.md`, HDT PASS). Next when authorized: T-0004.
+None — all M-0001 tasks COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 
 ## Current Step
 
-T-0003 verified and closed. Awaiting user authorization to start T-0004.
+Milestone verified and closed. Awaiting next user direction.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Build yt-adv-search v1: Worker proxy + search + tools + settings.
 
 ## Next Action
 
-Start T-0004 only when user explicitly authorizes implementation.
+Next user direction (new milestone or task when requested).
 
 ## Current Blocker
 
@@ -53,17 +53,14 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0003_VERIFIED
+Status: M-0001_VERIFIED
 
 Evidence:
 
-- `node --check worker.js` — PASS (untouched).
-- Static checks 25/25 PASS (syntax, ids, shared header/theme contract,
-  kind→param mapping, `Use in search` link-in, safe rendering).
-- Live wrangler smoke: `/tools` serves real page, `/api/channel` error path clean.
-- HDT PASS (user 2026-10-13): URL/@/bare/ID resolve to
-  `UCsBjURrPoezykLs9EqgamOA`; unknown handle → clean 404 as designed;
-  `Use in search` scopes + auto-runs; zero console errors.
+- All exit criteria met: scoped proxy search, handle scoping, re-added
+  filters, tools resolver, persisted settings, checks + HDTs green.
+- T-0004: agent 11/11 + smoke PASS; HDT PASS (Save model: discard-on-reload,
+  invalid-region failure message, persistence + mirror, reset, clean console).
 
 ## Commit Policy
 
@@ -75,7 +72,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-TASK_COMPLETE_T-0003
+MILESTONE_COMPLETE_M-0001
 
 ## README Status
 
@@ -88,8 +85,6 @@ UPDATED_FOR_T-0002 — search-live status recorded, no task diary.
 
 ## Do Not Change
 
-- Do not touch worker.js API behavior (T-0001 owns it).
-- Do not build Tools/Settings pages without authorization (T-0003/T-0004 own them).
 - Do not invent product scope beyond confirmed grill.
 
 ## Resume Instruction
