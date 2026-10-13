@@ -14,7 +14,7 @@ M-0001 — yt-adv-search v1 (IN_PROGRESS)
 
 - T-0001 — Worker proxy + key rotation + operator resolution — COMPLETE (M-0001, unblocks T-0002/T-0003)
 - T-0002 — Search page (filters, results, theme) — COMPLETE (M-0001; HDT PASS)
-- T-0003 — Tools page (channel resolver) — PLANNED (M-0001, blocked by T-0001)
+- T-0003 — Tools page (channel resolver) — COMPLETE (M-0001; HDT PASS)
 - T-0004 — Settings page + header/nav polish — PLANNED (M-0001, blocked by T-0002)
 
 ## Roadmap Rules

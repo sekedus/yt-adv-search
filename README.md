@@ -6,7 +6,7 @@ Fast, lightweight YouTube advanced search using YouTube Data API v3 through a ke
 
 YouTube removed Last Hour and Rating/Date sorting; Invidious is heavy for quick filtered search. This restores those filters via the API with `channel:` / `handle:` / date operators.
 
-## What it does (v1 — search live, tools/settings pending)
+## What it does (v1 — search + tools live, settings pending)
 
 - Search page `/`: Invidious-like bar + Filters (date, type, duration, features, sort) + results + Next/Prev.
 - Operators: `channel:UC...`, `handle:@fireship`, `before:`/`after:` resolved server-side.

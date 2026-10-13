@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (T-0001, T-0002 complete; T-0003/T-0004 awaiting authorization)
+BUILD (T-0001..T-0003 complete; T-0004 awaiting authorization)
 
 ## State Integrity
 
@@ -17,11 +17,11 @@ M-0001 — yt-adv-search v1 (IN_PROGRESS). See `dev/milestones/M-0001-yt-adv-sea
 
 ## Current Task
 
-None — T-0002 COMPLETE (see `dev/tasks/done/T-0002-search-page.md`, HDT PASS). Next when authorized: T-0003 or T-0004.
+None — T-0003 COMPLETE (see `dev/tasks/done/T-0003-tools-page.md`, HDT PASS). Next when authorized: T-0004.
 
 ## Current Step
 
-T-0002 verified and closed. Awaiting user authorization to start T-0003/T-0004.
+T-0003 verified and closed. Awaiting user authorization to start T-0004.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Build yt-adv-search v1: Worker proxy + search + tools + settings.
 
 ## Next Action
 
-Start T-0003 or T-0004 only when user explicitly authorizes implementation.
+Start T-0004 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -53,17 +53,17 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0002_VERIFIED
+Status: T-0003_VERIFIED
 
 Evidence:
 
 - `node --check worker.js` — PASS (untouched).
-- Static checks 36/36 PASS (syntax, ids, tooltips, options, safe rendering,
-  theme contract, prefs keys, `?channel=` link-in).
-- Live wrangler smoke: `/` serves real page, `/styles.css` serves CSS,
-  `/api/search` error path clean.
-- HDT PASS (user 2026-10-13): scoped search, filters + enrichment, tooltips,
-  pager, theme persistence, zero console errors.
+- Static checks 25/25 PASS (syntax, ids, shared header/theme contract,
+  kind→param mapping, `Use in search` link-in, safe rendering).
+- Live wrangler smoke: `/tools` serves real page, `/api/channel` error path clean.
+- HDT PASS (user 2026-10-13): URL/@/bare/ID resolve to
+  `UCsBjURrPoezykLs9EqgamOA`; unknown handle → clean 404 as designed;
+  `Use in search` scopes + auto-runs; zero console errors.
 
 ## Commit Policy
 
@@ -75,7 +75,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-TASK_COMPLETE_T-0002
+TASK_COMPLETE_T-0003
 
 ## README Status
 

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tools — yt-adv-search</title>
+<link rel="stylesheet" href="/styles.css">
+<script>
+// Same theme-init contract as / (see public/index.html).
+(function () {
+  try {
+    var t = localStorage.getItem("ytadv.theme") || "auto";
+    if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", "auto");
+  }
+})();
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">YT Adv Search</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/">Search</a><a href="/tools" aria-current="page">Tools</a>
+    </nav>
+    <form class="searchform" role="search" action="/" method="get">
+      <label class="visually-hidden" for="q">Search YouTube</label>
+      <input type="search" id="q" name="q" maxlength="500" autocomplete="off" placeholder="Search">
+      <button class="primary" type="submit">Search</button>
+    </form>
+    <div class="topbar-actions">
+      <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
+      <a class="iconbtn" href="/settings">Settings</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <h1>Channel resolver</h1>
+  <p class="hint">Paste a channel URL, handle, ID, or legacy username — e.g.
+  <code>https://www.youtube.com/@Fireship/videos</code>, <code>@fireship</code>,
+  <code>fireship</code>, <code>UCsBjURrPoezykLs9EqgamOA</code>.</p>
+
+  <form class="panel" id="resolveForm" action="/tools" method="get">
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <label class="visually-hidden" for="input">Channel URL, handle, ID, or username</label>
+      <input type="text" id="input" name="input" maxlength="1000" autocomplete="off"
+             placeholder="Channel URL / @handle / UC… / username"
+             style="flex:1 1 280px">
+      <label class="visually-hidden" for="kind">Input kind</label>
+      <select id="kind" name="kind">
+        <option value="auto">Auto-detect</option>
+        <option value="url">URL / handle / ID</option>
+        <option value="id">Channel ID</option>
+        <option value="handle">Handle</option>
+        <option value="username">Legacy username</option>
+      </select>
+      <button class="primary" type="submit">Resolve</button>
+    </div>
+  </form>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <section id="result" aria-label="Channel result"></section>
+</main>
+
+<script>
+(function () {
+"use strict";
+
+function $(id) { return document.getElementById(id); }
+function storeGet(k, fb) {
+  try { var v = localStorage.getItem(k); return v === null ? fb : v; }
+  catch (e) { return fb; }
+}
+function storeSet(k, v) {
+  try { localStorage.setItem(k, v); } catch (e) { /* prefs just don't persist */ }
+}
+
+/* Theme toggle (same contract as /). */
+var themeBtn = $("themeBtn");
+function paintTheme(t) {
+  document.documentElement.dataset.theme = t;
+  themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+}
+var theme = storeGet("ytadv.theme", "auto");
+if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
+paintTheme(theme);
+themeBtn.addEventListener("click", function () {
+  theme = theme === "auto" ? "light" : (theme === "light" ? "dark" : "auto");
+  storeSet("ytadv.theme", theme);
+  paintTheme(theme);
+});
+
+var form = $("resolveForm"), input = $("input"), kindSel = $("kind");
+var statusEl = $("status"), resultEl = $("result");
+
+function setStatus(msg, isError) {
+  statusEl.textContent = msg;
+  statusEl.classList.toggle("error", !!isError);
+}
+
+function resolve(inputVal, kind) {
+  var p = new URLSearchParams();
+  // Server-side parseChannelRef handles URLs, @handles, bare words and UC
+  // ids through ?url=; explicit kinds map 1:1 to /api/channel params.
+  if (kind === "id") p.set("id", inputVal);
+  else if (kind === "handle") p.set("handle", inputVal);
+  else if (kind === "username") p.set("username", inputVal);
+  else p.set("url", inputVal);
+  setStatus("Resolving…", false);
+  resultEl.innerHTML = "";
+  fetch("/api/channel?" + p.toString(), { headers: { "accept": "application/json" } })
+    .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+    .then(function (out) {
+      if (!out.ok) {
+        setStatus((out.data && out.data.error) || "Resolve failed.", true);
+        return;
+      }
+      var item = (out.data.items || [])[0];
+      if (!item || !item.id) {
+        setStatus("Channel not found.", true);
+        return;
+      }
+      setStatus("", false);
+      render(item);
+    })
+    .catch(function () {
+      setStatus("Network error talking to the proxy.", true);
+    });
+}
+
+function render(item) {
+  var sn = item.snippet || {};
+  var thumbs = sn.thumbnails || {};
+  var turl = (thumbs.medium && thumbs.medium.url) || (thumbs.default && thumbs.default.url) || "";
+  var stats = item.statistics || {};
+  var card = document.createElement("article");
+  card.className = "card";
+  var thumb = document.createElement("div");
+  thumb.className = "thumb";
+  if (turl) {
+    var img = document.createElement("img");
+    img.src = turl;
+    img.alt = "";
+    img.loading = "lazy";
+    thumb.appendChild(img);
+  }
+  var body = document.createElement("div");
+  body.className = "card-body";
+  var title = document.createElement("h3");
+  title.className = "card-title";
+  title.textContent = sn.title || "(untitled)";
+  var idLine = document.createElement("p");
+  idLine.className = "card-meta mono";
+  idLine.textContent = item.id;
+  var sub = document.createElement("p");
+  sub.className = "views";
+  if (stats.subscriberCount) {
+    sub.textContent = Number(stats.subscriberCount).toLocaleString("en-US") + " subscribers";
+  }
+  var use = document.createElement("a");
+  use.className = "btn primary";
+  use.href = "/?channel=" + encodeURIComponent(item.id);
+  use.textContent = "Use in search";
+  body.append(title, idLine);
+  if (sub.textContent) body.appendChild(sub);
+  body.appendChild(use);
+  card.append(thumb, body);
+  resultEl.appendChild(card);
+}
+
+form.addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  var v = input.value.trim();
+  if (!v) {
+    setStatus("Paste a channel URL, handle, ID, or username first.", false);
+    return;
+  }
+  resolve(v, kindSel.value);
+});
+})();
+</script>
+</body>
+</html>
