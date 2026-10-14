@@ -9,6 +9,7 @@ YouTube removed Last Hour and Rating/Date sorting; Invidious is heavy for quick 
 ## What it does (v1)
 
 - Search page `/`: Invidious-like bar + Filters (date, type, duration, features, sort) + results + Next/Prev.
+- Filters sync to the URL (shareable/bookmarkable; back/forward restores) and include Advanced client-side filters: upload year, hide Shorts, min/max duration, min views, hide title/channel substrings.
 - Operators: `channel:UC...`, `handle:@fireship`, `before:`/`after:` resolved server-side.
 - Tools page `/tools`: paste channel URL / handle / username → channel ID (e.g. `@Fireship` → `UCsBjURrPoezykLs9EqgamOA`).
 - Settings page `/settings` (gear): theme Auto/Dark/Light, page size, SafeSearch, region/language, duration+views opt-in.

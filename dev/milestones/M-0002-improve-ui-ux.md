@@ -1,8 +1,8 @@
 ---
 id: M-0002
-status: PLANNED
+status: ACTIVE
 created: "2026-10-13"
-updated: "2026-10-13"
+updated: "2026-10-14"
 ---
 
 # M-0002 — Improve UI/UX
@@ -46,7 +46,7 @@ links and relative dates, fixed scope bar, and responsive behavior.
 
 ## Tasks
 
-- [ ] T-0005 — Search layout + filter panel UX
+- [x] T-0005 — Search layout + filter panel UX (COMPLETE; HDT PASS)
 - [ ] T-0006 — Results cards + view modes + scopebar + dates
 - [ ] T-0007 — Settings polish + global responsive
 

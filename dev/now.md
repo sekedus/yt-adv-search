@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-MILESTONE_PLANNED (M-0002 planned; no active task)
+BUILD (M-0002 ACTIVE; no active task)
 
 ## State Integrity
 
@@ -13,15 +13,15 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0002 — Improve UI/UX (PLANNED). See `dev/milestones/M-0002-improve-ui-ux.md`.
+M-0002 — Improve UI/UX (ACTIVE). See `dev/milestones/M-0002-improve-ui-ux.md`.
 
 ## Current Task
 
-None — T-0005/T-0006/T-0007 are PLANNED, implementation not authorized.
+None — T-0005 COMPLETE; T-0006/T-0007 PLANNED, implementation not authorized.
 
 ## Current Step
 
-Milestone planned. Awaiting user direction (start a named task or adjust plan).
+T-0005 complete and verified. Awaiting user direction (start T-0006 or T-0007, or adjust plan).
 
 ## Objective
 
@@ -29,7 +29,7 @@ Polish UI/UX: layout, filter panel, results cards, settings.
 
 ## Next Action
 
-Start T-0005 only when user explicitly authorizes implementation.
+Start T-0006 or T-0007 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -50,16 +50,17 @@ None.
 
 - Read `dev/constraints.md` before compatibility/platform decisions.
 - Keys server-only; enrichment OFF default.
-- Planning-only: no implementation started.
+- T-0005 shares `.container`/filter CSS with T-0006/T-0007; keep class contracts.
 
 ## Verification Snapshot
 
-Status: M-0002_PLANNED
+Status: T-0005_COMPLETE
 
 Evidence:
 
-- M-0002 + T-0005/T-0006/T-0007 created as PLANNED; roadmap reconciled.
-- Parking lot reviewed: empty, nothing to promote.
+- `node --check worker.js` — PASS (worker untouched).
+- Static 43/43 PASS + `isoToSeconds` 5/5 PASS (see done task Notes/Evidence).
+- HDT REQUIRED — PASS (user report 2026-10-14: all manual steps passed).
 
 ## Commit Policy
 
@@ -71,21 +72,21 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-PLAN_M-0002
+T-0005_COMPLETE_UNCOMMITTED
 
 ## README Status
 
-UNCHANGED — planning-only, no user-visible behavior changed.
+UPDATED — filter share URLs + advanced filters documented.
 
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - Grid/list column counts assumed from screenshots; confirm at implementation.
-- Advanced filters need feasibility check (YT API vs client-side).
+- T-0005 advanced decision: year/API + client post-filters live; hide-watched dropped (no history).
 
 ## Do Not Change
 
-- Do not start implementation until user authorizes a named task.
+- Do not expand into T-0006/T-0007 scope (cards/settings).
 
 ## Resume Instruction
 

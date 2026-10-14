@@ -41,7 +41,7 @@
 </header>
 
 <main class="container">
-  <details class="filters" id="filtersPanel">
+  <details class="filters" id="filtersPanel" open>
     <summary>Filters</summary>
     <div class="filtergrid">
       <fieldset>
@@ -89,13 +89,13 @@
       </fieldset>
       <fieldset>
         <legend>Sort by</legend>
-        <select id="order">
-          <option value="relevance">Relevance</option>
-          <option value="date">Date</option>
-          <option value="rating">Rating</option>
-          <option value="viewCount">View count</option>
-          <option value="title">Title</option>
-        </select>
+        <div class="radiorow" id="orderGroup">
+          <label><input type="radio" name="order" value="relevance" checked> Relevance</label>
+          <label><input type="radio" name="order" value="date"> Date</label>
+          <label><input type="radio" name="order" value="rating"> Rating</label>
+          <label><input type="radio" name="order" value="viewCount"> View count</label>
+          <label><input type="radio" name="order" value="title"> Title</label>
+        </div>
       </fieldset>
       <fieldset>
         <legend>Page size</legend>
@@ -106,17 +106,39 @@
           <option value="50">50</option>
         </select>
       </fieldset>
+      <fieldset>
+        <legend>Advanced</legend>
+        <div class="advcol">
+          <label>Upload year <input type="number" id="f-year" min="2005" max="2100" step="1" placeholder="e.g. 2024"></label>
+          <label><input type="checkbox" id="f-hideShorts"> Hide Shorts (needs Extra ON)</label>
+          <label>Min duration (sec) <input type="number" id="f-minDur" min="0" step="1" placeholder="0"></label>
+          <label>Max duration (sec) <input type="number" id="f-maxDur" min="0" step="1" placeholder="e.g. 600"></label>
+          <label>Min views <input type="number" id="f-minViews" min="0" step="1" placeholder="e.g. 1000"></label>
+          <label>Hide in title <input type="text" id="f-hideTitle" maxlength="200" placeholder="spoiler, live"></label>
+          <label>Hide channels <input type="text" id="f-hideChannel" maxlength="200" placeholder="channel name"></label>
+          <p class="fine">Year uses the API date range. Other filters apply to loaded results (no extra quota). Hide-watched omitted: no watch history in v1.</p>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Operators</legend>
+        <ul class="opslist">
+          <li><code>channel:UC…</code> scope to a channel id</li>
+          <li><code>handle:@x</code> scope via handle</li>
+          <li><code>user:name</code> scope via legacy username</li>
+          <li><code>before:YYYY-MM-DD</code> / <code>after:YYYY-MM-DD</code> date range (wins over Upload-date/year)</li>
+        </ul>
+        <p class="fine">Anything else shaped like <code>word:value</code> is searched literally.</p>
+      </fieldset>
     </div>
     <div class="filter-actions">
       <button class="primary" id="applyBtn" type="button">Apply</button>
-      <label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label>
+      <label><input type="checkbox" id="enrich"> Extra: displays duration + views (uses more api quota)</label>
     </div>
   </details>
 
   <p class="hint">Operators: <code>channel:UC…</code> <code>handle:@x</code>
   <code>user:name</code> <code>before:YYYY-MM-DD</code> <code>after:YYYY-MM-DD</code>.
-  Anything else shaped like <code>word:value</code> is searched literally.
-  A date operator in the query wins over the Upload-date filter.</p>
+  See the Operators box in Filters for details.</p>
 
   <div class="scopebar" id="scopeBar" hidden></div>
   <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -163,20 +185,90 @@ themeBtn.addEventListener("click", function () {
 });
 
 /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
-var maxSel = $("maxResults"), orderSel = $("order"), enrichBox = $("enrich");
+var maxSel = $("maxResults"), enrichBox = $("enrich");
+var yearInput = $("f-year"), hideShortsBox = $("f-hideShorts");
+var minDurInput = $("f-minDur"), maxDurInput = $("f-maxDur"), minViewsInput = $("f-minViews");
+var hideTitleInput = $("f-hideTitle"), hideChannelInput = $("f-hideChannel");
+var filtersPanel = $("filtersPanel");
+function setRadio(name, value, fallback) {
+  var vals = [];
+  var nodes = document.querySelectorAll('input[name="' + name + '"]');
+  for (var i = 0; i < nodes.length; i++) vals.push(nodes[i].value);
+  var want = vals.indexOf(value) >= 0 ? value : fallback;
+  for (var j = 0; j < nodes.length; j++) nodes[j].checked = (nodes[j].value === want);
+  return want;
+}
 maxSel.value = storeGet("ytadv.maxResults", "25");
 if (maxSel.selectedIndex < 0) maxSel.value = "25";
-orderSel.value = storeGet("ytadv.order", "relevance");
-if (orderSel.selectedIndex < 0) orderSel.value = "relevance";
+setRadio("order", storeGet("ytadv.order", "relevance"), "relevance");
 enrichBox.checked = storeGet("ytadv.enrich", "0") === "1";
 
-/* Link-in contract from /tools: ?channel=UC… (or ?channelId=) scopes the
- * search; ?q= prefills the query. Auto-runs when either is present. */
-var qs = new URLSearchParams(location.search);
+/* Filter state <-> URL sync (T-0005): shareable/bookmarkable; back/forward restores. */
 var qInput = $("q");
-if (qs.get("q")) qInput.value = qs.get("q").slice(0, 500);
-var scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
+var scopedChannel = "";
 var scopeBar = $("scopeBar");
+function readStateFromURL() {
+  var qs = new URLSearchParams(location.search);
+  if (qs.get("q")) qInput.value = qs.get("q").slice(0, 500);
+  else if (!qs.has("q")) qInput.value = "";
+  scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
+  var pick = function (k, fb) { var v = qs.get(k); return v === null || v === "" ? fb : v; };
+  setRadio("date", pick("date", checkedRadio("date")), "any");
+  setRadio("type", pick("type", checkedRadio("type")), "any");
+  setRadio("dur", pick("dur", checkedRadio("dur")), "any");
+  setRadio("order", pick("order", checkedRadio("order")), "relevance");
+  $("f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("f-cc").checked;
+  $("f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("f-commons").checked;
+  $("f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("f-live").checked;
+  $("f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("f-hd").checked;
+  if (qs.has("maxResults")) {
+    maxSel.value = qs.get("maxResults");
+    if (maxSel.selectedIndex < 0) maxSel.value = "25";
+  }
+  if (qs.has("enrich")) enrichBox.checked = qs.get("enrich") === "1";
+  yearInput.value = qs.has("year") ? qs.get("year").slice(0, 4) : yearInput.value;
+  hideShortsBox.checked = qs.has("hideShorts") ? qs.get("hideShorts") === "1" : hideShortsBox.checked;
+  minDurInput.value = qs.has("minDur") ? qs.get("minDur").slice(0, 6) : minDurInput.value;
+  maxDurInput.value = qs.has("maxDur") ? qs.get("maxDur").slice(0, 6) : maxDurInput.value;
+  minViewsInput.value = qs.has("minViews") ? qs.get("minViews").slice(0, 12) : minViewsInput.value;
+  hideTitleInput.value = qs.has("hideTitle") ? qs.get("hideTitle").slice(0, 200) : hideTitleInput.value;
+  hideChannelInput.value = qs.has("hideChannel") ? qs.get("hideChannel").slice(0, 200) : hideChannelInput.value;
+}
+function currentStateToURL() {
+  var u = new URLSearchParams();
+  var q = qInput.value.trim();
+  if (q) u.set("q", q);
+  if (scopedChannel) u.set("channel", scopedChannel);
+  var dateV = checkedRadio("date"), typeV = checkedRadio("type");
+  var durV = checkedRadio("dur"), orderV = checkedRadio("order");
+  if (dateV !== "any") u.set("date", dateV);
+  if (typeV !== "any") u.set("type", typeV);
+  if (durV !== "any") u.set("dur", durV);
+  if (orderV !== "relevance") u.set("order", orderV);
+  if ($("f-cc").checked) u.set("cc", "1");
+  if ($("f-commons").checked) u.set("commons", "1");
+  if ($("f-live").checked) u.set("live", "1");
+  if ($("f-hd").checked) u.set("hd", "1");
+  if (maxSel.value !== "25") u.set("maxResults", maxSel.value);
+  if (enrichBox.checked) u.set("enrich", "1");
+  if (yearInput.value.trim()) u.set("year", yearInput.value.trim());
+  if (hideShortsBox.checked) u.set("hideShorts", "1");
+  if (minDurInput.value.trim()) u.set("minDur", minDurInput.value.trim());
+  if (maxDurInput.value.trim()) u.set("maxDur", maxDurInput.value.trim());
+  if (minViewsInput.value.trim()) u.set("minViews", minViewsInput.value.trim());
+  if (hideTitleInput.value.trim()) u.set("hideTitle", hideTitleInput.value.trim());
+  if (hideChannelInput.value.trim()) u.set("hideChannel", hideChannelInput.value.trim());
+  return u;
+}
+function syncURL(mode) {
+  var u = currentStateToURL();
+  var s = u.toString();
+  var next = s ? ("/?" + s) : "/";
+  try {
+    if (mode === "push") history.pushState(null, "", next);
+    else history.replaceState(null, "", next);
+  } catch (e) { /* file:// or private mode: URL just won't sync */ }
+}
 function paintScope() {
   if (scopedChannel) {
     scopeBar.hidden = false;
@@ -196,6 +288,12 @@ function paintScope() {
   }
 }
 paintScope();
+readStateFromURL();
+paintScope();
+
+/* Panel open on homepage/first load when no results yet (T-0005). */
+var hasInitialQuery = !!(qInput.value.trim() || scopedChannel);
+try { filtersPanel.open = !hasInitialQuery; } catch (e) { /* no details support */ }
 
 /* Filter -> search.list params. */
 var DATE_MS = { hour: 36e5, today: 24 * 36e5, week: 7 * 24 * 36e5, month: 30 * 24 * 36e5, year: 365 * 24 * 36e5 };
@@ -215,9 +313,17 @@ function buildParams(pageToken) {
   if (scopedChannel) p.set("channelId", scopedChannel);
 
   var hasDateOp = /(?:^|\s)(?:before|after):/i.test(q);
-  var dateP = checkedRadio("date");
-  if (dateP !== "any" && !hasDateOp && DATE_MS[dateP]) {
-    p.set("publishedAfter", new Date(Date.now() - DATE_MS[dateP]).toISOString());
+  var yearRaw = yearInput.value.trim();
+  var yearNum = /^\d{4}$/.test(yearRaw) ? +yearRaw : 0;
+  if (yearNum < 2005 || yearNum > 2100) yearNum = 0;
+  if (!hasDateOp && yearNum) {
+    p.set("publishedAfter", yearNum + "-01-01T00:00:00Z");
+    p.set("publishedBefore", (yearNum + 1) + "-01-01T00:00:00Z");
+  } else {
+    var dateP = checkedRadio("date");
+    if (dateP !== "any" && !hasDateOp && DATE_MS[dateP]) {
+      p.set("publishedAfter", new Date(Date.now() - DATE_MS[dateP]).toISOString());
+    }
   }
 
   var type = checkedRadio("type");
@@ -244,7 +350,9 @@ function buildParams(pageToken) {
     if ($("f-hd").checked) p.set("videoDefinition", "high");
   }
 
-  p.set("order", orderSel.value);
+  var orderV = checkedRadio("order");
+  if (["relevance", "date", "rating", "viewCount", "title"].indexOf(orderV) < 0) orderV = "relevance";
+  p.set("order", orderV);
   p.set("maxResults", maxSel.value);
   p.set("safeSearch", storeGet("ytadv.safeSearch", "moderate"));
   var region = storeGet("ytadv.region", ""), lang = storeGet("ytadv.lang", "");
@@ -254,9 +362,9 @@ function buildParams(pageToken) {
   if (pageToken) p.set("pageToken", pageToken);
 
   storeSet("ytadv.maxResults", maxSel.value);
-  storeSet("ytadv.order", orderSel.value);
+  storeSet("ytadv.order", orderV);
   storeSet("ytadv.enrich", enrichBox.checked ? "1" : "0");
-  return { params: p, coerced: coerced };
+  return { params: p, coerced: coerced, year: yearNum };
 }
 
 function fmtDuration(iso) {
@@ -315,17 +423,67 @@ function renderItems(items) {
   });
 }
 
+function isoToSeconds(iso) {
+  var m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(String(iso || ""));
+  if (!m) return null;
+  return (+(m[1] || 0)) * 3600 + (+(m[2] || 0)) * 60 + (+(m[3] || 0));
+}
+
+/* Advanced decision (T-0005):
+ * - year: API publishedAfter/Before (native, no extra quota).
+ * - hide Shorts / min-max duration / min views: client-side post-filter on
+ *   enrichment (duration/viewCount); needs Extra ON, else kept with a note.
+ * - hide title/channel substrings: client-side, no quota.
+ * - hide watched: DROPPED — no watch history in v1, no API equivalent.
+ */
+function applyAdvancedFilters(items) {
+  var hideShorts = hideShortsBox.checked;
+  var minD = parseInt(minDurInput.value.trim(), 10);
+  var maxD = parseInt(maxDurInput.value.trim(), 10);
+  var minV = parseInt(minViewsInput.value.trim(), 10);
+  if (isNaN(minD)) minD = null;
+  if (isNaN(maxD)) maxD = null;
+  if (isNaN(minV)) minV = null;
+  var hideT = hideTitleInput.value.split(",").map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+  var hideC = hideChannelInput.value.split(",").map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+  var needsEnrich = hideShorts || minD !== null || maxD !== null || minV !== null;
+  var enrichOn = enrichBox.checked;
+  var hidden = 0;
+  var kept = (items || []).filter(function (it) {
+    var sn = it.snippet || {};
+    var title = String(sn.title || "").toLowerCase();
+    var chan = String(sn.channelTitle || "").toLowerCase();
+    for (var i = 0; i < hideT.length; i++) {
+      if (title.indexOf(hideT[i]) >= 0) { hidden++; return false; }
+    }
+    for (var j = 0; j < hideC.length; j++) {
+      if (chan.indexOf(hideC[j]) >= 0) { hidden++; return false; }
+    }
+    var en = it.enrichment || {};
+    if (needsEnrich && !enrichOn) return true;
+    var secs = en.duration ? isoToSeconds(en.duration) : null;
+    if (hideShorts && secs !== null && secs <= 180) { hidden++; return false; }
+    if (minD !== null && secs !== null && secs < minD) { hidden++; return false; }
+    if (maxD !== null && secs !== null && secs > maxD) { hidden++; return false; }
+    if (minV !== null && en.viewCount !== undefined && en.viewCount !== null && +en.viewCount < minV) { hidden++; return false; }
+    return true;
+  });
+  return { items: kept, hidden: hidden, needsEnrich: needsEnrich && !enrichOn };
+}
+
 function setStatus(msg, isError) {
   statusEl.textContent = msg;
   statusEl.classList.toggle("error", !!isError);
 }
 
-function runSearch(pageToken) {
+function runSearch(pageToken, opts) {
   var built = buildParams(pageToken);
   if (!qInput.value.trim() && !scopedChannel) {
     setStatus("Type a query, or scope to a channel.", false);
+    syncURL("replace");
     return;
   }
+  syncURL(opts && opts.push ? "push" : "replace");
   setStatus("Searching…", false);
   resultsEl.innerHTML = "";
   prevBtn.disabled = true;
@@ -346,11 +504,17 @@ function runSearch(pageToken) {
         setStatus("No results.", false);
         return;
       }
-      var note = items.length + " result" + (items.length === 1 ? "" : "s") + ".";
+      var adv = applyAdvancedFilters(items);
+      var shown = adv.items;
+      var note = shown.length + " result" + (shown.length === 1 ? "" : "s") + ".";
+      if (adv.hidden) note += " (" + adv.hidden + " hidden by advanced filters.)";
       if (built.coerced) note += " (Video-only filters: type set to Video.)";
+      if (built.year) note += " (Year " + built.year + ".)";
+      if (adv.needsEnrich) note += " Advanced duration/views filters need Extra ON.";
       if (out.data.enrichmentError) note += " Duration/views unavailable.";
       setStatus(note, false);
-      renderItems(items);
+      if (shown.length === 0) { resultsEl.innerHTML = ""; return; }
+      renderItems(shown);
     })
     .catch(function () {
       setStatus("Network error talking to the proxy.", true);
@@ -359,11 +523,17 @@ function runSearch(pageToken) {
 
 $("searchForm").addEventListener("submit", function (ev) {
   ev.preventDefault();
-  runSearch(null);
+  runSearch(null, { push: true });
 });
-$("applyBtn").addEventListener("click", function () { runSearch(null); });
+$("applyBtn").addEventListener("click", function () { runSearch(null, { push: true }); });
 prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
 nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
+window.addEventListener("popstate", function () {
+  readStateFromURL();
+  paintScope();
+  if (qInput.value.trim() || scopedChannel) runSearch(null);
+  else { resultsEl.innerHTML = ""; setStatus("Type a query, or scope to a channel.", false); }
+});
 
 if (qInput.value.trim() || scopedChannel) runSearch(null);
 })();
