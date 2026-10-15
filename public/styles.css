@@ -141,18 +141,18 @@ a {
   font-weight: 600;
 }
 
-.menuBtn {
+.menu-btn {
   display: none;
 }
 
 /* Theme toggle is emoji-only on all viewports; accessible name via
  * aria-label/title set by JS. */
-#themeBtn {
+.theme-btn {
   min-width: 40px;
   text-align: center;
 }
 
-.searchform {
+.search-form {
   display: flex;
   flex: 1 1 280px;
   max-width: 600px;
@@ -161,14 +161,14 @@ a {
 }
 
 /* Topbar search (tools/settings) sits on its own centered row so the
- * absolutely-centered brand never overlaps it. Index uses .searchpanel. */
-.topbar-inner .searchform {
+ * absolutely-centered brand never overlaps it. Index uses .search-panel. */
+.topbar-inner .search-form {
   order: 10;
   flex-basis: 100%;
   max-width: 720px;
 }
 
-.searchform input[type="search"] {
+.search-form input[type="search"] {
   flex: 1;
   min-width: 0;
 }
@@ -205,7 +205,6 @@ select {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
-  font: inherit;
   font-size: 15px;
 }
 
@@ -217,7 +216,7 @@ button,
   border-radius: 8px;
   padding: 8px 14px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   display: inline-block;
 }
@@ -327,8 +326,8 @@ label.disabled {
   }
 }
 
-/* Search panel (index: searchform lives above filters, not in topbar) */
-.searchpanel {
+/* Search panel (index: search-form lives above filters, not in topbar) */
+.search-panel {
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -336,14 +335,14 @@ label.disabled {
   padding: 12px 14px;
 }
 
-.searchpanel .searchform {
+.search-panel .search-form {
   max-width: none;
   margin-inline: 0;
 }
 
 /* Hide the panel Search button while filters are open (JS also toggles
  * `hidden` for browsers without :has). Apply still runs the search. */
-.container:has(#filtersPanel[open]) .searchpanel .searchform button[type="submit"] {
+.container:has(#filtersPanel[open]) .search-panel .search-form button[type="submit"] {
   display: none;
 }
 
@@ -554,7 +553,7 @@ label.disabled {
   .topbar-inner {
     padding: 8px 12px;
   }
-  .searchform {
+  .search-form {
     flex-basis: 100%;
     max-width: none;
   }
@@ -565,14 +564,14 @@ label.disabled {
 
 /* Responsive topbar: row is [menu] [centered brand] [theme].
  * Nav hides behind hamburger as an absolute overlay dropdown so opening it
- * never moves .brand; topbar searchform (tools/settings) wraps to a
+ * never moves .brand; topbar search-form (tools/settings) wraps to a
  * full-width second row. */
 @media (max-width: 700px) {
   .topbar-inner {
     flex-wrap: wrap;
     gap: 8px;
   }
-  .menuBtn {
+  .menu-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -598,18 +597,19 @@ label.disabled {
   .nav a {
     padding: 10px 12px;
   }
-  .topbar-inner .searchform {
+  .topbar-inner .search-form {
     order: 9;
     flex-basis: 100%;
     max-width: none;
   }
-  .searchpanel .searchform {
+  .search-panel .search-form {
     flex-basis: auto;
   }
 }
 
-/* Narrow screens: stack horizontal (list) cards so the fixed-width thumb
- * never overflows a 360px viewport; thumb becomes full-width. */
+/* Narrow screens: stack grid cards so the fixed-width thumb never overflows
+ * a 360px viewport (thumb becomes full-width). List view instead stays a
+ * compact row: small thumb left, text right. */
 @media (max-width: 640px) {
   .card {
     flex-direction: column;
@@ -617,6 +617,56 @@ label.disabled {
   .thumb {
     flex: none;
     width: 100%;
+  }
+  .results.list .card {
+    flex-direction: row;
+    gap: 12px;
+  }
+  .results.list .thumb {
+    flex: 0 0 140px;
+    width: 140px;
+  }
+  /* Video/playlist thumbs fill the full row height (cover-crop). */
+  .results.list .kind-video .thumb,
+  .results.list .kind-playlist .thumb {
+    align-self: stretch;
+  }
+  .results.list .kind-video .thumb-link,
+  .results.list .kind-playlist .thumb-link {
+    display: block;
+    height: 100%;
+  }
+  .results.list .kind-video .thumb img,
+  .results.list .kind-playlist .thumb img {
+    height: 100%;
+  }
+  .results.list .kind-channel .thumb {
+    min-height: 0;
+    align-self: center;
+  }
+  .results.list .kind-channel .thumb img {
+    width: 96px;
+    height: 96px;
+  }
+  .results.list .card-desc {
+    display: none;
+  }
+  .results.list .card-actions {
+    margin: 8px 0 0;
+  }
+  /* Tools channel-result card: same compact row (its image is banner-wide,
+   * and the img has no link wrapper so height resolves directly). */
+  #result .card {
+    flex-direction: row;
+    gap: 12px;
+  }
+  #result .thumb {
+    flex: 0 0 140px;
+    width: 140px;
+    align-self: stretch;
+  }
+  #result .thumb img {
+    height: 100%;
   }
 }
 
@@ -647,17 +697,25 @@ label.disabled {
 
 .resultbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin: 0 0 16px;
 }
 
 .resultbar .status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex: 1;
   min-width: 0;
+}
+
+#refreshBtn {
+  flex: none;
+}
+
+@media (max-width: 700px) {
+  /* Status takes row 1; Refresh (left) + View (right) share row 2. */
+  .resultbar .status {
+    flex-basis: 100%;
+  }
 }
 
 .view {
@@ -666,6 +724,7 @@ label.disabled {
   gap: 8px;
   margin: 0;
   flex: none;
+  margin-left: auto;
 }
 
 .view-label {
@@ -914,4 +973,27 @@ label.disabled {
 
 [hidden] {
   display: none;
+}
+
+/* T-0010 floating top/bottom jump buttons (bottom-right corner). */
+.jumpbtns {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 60;
+}
+
+.jumpbtns button {
+  border-radius: 0;
+  padding: 8px 14px;
+  border-color: var(--text);
+}
+
+@media (max-width: 700px) {
+  .jumpbtns {
+    right: 12px;
+    bottom: 12px;
+  }
 }

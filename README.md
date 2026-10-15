@@ -12,7 +12,7 @@ YouTube removed Last Hour and Rating/Date sorting; Invidious is heavy for quick 
 - Filters sync to the URL (shareable/bookmarkable; back/forward restores) and include Advanced filters with full `search.list` coverage plus per-control help.
 - Operators: `channel:UC...`, `handle:@fireship`, `before:`/`after:` resolved server-side.
 - Tools page `/tools`: paste channel URL / handle / username → channel ID (e.g. `@Fireship` → `UCsBjURrPoezykLs9EqgamOA`).
-- Settings page `/settings` (gear): theme Auto/Dark/Light, page size, SafeSearch, region/language, duration+views opt-in.
+- Settings page `/settings` (gear): theme Auto/Dark/Light, page size, SafeSearch, region/language, duration+views opt-in, max result-cache time.
 - Auto theme, dark default. No login.
 
 ## Architecture
@@ -31,7 +31,7 @@ Browser → Worker `/api/search`, `/api/channel` → Google. Keys in `YOUTUBE_AP
 
 ## Docs
 
-- `dev/project.md` — scope and stack.
-- `ARCHITECTURE-MAP.md` — where code lives.
-- `dev/verification.md` — how changes are proven.
-- `dev/roadmap.md` — milestones and tasks.
+- `dev/project.md` – scope and stack.
+- `ARCHITECTURE-MAP.md` – where code lives.
+- `dev/verification.md` – how changes are proven.
+- `dev/roadmap.md` – milestones and tasks.

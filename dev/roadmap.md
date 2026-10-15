@@ -10,7 +10,7 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — reopened for T-0009
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 - M-0002 — Improve UI/UX — COMPLETE — Layout + filters + cards + settings polish.
-- M-0003 — Filter/topbar/settings neat pass — IN_PROGRESS — Neat advanced filters, centered hamburger topbar, merged settings + T-0009 follow-up.
+- M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009/T-0010 COMPLETE; closes only on explicit user confirmation).
 
 ## Task Index
 
@@ -23,6 +23,7 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — reopened for T-0009
 - T-0007 — Settings polish + global responsive — COMPLETE (M-0002; HDT PASS)
 - T-0008 — Filter panel neat layout + topbar center/hamburger + settings merge — COMPLETE (M-0003; HDT PASS)
 - T-0009 — Mobile nav overlay fix + focus/autofocus + topbar/nav + stacked help + no-inline-style — COMPLETE (M-0003; HDT PASS)
+- T-0010 — Quota-aware keys + result cache + playlist scope + keyboard/scroll UX — COMPLETE (M-0003; HDT PASS)
 
 ## Roadmap Rules
 

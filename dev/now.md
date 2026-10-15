@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (M-0003 IN_PROGRESS — all tasks done, open only per user instruction; no active task)
+BUILD (M-0003 IN_PROGRESS — T-0008/T-0009/T-0010 COMPLETE; closes only on explicit user confirmation; no active task)
 
 ## State Integrity
 
@@ -17,19 +17,19 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009 COMPL
 
 ## Current Task
 
-None — T-0009 COMPLETE. M-0003 left open per user instruction.
+None — T-0010 COMPLETE (HDT PASS 2026-10-16). M-0003 left open per user instruction.
 
 ## Current Step
 
-T-0009 complete and verified (HDT PASS 2026-10-16). Committing on user request.
+T-0010 complete and verified. Committing on user request.
 
 ## Objective
 
-Overlay mobile nav (brand stays put), query-gated autofocus + blur, Settings in nav, emoji theme toggle, mobile-closed filters, bottom-stacked full-width help, zero inline styles, homepage enrich read-only, settings unsaved guard + reset confirm.
+Ship T-0010: quota-aware key exclusion, cached API results with refresh, `playlist:` scope + filter, `/`-to-focus, top/bottom jump buttons, plus follow-ups (entity decode, custom cache TTL, live categories, resultbar/list mobile fixes, back-nav crash fix).
 
 ## Next Action
 
-Commit T-0009 completion. No further work without user direction; M-0003 closes only when user says complete.
+Commit T-0010 completion. No further work without user direction; M-0003 closes only when user says complete.
 
 ## Current Blocker
 
@@ -38,6 +38,8 @@ None.
 ## Relevant Files
 
 - `dev/milestones/M-0003-filter-topbar-settings.md`
+- `dev/tasks/done/T-0010-quota-cache-playlist-ux.md`
+- `worker.js`
 - `dev/tasks/done/T-0009-mobile-nav-focus-help.md`
 - `dev/tasks/done/T-0008-filter-topbar-settings.md`
 - `public/index.html`
@@ -54,12 +56,13 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0009_COMPLETE (M-0003 held open per user instruction)
+Status: T-0010_COMPLETE (M-0003 held open per user instruction)
 
 Evidence:
 
 - T-0008 COMPLETE (HDT PASS 2026-10-16).
-- T-0009 automated: `node --check worker.js` PASS; inline scripts `node --check` PASS; `style=` grep zero PASS; autofocus regex unit-verified.
+- T-0009 COMPLETE (HDT PASS 2026-10-16).
+- T-0010 automated: `node --check worker.js` PASS; inline scripts PASS; `style=` zero PASS; 43/43 mocked functional PASS (quota/rotation/exclusion, cache MISS/HIT/fresh, TTL clamp + key strip, categories slim/cache/region, playlist fetch/filter); wrangler smoke (`/`, `/tools`, `/settings` 200; API 400s clean + `x-cache-status`; live `/api/categories` 200 with 15 US categories). One 100-unit live probe spent diagnosing the entity title (upstream sends `&#39;` verbatim).
 - HDT REQUIRED — PASS (user report 2026-10-16: pass).
 
 ## Commit Policy
@@ -72,7 +75,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-31ebac9 feat: neat advanced filters, centered hamburger topbar, merged settings defaults
+c33a00a feat: quota-aware key rotation, cached search with refresh, playlist scope, slash-focus and jump buttons (T-0010 COMPLETE)
 
 ## README Status
 

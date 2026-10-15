@@ -21,7 +21,7 @@
 <body class="settings">
   <header class="topbar">
     <div class="topbar-inner">
-      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
+      <button class="menu-btn iconbtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
       <a class="brand" href="/">YTAS</a>
       <nav class="nav" id="primaryNav" aria-label="Primary">
         <a href="/">Adv Search</a>
@@ -29,7 +29,7 @@
         <a href="/settings" aria-current="page">Settings</a>
       </nav>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
+        <button class="theme-btn iconbtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
     </div>
   </header>
@@ -43,7 +43,7 @@
     <section class="panel config" aria-label="Configuration">
       <fieldset>
         <legend>Theme</legend>
-        <div class="radiorow" id="themeGroup">
+        <div class="radiorow theme-group">
           <label><input type="radio" name="theme" value="auto"> Auto (dark default)</label>
           <label><input type="radio" name="theme" value="dark"> Dark</label>
           <label><input type="radio" name="theme" value="light"> Light</label>
@@ -68,7 +68,7 @@
           <div class="advrow">
             <span class="advlabel" id="safeLabel">SafeSearch</span>
             <div class="advcontrol">
-              <div class="radiorow" id="safeGroup" role="radiogroup" aria-labelledby="safeLabel">
+              <div class="radiorow safe-group" role="radiogroup" aria-labelledby="safeLabel">
                 <label><input type="radio" name="safeSearch" value="none"> Off</label>
                 <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
                 <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
@@ -78,7 +78,7 @@
           </div>
           <div class="advrow">
             <label class="advlabel" for="region">Region</label>
-            <div class="advcontrol"><input type="text" id="region" class="code-input" autocomplete="off" placeholder="US"></div>
+            <div class="advcontrol"><input type="text" id="region" class="code-input mono" autocomplete="off" placeholder="US"></div>
             <p class="hint">YouTube uses <a href="https://en.wikipedia.org/wiki/ISO_3166-1#Codes" target="_blank">ISO 3166-1 codes</a> (e.g. <code>US</code>). Empty = unset.</p>
           </div>
           <div class="advrow">
@@ -88,25 +88,37 @@
           </div>
           <div class="advrow">
             <span class="advlabel">Extra data</span>
-            <div class="advcontrol"><label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label></div>
+            <div class="advcontrol"><label><input type="checkbox" class="enrich"> Extra duration + views (uses more quota)</label></div>
             <p class="hint">Off by default to save quota.</p>
+          </div>
+          <div class="advrow">
+            <label class="advlabel" for="cacheTtl">Max cache time</label>
+            <div class="advcontrol">
+              <select id="cacheTtl">
+                <option value="60">1 minute</option>
+                <option value="300">5 minutes</option>
+                <option value="900">15 minutes</option>
+                <option value="3600">1 hour</option>
+              </select>
+            </div>
+            <p class="hint">How long the proxy may serve cached results before fetching fresh data. Longer saves quota.</p>
           </div>
         </div>
       </fieldset>
       <div class="actions">
-        <button class="primary" id="saveBtn" type="button">Save</button>
-        <button class="danger hover" id="resetBtn" type="button">Reset all to defaults</button>
-        <span class="status" id="status" role="status" aria-live="polite"></span>
+        <button class="save-btn primary" type="button">Save</button>
+        <button class="reset-btn danger hover" type="button">Reset all to defaults</button>
+        <span class="status" role="status" aria-live="polite"></span>
       </div>
     </section>
 
-    <section class="panel" aria-label="Proxy status">
+    <section class="panel proxy" aria-label="Proxy status">
       <h2>Proxy status</h2>
       <p class="hint">API keys live only in the Worker and are never shown here.
         The check below only verifies the proxy answers, without spending quota.</p>
       <p>
-        <button id="probeBtn" type="button">Check proxy</button>
-        <span class="status" id="probeStatus" role="status" aria-live="polite"></span>
+        <button class="probe-btn" type="button">Check proxy</button>
+        <span class="status" role="status" aria-live="polite"></span>
       </p>
     </section>
   </main>
@@ -115,11 +127,13 @@
     (function () {
     "use strict";
 
-    function $(id) { return document.getElementById(id); }
+    function $(selectors) { return document.querySelector(selectors); }
+
     function storeGet(k, fb) {
       try { var v = localStorage.getItem(k); return v === null ? fb : v; }
       catch (e) { return fb; }
     }
+
     function storeSet(k, v) {
       try { localStorage.setItem(k, v); } catch (e) { /* prefs just don't persist */ }
     }
@@ -130,11 +144,12 @@
       "ytas.safeSearch": "moderate",
       "ytas.region": "",
       "ytas.lang": "",
-      "ytas.enrich": "0"
+      "ytas.enrich": "0",
+      "ytas.cacheTtl": "300"
     };
 
     /* Theme toggle (same contract as / and /tools). Emoji-only button. */
-    var themeBtn = $("themeBtn");
+    var themeBtn = $(".theme-btn");
     var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
@@ -159,7 +174,7 @@
       storeSet("ytas.theme", t);
       paintTheme(t);
     }
-    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
     if (menuBtn && primaryNav) {
       menuBtn.addEventListener("click", function () {
         var open = primaryNav.classList.toggle("open");
@@ -173,18 +188,22 @@
       return r ? r.value : "auto";
     }
 
-    var statusEl = $("status");
+    var statusEl = $(".actions .status");
     function note(msg, isError) {
-      statusEl.textContent = msg;
-      statusEl.classList.toggle("error", !!isError);
-      statusEl.classList.toggle("ok", !isError);
+      statusEl.textContent = "";
+      setTimeout(function () {
+        statusEl.textContent = msg;
+        statusEl.classList.toggle("error", !!isError);
+        statusEl.classList.toggle("ok", !isError);
+      }, 250);
     }
 
     /* Search-default controls mirror the keys / reads (T-0002 contract).
      * SafeSearch is a radio group (mirrors the search-page Sort-by pattern);
      * the persisted `ytas.safeSearch` key is unchanged. */
-    var maxSel = $("maxResults");
-    var regionInput = $("region"), langInput = $("lang"), enrichBox = $("enrich");
+    var maxSel = $("#maxResults");
+    var regionInput = $("#region"), langInput = $("#lang"), enrichBox = $(".enrich");
+    var cacheTtlSel = $("#cacheTtl");
 
     function checkedSafe() {
       var r = document.querySelector('input[name="safeSearch"]:checked');
@@ -199,6 +218,8 @@
 
     maxSel.value = storeGet("ytas.maxResults", "25");
     if (maxSel.selectedIndex < 0) maxSel.value = "25";
+    cacheTtlSel.value = storeGet("ytas.cacheTtl", "300");
+    if (cacheTtlSel.selectedIndex < 0) cacheTtlSel.value = "300";
     setSafe(storeGet("ytas.safeSearch", "moderate"));
     regionInput.value = storeGet("ytas.region", "");
     langInput.value = storeGet("ytas.lang", "");
@@ -212,7 +233,7 @@
     function clearDirty() { dirty = false; }
     try {
       var watched = document.querySelectorAll(
-        "#themeGroup input, #maxResults, #safeGroup input, #region, #lang, #enrich"
+        ".theme-group input, #maxResults, .safe-group input, #region, #lang, .enrich, #cacheTtl"
       );
       for (var wi = 0; wi < watched.length; wi++) {
         watched[wi].addEventListener("change", markDirty);
@@ -224,7 +245,7 @@
       ev.returnValue = "";
     });
 
-    $("saveBtn").addEventListener("click", function () {
+    $(".save-btn").addEventListener("click", function () {
       var region = regionInput.value.trim().toUpperCase();
       if (region !== "" && !/^[A-Z]{2}$/.test(region)) {
         note("Not saved: Region must be a 2-letter code (or empty).", true);
@@ -242,11 +263,15 @@
       langInput.value = lang;
       storeSet("ytas.lang", lang);
       storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
+      var ttl = cacheTtlSel.value;
+      if (["60", "300", "900", "3600"].indexOf(ttl) < 0) ttl = "300";
+      cacheTtlSel.value = ttl;
+      storeSet("ytas.cacheTtl", ttl);
       clearDirty();
       note("Settings saved.");
     });
 
-    $("resetBtn").addEventListener("click", function () {
+    $(".reset-btn").addEventListener("click", function () {
       if (!window.confirm("Are you sure you want to reset all settings to defaults?")) return;
       Object.keys(DEFAULTS).forEach(function (k) { storeSet(k, DEFAULTS[k]); });
       setTheme("auto");
@@ -255,6 +280,7 @@
       regionInput.value = "";
       langInput.value = "";
       enrichBox.checked = false;
+      cacheTtlSel.value = "300";
       clearDirty();
       note("Defaults restored.");
     });
@@ -262,8 +288,8 @@
     /* Proxy probe: any HTTP answer (even the 400 for missing params) proves the
      * worker is up. The request fails validation before any upstream call, so it
      * spends no quota and can never leak keys. */
-    var probeStatus = $("probeStatus");
-    $("probeBtn").addEventListener("click", function () {
+    var probeStatus = $(".proxy .status");
+    $(".probe-btn").addEventListener("click", function () {
       probeStatus.textContent = "Checking…";
       probeStatus.classList.remove("error");
       probeStatus.classList.remove("ok");

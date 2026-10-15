@@ -21,7 +21,7 @@
 <body class="tools">
   <header class="topbar">
     <div class="topbar-inner">
-      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
+      <button class="menu-btn iconbtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
       <a class="brand" href="/">YTAS</a>
       <nav class="nav" id="primaryNav" aria-label="Primary">
         <a href="/">Adv Search</a>
@@ -29,7 +29,7 @@
         <a href="/settings">Settings</a>
       </nav>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
+        <button class="theme-btn iconbtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
     </div>
   </header>
@@ -57,25 +57,42 @@
       </div>
     </form>
 
-    <div class="status" id="status" role="status" aria-live="polite"></div>
-    <section id="result" aria-label="Channel result"></section>
+    <div class="status" role="status" aria-live="polite"></div>
+    <section class="result" aria-label="Channel result"></section>
   </main>
 
   <script>
     (function () {
     "use strict";
 
-    function $(id) { return document.getElementById(id); }
+    function $(selectors) { return document.querySelector(selectors); }
+
     function storeGet(k, fb) {
       try { var v = localStorage.getItem(k); return v === null ? fb : v; }
       catch (e) { return fb; }
     }
+
     function storeSet(k, v) {
       try { localStorage.setItem(k, v); } catch (e) { /* prefs just don't persist */ }
     }
 
+    /* Upstream titles may carry HTML entities (e.g. "Beginner&#39;s Guide"
+     * verbatim from the API). Decode once before textContent assignment. */
+    var deTa = null;
+    function decodeEntities(s) {
+      var str = String(s === null || s === undefined ? "" : s);
+      if (str.indexOf("&") < 0) return str;
+      try {
+        if (!deTa) deTa = document.createElement("textarea");
+        deTa.innerHTML = str;
+        return deTa.value;
+      } catch (e) {
+        return str;
+      }
+    }
+
     /* Theme toggle (same contract as /). Emoji-only button. */
-    var themeBtn = $("themeBtn");
+    var themeBtn = $(".theme-btn");
     var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
@@ -95,7 +112,7 @@
       paintTheme(theme);
     });
 
-    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
     if (menuBtn && primaryNav) {
       menuBtn.addEventListener("click", function () {
         var open = primaryNav.classList.toggle("open");
@@ -103,8 +120,8 @@
       });
     }
 
-    var form = $("resolveForm"), input = $("input"), kindSel = $("kind");
-    var statusEl = $("status"), resultEl = $("result");
+    var form = $("#resolveForm"), input = $("#input"), kindSel = $("#kind");
+    var statusEl = $(".status"), resultEl = $(".result");
 
     function setStatus(msg, isError) {
       statusEl.textContent = msg;
@@ -161,7 +178,7 @@
       body.className = "card-body";
       var title = document.createElement("h3");
       title.className = "card-title";
-      title.textContent = sn.title || "(untitled)";
+      title.textContent = decodeEntities(sn.title) || "(untitled)";
       var idLine = document.createElement("p");
       idLine.className = "card-meta mono";
       idLine.textContent = item.id;

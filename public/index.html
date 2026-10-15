@@ -23,7 +23,7 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
+      <button class="iconbtn menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
       <a class="brand" href="/">YTAS</a>
       <nav class="nav" id="primaryNav" aria-label="Primary">
         <a href="/" aria-current="page">Adv Search</a>
@@ -31,14 +31,14 @@
         <a href="/settings">Settings</a>
       </nav>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
+        <button class="iconbtn theme-btn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <section class="searchpanel" aria-label="Search">
-      <form class="searchform" role="search" action="/" method="get">
+    <section class="search-panel" aria-label="Search">
+      <form class="search-form" role="search" action="/" method="get">
         <label class="visually-hidden" for="ytas-q">Search YouTube</label>
         <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
         <button class="primary" type="submit">Search</button>
@@ -89,7 +89,7 @@
         </fieldset>
         <fieldset>
           <legend>Sort by</legend>
-          <div class="radiorow" id="orderGroup">
+          <div class="radiorow">
             <label><input type="radio" name="order" value="relevance" checked> Relevance</label>
             <label><input type="radio" name="order" value="date"> Date</label>
             <label><input type="radio" name="order" value="rating"> Rating</label>
@@ -109,6 +109,15 @@
               </div>
               <input type="checkbox" class="qtoggle" id="qh-scope">
               <p class="qinfo">Scope results to one channel. Accepts a <code>channel_id</code>, a <code>@handle</code>, or <code>legacy_username</code>. Added to the query as an operator (<code>channel:</code>/<code>handle:</code>/<code>user:</code>).</p>
+            </div>
+            <div class="advrow">
+              <label class="advlabel" for="f-plscope">Playlist scope</label>
+              <div class="advcontrol">
+                <input type="text" id="f-plscope" maxlength="60" autocomplete="off" placeholder="playlist_id">
+                <label class="qbtn" for="qh-plscope" title="What is Playlist scope?">?</label>
+              </div>
+              <input type="checkbox" class="qtoggle" id="qh-plscope">
+              <p class="qinfo">Search only inside one playlist. Accepts a <code>playlist_id</code>. Added to the query as a <code>playlist:</code> operator; keyword matching is done locally because the API has no playlist-scoped search.</p>
             </div>
             <div class="advrow">
               <label class="advlabel" for="f-after">After (from)</label>
@@ -299,8 +308,8 @@
         </fieldset>
       </div>
       <div class="actions">
-        <button class="primary" id="applyBtn" type="button">Search</button>
-        <button class="danger hover" id="resetBtn" type="button">Reset</button>
+        <button class="apply-btn primary" type="button">Search</button>
+        <button class="reset-btn danger hover" type="button">Reset</button>
         <label>Page size
           <select id="maxResults">
             <option value="5">5</option>
@@ -309,22 +318,27 @@
             <option value="50">50</option>
           </select>
         </label>
-        <label><input type="checkbox" id="enrich"> <strong>Extra:</strong> displays duration + views (uses more api quota)</label>
+        <label><input type="checkbox" class="enrich"> <strong>Extra:</strong> displays duration + views (uses more api quota)</label>
       </div>
     </details>
 
-    <div class="resultbar" id="resultBar" hidden>
-      <div class="status" id="status" role="status" aria-live="polite"></div>
-      <div class="view" id="viewBar" role="group" aria-label="Results view" hidden>
+    <div class="resultbar" hidden>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+      <button class="refresh" type="button" title="Fetch fresh results" hidden>↻ Refresh</button>
+      <div class="view" role="group" aria-label="Results view" hidden>
         <span class="view-label">View:</span>
-        <button id="gridBtn" type="button" aria-pressed="true">Grid</button>
-        <button id="listBtn" type="button" aria-pressed="false">List</button>
+        <button class="grid" type="button" aria-pressed="true">Grid</button>
+        <button class="list" type="button" aria-pressed="false">List</button>
       </div>
     </div>
     <section class="results grid" id="results" aria-label="Results" hidden></section>
-    <div class="pager" id="pager" hidden>
-      <button id="prevBtn" type="button" disabled>Prev</button>
-      <button id="nextBtn" type="button" disabled>Next</button>
+    <div class="pager" hidden>
+      <button class="prev" type="button" disabled>Prev</button>
+      <button class="next" type="button" disabled>Next</button>
+    </div>
+    <div class="jumpbtns">
+      <button class="top" type="button" aria-label="Scroll to top" hidden>▲</button>
+      <button class="bottom" type="button" aria-label="Scroll to bottom" hidden>▼</button>
     </div>
   </main>
 
@@ -332,32 +346,7 @@
     (function () {
     "use strict";
 
-    // Simple querySelector https://codepen.io/sekedus/pen/oKYOEK
-    function el(e,l,m,n) {
-      var elem, parent = l != 'all' && l != 'xpath' && (l || l === null) ? l : document;
-      if (parent === null) {
-        elem = parent;
-        console.error('selector: '+ e +' => parent: '+ parent);
-      } else {
-        if ((n || m || l) == 'xpath') {
-          // https://stackoverflow.com/q/10596417
-          if ((m || l) == 'all') {
-            var result = document.evaluate(e, parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            elem = [];
-            for (var i = 0; i < result.snapshotLength; i++) {
-              elem.push(result.snapshotItem(i));
-            }
-          } else {
-            elem = document.evaluate(e, parent, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          }
-        } else {
-          elem = ((m || l) == 'all') ? parent.querySelectorAll(e) : parent.querySelector(e);
-        }
-      }
-      return elem;
-    }
-
-    function $(id) { return document.getElementById(id); }
+    function $(selectors) { return document.querySelector(selectors); }
 
     function storeGet(k, fb) {
       try { var v = localStorage.getItem(k); return v === null ? fb : v; }
@@ -376,8 +365,25 @@
       });
     }
 
+    /* YouTube sometimes returns titles/descriptions/channel names with HTML
+     * entities already in them (e.g. "Beginner&#39;s Guide" verbatim from
+     * search.list — confirmed live). Decode once before textContent
+     * assignment. Never feed the result back through esc(). */
+    var deTa = null;
+    function decodeEntities(s) {
+      var str = String(s === null || s === undefined ? "" : s);
+      if (str.indexOf("&") < 0) return str;
+      try {
+        if (!deTa) deTa = document.createElement("textarea");
+        deTa.innerHTML = str;
+        return deTa.value;
+      } catch (e) {
+        return str;
+      }
+    }
+
     /* Theme toggle (cycles Auto -> Light -> Dark). Emoji-only button. */
-    var themeBtn = el("#themeBtn");
+    var themeBtn = $(".theme-btn");
     var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
@@ -398,7 +404,7 @@
     });
 
     /* Mobile hamburger: toggles the primary nav. */
-    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
     if (menuBtn && primaryNav) {
       menuBtn.addEventListener("click", function () {
         var open = primaryNav.classList.toggle("open");
@@ -407,17 +413,17 @@
     }
 
     /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
-    var maxSel = $("maxResults"), enrichBox = $("enrich");
-    var scopeInput = $("f-scope"), afterInput = $("f-after"), beforeInput = $("f-before");
-    var channelTypeSel = $("f-channelType");
-    var upcomingBox = $("f-upcoming"), completedBox = $("f-completed");
-    var locInput = $("f-loc"), locRadInput = $("f-locRad");
-    var topicInput = $("f-topic"), catSel = $("f-cat");
-    var sdBox = $("f-sd"), dimSel = $("f-dim");
-    var embBox = $("f-emb"), synBox = $("f-syn"), stdlicBox = $("f-stdlic");
-    var paidBox = $("f-paid"), nocapBox = $("f-nocap");
-    var exInput = $("f-ex");
-    var filtersPanel = $("filtersPanel");
+    var maxSel = $("#maxResults"), enrichBox = $(".enrich");
+    var scopeInput = $("#f-scope"), plScopeInput = $("#f-plscope"), afterInput = $("#f-after"), beforeInput = $("#f-before");
+    var channelTypeSel = $("#f-channelType");
+    var upcomingBox = $("#f-upcoming"), completedBox = $("#f-completed");
+    var locInput = $("#f-loc"), locRadInput = $("#f-locRad");
+    var topicInput = $("#f-topic"), catSel = $("#f-cat");
+    var sdBox = $("#f-sd"), dimSel = $("#f-dim");
+    var embBox = $("#f-emb"), synBox = $("#f-syn"), stdlicBox = $("#f-stdlic");
+    var paidBox = $("#f-paid"), nocapBox = $("#f-nocap");
+    var exInput = $("#f-ex");
+    var filtersPanel = $("#filtersPanel");
     function setRadio(name, value, fallback) {
       var vals = [];
       var nodes = document.querySelectorAll('input[name="' + name + '"]');
@@ -432,10 +438,10 @@
     enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
 
     /* Filter state <-> URL sync (T-0005): shareable/bookmarkable; back/forward restores. */
-    var qInput = el("#ytas-q");
+    var qInput = $("#ytas-q");
     var scopedChannel = "";
-    var resultBar = $("resultBar");
-    var viewBar = $("viewBar"), pagerEl = $("pager");
+    var resultBar = $(".resultbar");
+    var viewBar = $(".view"), pagerEl = $(".pager");
     function readStateFromURL() {
       var qs = new URLSearchParams(location.search);
       // Missing AND empty q both clear the input: otherwise history
@@ -452,10 +458,10 @@
       setRadio("type", pick("type", checkedRadio("type")), "any");
       setRadio("dur", pick("dur", checkedRadio("dur")), "any");
       setRadio("order", pick("order", checkedRadio("order")), "relevance");
-      $("f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("f-cc").checked;
-      $("f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("f-commons").checked;
-      $("f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("f-live").checked;
-      $("f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("f-hd").checked;
+      $("#f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("#f-live").checked;
+      $("#f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("#f-hd").checked;
+      $("#f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("#f-cc").checked;
+      $("#f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("#f-commons").checked;
       upcomingBox.checked = qs.has("upcoming") ? qs.get("upcoming") === "1" : upcomingBox.checked;
       completedBox.checked = qs.has("completed") ? qs.get("completed") === "1" : completedBox.checked;
       sdBox.checked = qs.has("sd") ? qs.get("sd") === "1" : sdBox.checked;
@@ -495,6 +501,10 @@
         if (qs.has("before")) beforeInput.value = qs.get("before").slice(0, 10);
       }
       if (qs.has("scope")) scopeInput.value = qs.get("scope").slice(0, 120);
+      // Playlist scope is cleared when absent: otherwise a stale value
+      // survives back-navigation and resurrects a playlist search that
+      // rewrites the URL (back to / became /?playlist=…).
+      plScopeInput.value = qs.has("playlist") ? qs.get("playlist").slice(0, 60) : "";
     }
     function currentStateToURL() {
       var u = new URLSearchParams();
@@ -507,10 +517,10 @@
       if (typeV !== "any") u.set("type", typeV);
       if (durV !== "any") u.set("dur", durV);
       if (orderV !== "relevance") u.set("order", orderV);
-      if ($("f-cc").checked) u.set("cc", "1");
-      if ($("f-commons").checked) u.set("commons", "1");
-      if ($("f-live").checked) u.set("live", "1");
-      if ($("f-hd").checked) u.set("hd", "1");
+      if ($("#f-live").checked) u.set("live", "1");
+      if ($("#f-hd").checked) u.set("hd", "1");
+      if ($("#f-cc").checked) u.set("cc", "1");
+      if ($("#f-commons").checked) u.set("commons", "1");
       if (upcomingBox.checked) u.set("upcoming", "1");
       if (completedBox.checked) u.set("completed", "1");
       if (sdBox.checked) u.set("sd", "1");
@@ -529,6 +539,7 @@
       if (maxSel.value !== "25") u.set("maxResults", maxSel.value);
       if (enrichBox.checked) u.set("enrich", "1");
       if (scopeInput.value.trim()) u.set("scope", scopeInput.value.trim());
+      if (plScopeInput.value.trim()) u.set("playlist", plScopeInput.value.trim());
       if (afterInput.value) u.set("after", afterInput.value);
       if (beforeInput.value) u.set("before", beforeInput.value);
       return u;
@@ -544,12 +555,57 @@
     }
     readStateFromURL();
 
+    /* Live video categories (T-0010): the Category filter is populated from
+     * /api/categories (region-aware, server-cached 1 week) with the
+     * hardcoded options as fallback. A localStorage copy avoids even the
+     * cache-HIT request for 7 days. */
+    var CAT_CACHE_MS = 7 * 24 * 3600 * 1000;
+    function fillCats(items) {
+      var cur = catSel.value;
+      catSel.innerHTML = "";
+      var any = document.createElement("option");
+      any.value = "";
+      any.textContent = "Any";
+      catSel.appendChild(any);
+      for (var i = 0; i < (items || []).length; i++) {
+        var c = items[i];
+        if (!c || !c.id) continue;
+        var o = document.createElement("option");
+        o.value = String(c.id);
+        o.textContent = c.title || String(c.id);
+        catSel.appendChild(o);
+      }
+      catSel.value = cur;
+      if (catSel.selectedIndex < 0) catSel.value = "";
+    }
+    function loadCategories() {
+      var region = (storeGet("ytas.region", "") || "US").toUpperCase();
+      var cached = null;
+      try { cached = JSON.parse(storeGet("ytas.catList", "null")); } catch (e) { cached = null; }
+      if (cached && cached.region === region && cached.items &&
+        (Date.now() - (cached.ts || 0)) < CAT_CACHE_MS) {
+        fillCats(cached.items);
+        return;
+      }
+      fetch("/api/categories?regionCode=" + encodeURIComponent(region), { headers: { "accept": "application/json" } })
+        .then(function (res) {
+          return res.json().then(function (d) { return { ok: res.ok, data: d }; });
+        })
+        .then(function (out) {
+          if (!out.ok || !out.data || !out.data.items || !out.data.items.length) return;
+          fillCats(out.data.items);
+          storeSet("ytas.catList", JSON.stringify({ ts: Date.now(), region: region, items: out.data.items }));
+        })
+        .catch(function () { /* hardcoded fallback stays */ });
+    }
+    loadCategories();
+
     /* Panel open on homepage/first load when no keyword yet (T-0005).
-     * T-0008: also sync the searchpanel Search-button visibility (CSS :has
+     * T-0008: also sync the search-panel Search-button visibility (CSS :has
      * covers modern browsers; this is the fallback + initial state).
      * T-0009: filters stay closed on narrow viewports; search input takes
      * autofocus whenever there is no keyword (missing/empty q). */
-    var searchSubmitBtn = document.querySelector(".searchpanel .searchform button[type='submit']");
+    var searchSubmitBtn = document.querySelector(".search-panel .search-form button[type='submit']");
     function syncSearchBtn() {
       try {
         if (searchSubmitBtn) searchSubmitBtn.hidden = !!filtersPanel.open;
@@ -570,14 +626,24 @@
     }
     function focusSearch() {
       try {
-        var q = el("#ytas-q");
+        var q = $("#ytas-q");
         if (q && document.activeElement !== q) {
           try { q.focus({ preventScroll: true }); }
           catch (e2) { q.focus(); }
         }
       } catch (e) { /* focus is best-effort */ }
     }
-    var hasInitialQuery = hasKeyword();
+    /* T-0010: press `/` anywhere outside an editable element to focus search. */
+    document.addEventListener("keydown", function (ev) {
+      if (!ev || ev.key !== "/" || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      if (ev.defaultPrevented) return;
+      var t = ev.target;
+      var tag = t && t.tagName ? String(t.tagName).toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select" || (t && t.isContentEditable)) return;
+      ev.preventDefault();
+      focusSearch();
+    });
+    var hasInitialQuery = hasKeyword() || hasPlaylistScope();
     // Homepage with no usable q: mobile closes the filter, desktop opens it.
     try { filtersPanel.open = !hasInitialQuery && !isNarrowViewport(); } catch (e) { /* no details support */ }
     syncSearchBtn();
@@ -593,12 +659,13 @@
       return el ? el.value : "any";
     }
 
-    var statusEl = $("status"), resultsEl = $("results");
-    var prevBtn = $("prevBtn"), nextBtn = $("nextBtn");
+    var statusEl = $("#status"), resultsEl = $("#results");
+    var prevBtn = $(".pager .prev"), nextBtn = $(".pager .next");
+    var refreshBtn = $(".refresh");
     var pageTokens = { prev: null, next: null };
 
     /* Grid/List view toggle (T-0006): persisted, default grid. */
-    var gridBtn = $("gridBtn"), listBtn = $("listBtn");
+    var gridBtn = $(".grid"), listBtn = $(".list");
     function setView(v) {
       if (v !== "grid" && v !== "list") v = "grid";
       resultsEl.classList.toggle("grid", v === "grid");
@@ -702,6 +769,17 @@
       var sr = scopeToParams(scopeInput.value, p, q);
       q = sr.q;
       scopeUsed = sr.scoped;
+      // Playlist scope (T-0010): typed `playlist:` wins; otherwise the
+      // Advanced field appends one. The worker resolves it via
+      // playlistItems.list with local keyword filtering.
+      var playlistScoped = /(?:^|\s)playlist:/i.test(q);
+      var plRaw = plScopeInput.value.trim();
+      if (!playlistScoped && plRaw) {
+        if (/^[A-Za-z0-9_-]{10,}$/.test(plRaw)) {
+          q = (q ? q + " " : "") + "playlist:" + plRaw;
+          playlistScoped = true;
+        }
+      }
       if (q) p.set("q", q); else p.delete("q");
 
       var hasDateOp = /(?:^|\s)(?:before|after):/i.test(q);
@@ -736,7 +814,7 @@
         if (q.toLowerCase().indexOf(xtok.toLowerCase()) < 0) q = (q ? q + " " : "") + xtok;
       }
       if (exWords.length) { if (q) p.set("q", q); else p.delete("q"); }
-      var wantVideoOnly = $("f-cc").checked || $("f-commons").checked || $("f-live").checked || $("f-hd").checked ||
+      var wantVideoOnly = $("#f-live").checked || $("#f-hd").checked || $("#f-cc").checked || $("#f-commons").checked ||
         upcomingBox.checked || completedBox.checked || sdBox.checked || nocapBox.checked || stdlicBox.checked ||
         embBox.checked || synBox.checked || paidBox.checked || dimSel.value !== "any" ||
         catSel.value !== "" || locPair || checkedRadio("dur") !== "any";
@@ -763,15 +841,15 @@
       if (effType === "video" || type === "movie" || type === "show") {
         var dur = checkedRadio("dur");
         if (dur !== "any") p.set("videoDuration", dur);
-        if ($("f-cc").checked) p.set("videoCaption", "closedCaption");
+        if ($("#f-cc").checked) p.set("videoCaption", "closedCaption");
         else if (nocapBox.checked) p.set("videoCaption", "none");
-        if ($("f-commons").checked) p.set("videoLicense", "creativeCommon");
+        if ($("#f-commons").checked) p.set("videoLicense", "creativeCommon");
         else if (stdlicBox.checked) p.set("videoLicense", "youtube");
         // Live (Features) wins over Upcoming/Completed (Advanced).
-        if ($("f-live").checked) p.set("eventType", "live");
+        if ($("#f-live").checked) p.set("eventType", "live");
         else if (upcomingBox.checked) p.set("eventType", "upcoming");
         else if (completedBox.checked) p.set("eventType", "completed");
-        if ($("f-hd").checked) p.set("videoDefinition", "high");
+        if ($("#f-hd").checked) p.set("videoDefinition", "high");
         else if (sdBox.checked) p.set("videoDefinition", "standard");
         if (dimSel.value === "2d" || dimSel.value === "3d") p.set("videoDimension", dimSel.value);
         if (embBox.checked) p.set("videoEmbeddable", "true");
@@ -789,6 +867,9 @@
       p.set("order", orderV);
       p.set("maxResults", maxSel.value);
       p.set("safeSearch", storeGet("ytas.safeSearch", "moderate"));
+      // Custom max cache time (local pref, not part of the shareable URL).
+      var ttl = parseInt(storeGet("ytas.cacheTtl", "300"), 10);
+      if (!isNaN(ttl) && ttl >= 60 && ttl <= 3600) p.set("cacheTtl", String(ttl));
       var region = storeGet("ytas.region", ""), lang = storeGet("ytas.lang", "");
       if (region) p.set("regionCode", region);
       if (lang) p.set("relevanceLanguage", lang);
@@ -799,7 +880,7 @@
       storeSet("ytas.order", orderV);
       // T-0009: homepage never persists ytas.enrich – /settings Save owns it.
       // Effective value is URL ?enrich= when present, else the stored default.
-      return { params: p, coerced: coerced, channeled: channeled, scoped: scopeUsed, ranged: rangeUsed, excluded: exWords.length > 0 };
+      return { params: p, coerced: coerced, channeled: channeled, scoped: scopeUsed, playlistScoped: playlistScoped, ranged: rangeUsed, excluded: exWords.length > 0 };
     }
 
     function fmtDuration(iso) {
@@ -855,8 +936,8 @@
         card.querySelector(".thumb-link").href = itemLink(it);
         var titleLink = card.querySelector(".card-title a");
         titleLink.href = itemLink(it);
-        titleLink.textContent = sn.title || "(untitled)";
-        titleLink.title = sn.title || "(untitled)";
+        titleLink.textContent = decodeEntities(sn.title) || "(untitled)";
+        titleLink.title = decodeEntities(sn.title) || "(untitled)";
         if (turl) card.querySelector("img").src = turl;
         var badge = card.querySelector(".badge");
         if (badge && kind !== "playlist" && it.enrichment) badge.textContent = fmtDuration(it.enrichment.duration);
@@ -874,10 +955,10 @@
           ch.href = curl;
           ch.target = "_blank";
           ch.rel = "noopener";
-          ch.textContent = sn.channelTitle;
+          ch.textContent = decodeEntities(sn.channelTitle);
           meta.appendChild(ch);
         } else if (sn.channelTitle) {
-          meta.appendChild(document.createTextNode(sn.channelTitle));
+          meta.appendChild(document.createTextNode(decodeEntities(sn.channelTitle)));
         }
         if (sn.publishedAt) {
           var rt = relTime(sn.publishedAt);
@@ -894,19 +975,24 @@
         }
         var views = card.querySelector(".views");
         if (views) views.textContent = Number(it.enrichment.viewCount).toLocaleString("en-US") + " views";
-        card.querySelector(".card-desc").textContent = sn.description || "";
+        card.querySelector(".card-desc").textContent = decodeEntities(sn.description) || "";
         resultsEl.appendChild(card);
       });
     }
 
     function setStatus(msg, isError) {
-      statusEl.innerHTML = msg;
+      statusEl.textContent = msg;
       statusEl.classList.toggle("error", !!isError);
     }
 
-    /* A keyword is required: filters alone never trigger a search. */
+    /* A keyword is required: filters alone never trigger a search.
+     * T-0010: a playlist scope alone is enough (browse all playlist items). */
     function hasKeyword() {
       return !!qInput.value.trim();
+    }
+    function hasPlaylistScope() {
+      if (plScopeInput && plScopeInput.value.trim()) return true;
+      return /(?:^|\s)playlist:/i.test(qInput.value);
     }
 
     /* Reset every filter control to its default (keyword kept). */
@@ -915,15 +1001,15 @@
       setRadio("type", "any", "any");
       setRadio("dur", "any", "any");
       setRadio("order", "relevance", "relevance");
-      var boxes = ["f-cc", "f-commons", "f-live", "f-hd", "f-upcoming", "f-completed",
+      var boxes = ["f-live", "f-hd", "f-cc", "f-commons", "f-upcoming", "f-completed",
         "f-sd", "f-emb", "f-syn", "f-stdlic", "f-paid", "f-nocap"];
-      for (var i = 0; i < boxes.length; i++) $(boxes[i]).checked = false;
+      for (var i = 0; i < boxes.length; i++) $("#" + boxes[i]).checked = false;
       enrichBox.checked = false;
       maxSel.value = "25";
       channelTypeSel.value = "any";
       dimSel.value = "any";
       catSel.value = "";
-      var texts = [scopeInput, afterInput, beforeInput, exInput, locInput, locRadInput,
+      var texts = [scopeInput, plScopeInput, afterInput, beforeInput, exInput, locInput, locRadInput,
         topicInput];
       for (var j = 0; j < texts.length; j++) texts[j].value = "";
     }
@@ -951,7 +1037,9 @@
 
     function runSearch(pageToken, opts) {
       var built = buildParams(pageToken);
-      if (!hasKeyword()) {
+      var fresh = !!(opts && opts.fresh);
+      if (fresh) built.params.set("fresh", "1");
+      if (!hasKeyword() && !built.playlistScoped) {
         setStatus("Type a keyword to search.", false);
         showStatusOnly();
         return;
@@ -959,16 +1047,24 @@
       syncURL(opts && opts.push ? "push" : "replace");
       setStatus("Searching…", false);
       showStatusOnly();
+      // Refresh bypasses the cache, so it is only offered for cached hits.
+      refreshBtn.hidden = true;
       resultsEl.innerHTML = "";
       prevBtn.disabled = true;
       nextBtn.disabled = true;
       fetch("/api/search?" + built.params.toString(), { headers: { "accept": "application/json" } })
-        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+        .then(function (res) {
+          var cacheStatus = null;
+          try { cacheStatus = res.headers.get("x-cache-status"); } catch (e) { /* ignore */ }
+          return res.json().then(function (d) { return { ok: res.ok, data: d, cache: cacheStatus }; });
+        })
         .then(function (out) {
           if (!out.ok) {
             setStatus((out.data && out.data.error) || "Search failed.", true);
             return;
           }
+          // Show Refresh only when this response came from the cache.
+          refreshBtn.hidden = out.cache !== "HIT";
           var items = out.data.items || [];
           pageTokens.prev = out.data.prevPageToken || null;
           pageTokens.next = out.data.nextPageToken || null;
@@ -982,20 +1078,24 @@
           var note = shown.length + " result" + (shown.length === 1 ? "" : "s") + ".";
           if (built.coerced) note += " (Video-only filters: type set to Video.)";
           if (built.channeled) note += " (Channel-type filter: type set to Channel.)";
-          if (built.scoped || scopedChannel) note += " <div>(Channel-scoped)</div>";
-          if (built.ranged) note += " (Date range.)";
-          if (built.excluded) note += " (Exclusions.)";
+          if (built.scoped || scopedChannel) note += " (channel-scoped)";
+          if (built.playlistScoped) note += " (playlist-scoped)";
+          if (fresh) note += " (fresh)";
+          else if (out.cache === "HIT") note += " (cached)";
+          if (built.ranged) note += " (date range)";
+          if (built.excluded) note += " (exclusions)";
           if (out.data.enrichmentError) note += " Duration/views unavailable.";
           setStatus(note, false);
           renderItems(shown);
           showChrome(true);
+          syncJumpBtns();
         })
         .catch(function () {
           setStatus("Network error talking to the proxy.", true);
         });
     }
 
-    el(".searchform").addEventListener("submit", function (ev) {
+    $(".search-form").addEventListener("submit", function (ev) {
       ev.preventDefault();
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
       syncSearchBtn();
@@ -1004,21 +1104,55 @@
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       } catch (e2) { /* blur is best-effort */ }
     });
-    $("applyBtn").addEventListener("click", function () {
+    $(".apply-btn").addEventListener("click", function () {
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
       syncSearchBtn();
       runSearch(null, { push: true });
     });
-    $("resetBtn").addEventListener("click", function () {
+    $(".reset-btn").addEventListener("click", function () {
       resetFilters();
     });
     prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
     nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
+    /* T-0010: hot reload bypasses the worker result cache (?fresh=1). */
+    refreshBtn.addEventListener("click", function () { runSearch(null, { push: false, fresh: true }); });
+    /* T-0010: floating top/bottom jump buttons (bottom-right). Each button
+     * stays hidden until it is useful: Top after scrolling down, Bottom
+     * while more page sits below. Uses the `hidden` property (CSS already
+     * maps it to display:none), so no inline styles. */
+    var topBtn = $(".jumpbtns .top"), bottomBtn = $(".jumpbtns .bottom");
+    function syncJumpBtns() {
+      try {
+        var doc = document.documentElement;
+        var y = window.scrollY || doc.scrollTop || 0;
+        var max = (doc.scrollHeight || 0) - (window.innerHeight || 0);
+        topBtn.hidden = y <= 400;
+        bottomBtn.hidden = (max - y) <= 400;
+      } catch (e) { /* best-effort */ }
+    }
+    function jumpTo(top) {
+      try {
+        var dest = top ? 0 : (document.documentElement.scrollHeight || 0);
+        if (window.scrollTo && document.documentElement.style &&
+          "scrollBehavior" in document.documentElement.style) {
+          window.scrollTo({ top: dest, behavior: "smooth" });
+        } else {
+          window.scrollTo(0, dest);
+        }
+      } catch (e) {
+        try { window.scrollTo(0, top ? 0 : 999999); } catch (e2) { /* ignore */ }
+      }
+    }
+    topBtn.addEventListener("click", function () { jumpTo(true); });
+    bottomBtn.addEventListener("click", function () { jumpTo(false); });
+    window.addEventListener("scroll", syncJumpBtns, { passive: true });
+    window.addEventListener("resize", syncJumpBtns);
+    syncJumpBtns();
     /* Shared by popstate (same-document history) and pageshow persisted
      * (bfcache restores): re-sync controls + panel + results to the URL. */
     function applyHistoryState() {
       readStateFromURL();
-      if (hasKeyword()) {
+      if (hasKeyword() || hasPlaylistScope()) {
         try { filtersPanel.open = false; } catch (e) { /* no details support */ }
         syncSearchBtn();
         runSearch(null);
@@ -1042,7 +1176,7 @@
       if (ev && ev.persisted) applyHistoryState();
     });
 
-    if (hasKeyword()) runSearch(null);
+    if (hasKeyword() || hasPlaylistScope()) runSearch(null);
     })();
   </script>
 </body>

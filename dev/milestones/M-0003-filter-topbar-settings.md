@@ -14,6 +14,8 @@ Second UI polish pass: neater advanced filters + search placement, centered bran
 ## In Scope
 
 - T-0008 filter/topbar/settings work only.
+- T-0009 mobile nav/focus follow-up.
+- T-0010 quota-aware keys + result cache + playlist scope + keyboard/scroll UX.
 
 ## Out of Scope
 
@@ -23,11 +25,13 @@ Second UI polish pass: neater advanced filters + search placement, centered bran
 
 - [x] T-0008 acceptance criteria pass + HDT PASS.
 - [x] T-0009 acceptance criteria pass + HDT PASS.
+- [x] T-0010 acceptance criteria pass + HDT PASS.
 
 ## Tasks
 
 - [x] T-0008 — Filter panel neat layout + topbar center/hamburger + settings merge (COMPLETE; HDT PASS 2026-10-16)
 - [x] T-0009 — Mobile nav overlay fix + focus/autofocus + topbar/nav + stacked help + no-inline-style (COMPLETE; HDT PASS 2026-10-16)
+- [x] T-0010 — Quota-aware keys + result cache + playlist scope + keyboard/scroll UX (COMPLETE; HDT PASS 2026-10-16)
 
 ## Related Parking-Lot Ideas
 
