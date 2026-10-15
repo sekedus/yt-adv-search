@@ -68,30 +68,37 @@
       </fieldset>
       <fieldset>
         <legend>SafeSearch</legend>
-        <select id="safeSearch">
-          <option value="none">Off</option>
-          <option value="moderate">Moderate</option>
-          <option value="strict">Strict</option>
-        </select>
+        <div class="radiorow" id="safeGroup">
+          <label><input type="radio" name="safeSearch" value="none"> Off</label>
+          <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
+          <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
+        </div>
       </fieldset>
       <fieldset>
         <legend>Region</legend>
         <label class="visually-hidden" for="region">Region code</label>
         <input type="text" id="region" autocomplete="off"
                placeholder="US" style="width:6em">
-        <p class="hint">2-letter code, empty = unset.</p>
+        <p class="hint">YouTube uses ISO 3166-1 codes (e.g. US). Empty = unset.</p>
       </fieldset>
       <fieldset>
         <legend>Language</legend>
         <label class="visually-hidden" for="lang">Language code</label>
         <input type="text" id="lang" maxlength="10" autocomplete="off"
                placeholder="en" style="width:6em">
-        <p class="hint">e.g. en, de. Empty = unset.</p>
+        <p class="hint">YouTube uses ISO 639-1 codes (e.g. en, de). Empty = unset.</p>
       </fieldset>
     </div>
     <div class="filter-actions">
       <label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label>
     </div>
+  </section>
+
+  <section class="panel" aria-label="Save and reset">
+    <h2 style="margin-top:0">Save and reset</h2>
+    <p><button class="primary" id="saveBtn" type="button">Save</button>
+    <button id="resetBtn" type="button">Reset all to defaults</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span></p>
   </section>
 
   <section class="panel" aria-label="Proxy status">
@@ -102,9 +109,6 @@
       <button id="probeBtn" type="button">Check proxy</button>
       <span class="status" id="probeStatus" role="status" aria-live="polite"></span>
     </p>
-    <p><button class="primary" id="saveBtn" type="button">Save</button>
-    <button id="resetBtn" type="button">Reset all to defaults</button>
-    <span class="status" id="status" role="status" aria-live="polite"></span></p>
   </section>
 </main>
 
@@ -161,16 +165,29 @@ var statusEl = $("status");
 function note(msg, isError) {
   statusEl.textContent = msg;
   statusEl.classList.toggle("error", !!isError);
+  statusEl.classList.toggle("ok", !isError);
 }
 
-/* Search-default controls mirror the keys / reads (T-0002 contract). */
-var maxSel = $("maxResults"), safeSel = $("safeSearch");
+/* Search-default controls mirror the keys / reads (T-0002 contract).
+ * SafeSearch is a radio group (mirrors the search-page Sort-by pattern);
+ * the persisted `ytas.safeSearch` key is unchanged. */
+var maxSel = $("maxResults");
 var regionInput = $("region"), langInput = $("lang"), enrichBox = $("enrich");
+
+function checkedSafe() {
+  var r = document.querySelector('input[name="safeSearch"]:checked');
+  return r ? r.value : "moderate";
+}
+function setSafe(v) {
+  if (v !== "none" && v !== "moderate" && v !== "strict") v = "moderate";
+  var nodes = document.querySelectorAll('input[name="safeSearch"]');
+  for (var i = 0; i < nodes.length; i++) nodes[i].checked = (nodes[i].value === v);
+  return v;
+}
 
 maxSel.value = storeGet("ytas.maxResults", "25");
 if (maxSel.selectedIndex < 0) maxSel.value = "25";
-safeSel.value = storeGet("ytas.safeSearch", "moderate");
-if (safeSel.selectedIndex < 0) safeSel.value = "moderate";
+setSafe(storeGet("ytas.safeSearch", "moderate"));
 regionInput.value = storeGet("ytas.region", "");
 langInput.value = storeGet("ytas.lang", "");
 enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
@@ -187,7 +204,7 @@ $("saveBtn").addEventListener("click", function () {
   storeSet("ytas.theme", t);
   paintTheme(t);
   storeSet("ytas.maxResults", maxSel.value);
-  storeSet("ytas.safeSearch", safeSel.value);
+  storeSet("ytas.safeSearch", checkedSafe());
   regionInput.value = region;
   storeSet("ytas.region", region);
   langInput.value = lang;
@@ -200,7 +217,7 @@ $("resetBtn").addEventListener("click", function () {
   Object.keys(DEFAULTS).forEach(function (k) { storeSet(k, DEFAULTS[k]); });
   setTheme("auto");
   maxSel.value = "25";
-  safeSel.value = "moderate";
+  setSafe("moderate");
   regionInput.value = "";
   langInput.value = "";
   enrichBox.checked = false;
@@ -214,9 +231,11 @@ var probeStatus = $("probeStatus");
 $("probeBtn").addEventListener("click", function () {
   probeStatus.textContent = "Checking…";
   probeStatus.classList.remove("error");
+  probeStatus.classList.remove("ok");
   fetch("/api/channel", { headers: { "accept": "application/json" } })
     .then(function () {
       probeStatus.textContent = "Proxy reachable. Keys stay server-side.";
+      probeStatus.classList.add("ok");
     })
     .catch(function () {
       probeStatus.textContent = "Proxy unreachable.";

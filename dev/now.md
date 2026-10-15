@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (M-0002 ACTIVE; no active task)
+BUILD (M-0002 COMPLETE; no active task)
 
 ## State Integrity
 
@@ -13,15 +13,15 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0002 — Improve UI/UX (ACTIVE). See `dev/milestones/M-0002-improve-ui-ux.md`.
+M-0002 — Improve UI/UX (COMPLETE). See `dev/milestones/M-0002-improve-ui-ux.md`.
 
 ## Current Task
 
-None — T-0005/T-0006 COMPLETE; T-0007 PLANNED, implementation not authorized.
+None — T-0005/T-0006/T-0007 COMPLETE; M-0002 COMPLETE.
 
 ## Current Step
 
-T-0006 complete and verified. Awaiting user direction (start T-0007 or adjust plan).
+T-0007 complete and verified (HDT PASS 2026-10-15). Awaiting user direction.
 
 ## Objective
 
@@ -29,7 +29,7 @@ Polish UI/UX: layout, filter panel, results cards, settings.
 
 ## Next Action
 
-Start T-0007 only when user explicitly authorizes implementation.
+No active task. Propose next work only when user requests it.
 
 ## Current Blocker
 
@@ -39,8 +39,8 @@ None.
 
 - `dev/milestones/M-0002-improve-ui-ux.md`
 - `dev/tasks/done/T-0005-search-filter-ux.md`
-- `dev/tasks/T-0006-results-cards-views.md`
-- `dev/tasks/T-0007-settings-polish.md`
+- `dev/tasks/done/T-0006-results-cards-views.md`
+- `dev/tasks/done/T-0007-settings-polish.md`
 - `public/index.html`
 - `public/settings.html`
 - `public/styles.css`
@@ -54,13 +54,14 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0006_COMPLETE
+Status: T-0007_COMPLETE (M-0002 COMPLETE)
 
 Evidence:
 
-- `node --check worker.js` — PASS (only change: paid-promo allowlist entry).
-- Static 110/110 PASS + behavior 11/11 PASS + id refs resolve (see done task Notes/Evidence).
-- HDT REQUIRED — PASS (user report 2026-10-15: all rounds passed, zero console errors).
+- T-0006 COMPLETE (HDT PASS 2026-10-15, zero console errors).
+- T-0007: `node --check worker.js` — PASS (worker untouched); static 28/28
+  PASS + settings inline script `node --check` PASS (see done task Notes/Evidence).
+- HDT REQUIRED — PASS (user report 2026-10-15: all tests pass).
 
 ## Commit Policy
 
@@ -72,7 +73,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-4260292 feat: search layout and filter panel UX
+b019d7a feat: results grid-list cards with channel embed invidious links
 
 ## README Status
 
@@ -81,12 +82,13 @@ UPDATED — filter share URLs + advanced filters documented.
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
+- M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
 - Grid/list column counts assumed from screenshots; confirm at implementation.
 - T-0005 advanced decision: year/API + client post-filters live; hide-watched dropped (no history).
 
 ## Do Not Change
 
-- Do not expand into filter panel (T-0005 done) or Settings (T-0007) scope.
+- No active task — do not start new work without explicit user direction.
 
 ## Resume Instruction
 

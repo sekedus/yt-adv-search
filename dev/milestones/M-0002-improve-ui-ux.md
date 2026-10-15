@@ -1,8 +1,8 @@
 ---
 id: M-0002
-status: ACTIVE
+status: COMPLETE
 created: "2026-10-13"
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # M-0002 — Improve UI/UX
@@ -34,21 +34,21 @@ links and relative dates, fixed scope bar, and responsive behavior.
 
 ## Exit Criteria
 
-- [ ] 1500px container + 600px centered searchform; usable responsive down to 360px.
-- [ ] Filters sync to URL (shareable/bookmarkable); panel open on first load with no results.
-- [ ] Filter options stack vertically; Sort-by + SafeSearch are radios; enrich copy states quota cost; operators visible in panel.
-- [ ] Advanced-filter feasibility decided (YT API vs client-side post-filter); implemented or explicitly dropped with reason.
-- [ ] Grid/list view modes work per screenshots; video cards carry channel/embed/Invidious links, channel/playlist cards Invidious; grid pins actions bottom-right.
-- [ ] Dates render relative with `yyyy/mm/dd, hh:mm:ss UTC±n` hover title.
-- [ ] Scopebar removed (channel scoping via status note); status+view share one row, hidden with results until results display.
-- [ ] Settings show ISO 3166-1 / ISO 639-1 hints, split Save/Reset sections, colored proxy status.
-- [ ] `node --check worker.js` (if touched) + route smoke + console-clean + required HDTs pass.
+- [x] 1500px container + 600px centered searchform; usable responsive down to 360px.
+- [x] Filters sync to URL (shareable/bookmarkable); panel open on first load with no results.
+- [x] Filter options stack vertically; Sort-by + SafeSearch are radios; enrich copy states quota cost; operators visible in panel.
+- [x] Advanced-filter feasibility decided (YT API vs client-side post-filter); implemented or explicitly dropped with reason.
+- [x] Grid/list view modes work per screenshots; video cards carry channel/embed/Invidious links, channel/playlist cards Invidious; grid pins actions bottom-right.
+- [x] Dates render relative with `yyyy/mm/dd, hh:mm:ss UTC±n` hover title.
+- [x] Scopebar removed (channel scoping via status note); status+view share one row, hidden with results until results display.
+- [x] Settings show ISO 3166-1 / ISO 639-1 hints, split Save/Reset sections, colored proxy status.
+- [x] `node --check worker.js` (if touched) + route smoke + console-clean + required HDTs pass.
 
 ## Tasks
 
 - [x] T-0005 — Search layout + filter panel UX (COMPLETE; HDT PASS)
 - [x] T-0006 — Results cards + view modes + scopebar + dates (COMPLETE; HDT PASS)
-- [ ] T-0007 — Settings polish + global responsive
+- [x] T-0007 — Settings polish + global responsive (COMPLETE; HDT PASS)
 
 ## Related Parking-Lot Ideas
 
@@ -69,4 +69,6 @@ None — parking lot empty at planning time (reviewed 2026-10-13).
 
 ## Notes
 
-T-0005 COMPLETE (HDT PASS). T-0006 COMPLETE (HDT PASS); T-0007 planned.
+T-0005 COMPLETE (HDT PASS). T-0006 COMPLETE (HDT PASS). T-0007
+COMPLETE (HDT PASS 2026-10-15). M-0002 COMPLETE — all tasks done, all exit
+criteria satisfied.

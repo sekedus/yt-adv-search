@@ -19,6 +19,7 @@
   --accent-ink: #06283f;
   --chip: #272727;
   --danger: #ff8a80;
+  --ok: #7dd88a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.6);
 }
 
@@ -35,6 +36,7 @@
     --accent-ink: #fff;
     --chip: #ececec;
     --danger: #b3261e;
+    --ok: #137333;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.15);
   }
 }
@@ -51,6 +53,7 @@
   --accent-ink: #fff;
   --chip: #ececec;
   --danger: #b3261e;
+  --ok: #137333;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.15);
 }
 
@@ -399,6 +402,18 @@ label.disabled {
   }
 }
 
+/* Narrow screens: stack horizontal (list) cards so the fixed-width thumb
+ * never overflows a 360px viewport; thumb becomes full-width. */
+@media (max-width: 640px) {
+  .card {
+    flex-direction: column;
+  }
+  .thumb {
+    flex: none;
+    width: 100%;
+  }
+}
+
 /* Results */
 .status {
   margin: 12px 0;
@@ -408,6 +423,10 @@ label.disabled {
 
 .status.error {
   color: var(--danger);
+}
+
+.status.ok {
+  color: var(--ok);
 }
 
 .resultbar {
