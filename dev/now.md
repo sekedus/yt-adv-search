@@ -17,11 +17,11 @@ M-0002 — Improve UI/UX (ACTIVE). See `dev/milestones/M-0002-improve-ui-ux.md`.
 
 ## Current Task
 
-None — T-0005 COMPLETE; T-0006/T-0007 PLANNED, implementation not authorized.
+None — T-0005/T-0006 COMPLETE; T-0007 PLANNED, implementation not authorized.
 
 ## Current Step
 
-T-0005 complete and verified. Awaiting user direction (start T-0006 or T-0007, or adjust plan).
+T-0006 complete and verified. Awaiting user direction (start T-0007 or adjust plan).
 
 ## Objective
 
@@ -29,7 +29,7 @@ Polish UI/UX: layout, filter panel, results cards, settings.
 
 ## Next Action
 
-Start T-0006 or T-0007 only when user explicitly authorizes implementation.
+Start T-0007 only when user explicitly authorizes implementation.
 
 ## Current Blocker
 
@@ -38,7 +38,7 @@ None.
 ## Relevant Files
 
 - `dev/milestones/M-0002-improve-ui-ux.md`
-- `dev/tasks/T-0005-search-filter-ux.md`
+- `dev/tasks/done/T-0005-search-filter-ux.md`
 - `dev/tasks/T-0006-results-cards-views.md`
 - `dev/tasks/T-0007-settings-polish.md`
 - `public/index.html`
@@ -54,13 +54,13 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0005_COMPLETE
+Status: T-0006_COMPLETE
 
 Evidence:
 
-- `node --check worker.js` — PASS (worker untouched).
-- Static 43/43 PASS + `isoToSeconds` 5/5 PASS (see done task Notes/Evidence).
-- HDT REQUIRED — PASS (user report 2026-10-14: all manual steps passed).
+- `node --check worker.js` — PASS (only change: paid-promo allowlist entry).
+- Static 110/110 PASS + behavior 11/11 PASS + id refs resolve (see done task Notes/Evidence).
+- HDT REQUIRED — PASS (user report 2026-10-15: all rounds passed, zero console errors).
 
 ## Commit Policy
 
@@ -72,7 +72,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-T-0005_COMPLETE_UNCOMMITTED
+4260292 feat: search layout and filter panel UX
 
 ## README Status
 
@@ -86,7 +86,7 @@ UPDATED — filter share URLs + advanced filters documented.
 
 ## Do Not Change
 
-- Do not expand into T-0006/T-0007 scope (cards/settings).
+- Do not expand into filter panel (T-0005 done) or Settings (T-0007) scope.
 
 ## Resume Instruction
 

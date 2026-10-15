@@ -9,7 +9,7 @@
 // Same theme-init contract as / and /tools.
 (function () {
   try {
-    var t = localStorage.getItem("ytadv.theme") || "auto";
+    var t = localStorage.getItem("ytas.theme") || "auto";
     if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
     document.documentElement.dataset.theme = t;
   } catch (e) {
@@ -122,12 +122,12 @@ function storeSet(k, v) {
 }
 
 var DEFAULTS = {
-  "ytadv.theme": "auto",
-  "ytadv.maxResults": "25",
-  "ytadv.safeSearch": "moderate",
-  "ytadv.region": "",
-  "ytadv.lang": "",
-  "ytadv.enrich": "0"
+  "ytas.theme": "auto",
+  "ytas.maxResults": "25",
+  "ytas.safeSearch": "moderate",
+  "ytas.region": "",
+  "ytas.lang": "",
+  "ytas.enrich": "0"
 };
 
 /* Theme toggle (same contract as / and /tools). */
@@ -138,7 +138,7 @@ function paintTheme(t) {
   var radio = document.querySelector('input[name="theme"][value="' + t + '"]');
   if (radio) radio.checked = true;
 }
-var theme = storeGet("ytadv.theme", "auto");
+var theme = storeGet("ytas.theme", "auto");
 if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
 paintTheme(theme);
 themeBtn.addEventListener("click", function () {
@@ -147,7 +147,7 @@ themeBtn.addEventListener("click", function () {
 });
 function setTheme(t) {
   theme = t;
-  storeSet("ytadv.theme", t);
+  storeSet("ytas.theme", t);
   paintTheme(t);
 }
 // Theme radios stay pending until Save; the header toggle applies immediately
@@ -167,13 +167,13 @@ function note(msg, isError) {
 var maxSel = $("maxResults"), safeSel = $("safeSearch");
 var regionInput = $("region"), langInput = $("lang"), enrichBox = $("enrich");
 
-maxSel.value = storeGet("ytadv.maxResults", "25");
+maxSel.value = storeGet("ytas.maxResults", "25");
 if (maxSel.selectedIndex < 0) maxSel.value = "25";
-safeSel.value = storeGet("ytadv.safeSearch", "moderate");
+safeSel.value = storeGet("ytas.safeSearch", "moderate");
 if (safeSel.selectedIndex < 0) safeSel.value = "moderate";
-regionInput.value = storeGet("ytadv.region", "");
-langInput.value = storeGet("ytadv.lang", "");
-enrichBox.checked = storeGet("ytadv.enrich", "0") === "1";
+regionInput.value = storeGet("ytas.region", "");
+langInput.value = storeGet("ytas.lang", "");
+enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
 
 $("saveBtn").addEventListener("click", function () {
   var region = regionInput.value.trim().toUpperCase();
@@ -184,15 +184,15 @@ $("saveBtn").addEventListener("click", function () {
   var lang = langInput.value.trim().toLowerCase().slice(0, 10);
   var t = checkedTheme();
   theme = t;
-  storeSet("ytadv.theme", t);
+  storeSet("ytas.theme", t);
   paintTheme(t);
-  storeSet("ytadv.maxResults", maxSel.value);
-  storeSet("ytadv.safeSearch", safeSel.value);
+  storeSet("ytas.maxResults", maxSel.value);
+  storeSet("ytas.safeSearch", safeSel.value);
   regionInput.value = region;
-  storeSet("ytadv.region", region);
+  storeSet("ytas.region", region);
   langInput.value = lang;
-  storeSet("ytadv.lang", lang);
-  storeSet("ytadv.enrich", enrichBox.checked ? "1" : "0");
+  storeSet("ytas.lang", lang);
+  storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
   note("Settings saved.");
 });
 

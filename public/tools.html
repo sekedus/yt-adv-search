@@ -9,7 +9,7 @@
 // Same theme-init contract as / (see public/index.html).
 (function () {
   try {
-    var t = localStorage.getItem("ytadv.theme") || "auto";
+    var t = localStorage.getItem("ytas.theme") || "auto";
     if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
     document.documentElement.dataset.theme = t;
   } catch (e) {
@@ -84,12 +84,12 @@ function paintTheme(t) {
   document.documentElement.dataset.theme = t;
   themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
 }
-var theme = storeGet("ytadv.theme", "auto");
+var theme = storeGet("ytas.theme", "auto");
 if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
 paintTheme(theme);
 themeBtn.addEventListener("click", function () {
   theme = theme === "auto" ? "light" : (theme === "light" ? "dark" : "auto");
-  storeSet("ytadv.theme", theme);
+  storeSet("ytas.theme", theme);
   paintTheme(theme);
 });
 

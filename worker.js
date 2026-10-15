@@ -46,6 +46,7 @@ const ALLOWED_SEARCH_PARAMS = new Set([
   "videoDuration",
   "videoEmbeddable",
   "videoLicense",
+  "videoPaidProductPlacement",
   "videoSyndicated",
   "videoType",
   "fields",
