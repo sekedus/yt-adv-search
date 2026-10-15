@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (M-0002 COMPLETE; no active task)
+BUILD (M-0003 COMPLETE; no active task)
 
 ## State Integrity
 
@@ -13,19 +13,19 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0002 — Improve UI/UX (COMPLETE). See `dev/milestones/M-0002-improve-ui-ux.md`.
+M-0003 — Filter/topbar/settings neat pass (COMPLETE). See `dev/milestones/M-0003-filter-topbar-settings.md`.
 
 ## Current Task
 
-None — T-0005/T-0006/T-0007 COMPLETE; M-0002 COMPLETE.
+None — T-0008 COMPLETE; M-0003 COMPLETE.
 
 ## Current Step
 
-T-0007 complete and verified (HDT PASS 2026-10-15). Awaiting user direction.
+T-0008 complete and verified (HDT PASS 2026-10-16). Ready to commit on user request.
 
 ## Objective
 
-Polish UI/UX: layout, filter panel, results cards, settings.
+Neater advanced filters (qinfo right), searchform above filters, centered brand + hamburger topbar, neater merged settings defaults.
 
 ## Next Action
 
@@ -37,12 +37,11 @@ None.
 
 ## Relevant Files
 
-- `dev/milestones/M-0002-improve-ui-ux.md`
-- `dev/tasks/done/T-0005-search-filter-ux.md`
-- `dev/tasks/done/T-0006-results-cards-views.md`
-- `dev/tasks/done/T-0007-settings-polish.md`
+- `dev/milestones/M-0003-filter-topbar-settings.md`
+- `dev/tasks/done/T-0008-filter-topbar-settings.md`
 - `public/index.html`
 - `public/settings.html`
+- `public/tools.html`
 - `public/styles.css`
 - `dev/verification.md`
 
@@ -50,18 +49,16 @@ None.
 
 - Read `dev/constraints.md` before compatibility/platform decisions.
 - Keys server-only; enrichment OFF default.
-- T-0005 shares `.container`/filter CSS with T-0006/T-0007; keep class contracts.
+- Keep `.container`/filter/topbar class contracts; keep `ytas.*` keys.
 
 ## Verification Snapshot
 
-Status: T-0007_COMPLETE (M-0002 COMPLETE)
+Status: T-0008_COMPLETE (M-0003 COMPLETE)
 
 Evidence:
 
-- T-0006 COMPLETE (HDT PASS 2026-10-15, zero console errors).
-- T-0007: `node --check worker.js` — PASS (worker untouched); static 28/28
-  PASS + settings inline script `node --check` PASS (see done task Notes/Evidence).
-- HDT REQUIRED — PASS (user report 2026-10-15: all tests pass).
+- T-0008 automated: `node --check worker.js` PASS; inline scripts `node --check` PASS (index/settings/tools); static ID/grid checks PASS.
+- HDT REQUIRED — PASS (user report 2026-10-16: pass).
 
 ## Commit Policy
 
@@ -73,18 +70,18 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-b019d7a feat: results grid-list cards with channel embed invidious links
+f6697cf feat: settings copy status colors and responsive polish
 
 ## README Status
 
-UPDATED — filter share URLs + advanced filters documented.
+REVIEWED — still accurate (bar + filters + tools + settings); no layout-detail changes needed for T-0008.
 
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
-- Grid/list column counts assumed from screenshots; confirm at implementation.
-- T-0005 advanced decision: year/API + client post-filters live; hide-watched dropped (no history).
+- M-0003 COMPLETE (T-0008 in `dev/tasks/done/`).
+- improve-4.png reference: Invidious-style label-right / control-left grid.
 
 ## Do Not Change
 

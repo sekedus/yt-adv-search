@@ -18,21 +18,18 @@
     })();
   </script>
 </head>
-<body>
+<body class="settings">
   <header class="topbar">
     <div class="topbar-inner">
+      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
       <a class="brand" href="/">YT Adv Search</a>
-      <nav class="nav" aria-label="Primary">
-        <a href="/">Search</a><a href="/tools">Tools</a>
+      <nav class="nav" id="primaryNav" aria-label="Primary">
+        <a href="/">Adv Search</a>
+        <a href="/tools">Tools</a>
       </nav>
-      <form class="searchform" role="search" action="/" method="get">
-        <label class="visually-hidden" for="q">Search YouTube</label>
-        <input type="search" id="q" name="q" maxlength="500" autocomplete="off" placeholder="Search">
-        <button class="primary" type="submit">Search</button>
-      </form>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
-        <a class="iconbtn" href="/settings" aria-current="page">Settings</a>
+        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span><span class="theme-text">Theme: Auto</span></button>
+        <a class="iconbtn" href="/settings" aria-current="page"><span class="settings-icon" aria-hidden="true">⚙️</span><span class="settings-text">Settings</span></a>
       </div>
     </div>
   </header>
@@ -56,49 +53,53 @@
     </section>
 
     <section class="panel" aria-label="Search defaults">
-      <div class="filtergrid">
-        <fieldset>
-          <legend>Max results</legend>
-          <select id="maxResults">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-        </fieldset>
-        <fieldset>
-          <legend>SafeSearch</legend>
-          <div class="radiorow" id="safeGroup">
-            <label><input type="radio" name="safeSearch" value="none"> Off</label>
-            <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
-            <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
+      <h2 style="margin-top:0">Search defaults</h2>
+      <div class="advgrid">
+        <div class="advrow">
+          <label class="advlabel" for="maxResults">Max results</label>
+          <div class="advcontrol">
+            <select id="maxResults">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
           </div>
-        </fieldset>
-        <fieldset>
-          <legend>Region</legend>
-          <label class="visually-hidden" for="region">Region code</label>
-          <input type="text" id="region" autocomplete="off"
-          placeholder="US" style="width:6em">
+          <span></span>
+          <p class="hint">Default page size for search results.</p>
+        </div>
+        <div class="advrow">
+          <span class="advlabel" id="safeLabel">SafeSearch</span>
+          <div class="advcontrol">
+            <div class="radiorow" id="safeGroup" role="radiogroup" aria-labelledby="safeLabel">
+              <label><input type="radio" name="safeSearch" value="none"> Off</label>
+              <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
+              <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
+            </div>
+          </div>
+          <p class="hint">YouTube SafeSearch filtering level.</p>
+        </div>
+        <div class="advrow">
+          <label class="advlabel" for="region">Region</label>
+          <div class="advcontrol"><input type="text" id="region" autocomplete="off" placeholder="US" style="width:6em"></div>
           <p class="hint">YouTube uses ISO 3166-1 codes (e.g. US). Empty = unset.</p>
-        </fieldset>
-        <fieldset>
-          <legend>Language</legend>
-          <label class="visually-hidden" for="lang">Language code</label>
-          <input type="text" id="lang" maxlength="10" autocomplete="off"
-          placeholder="en" style="width:6em">
+        </div>
+        <div class="advrow">
+          <label class="advlabel" for="lang">Language</label>
+          <div class="advcontrol"><input type="text" id="lang" maxlength="10" autocomplete="off" placeholder="en" style="width:6em"></div>
           <p class="hint">YouTube uses ISO 639-1 codes (e.g. en, de). Empty = unset.</p>
-        </fieldset>
+        </div>
+        <div class="advrow">
+          <span class="advlabel">Extra data</span>
+          <div class="advcontrol"><label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label></div>
+          <p class="hint">Off by default to save quota.</p>
+        </div>
+        <div class="actions">
+          <button class="primary" id="saveBtn" type="button">Save</button>
+          <button class="danger hover" id="resetBtn" type="button">Reset all to defaults</button>
+          <span class="status" id="status" role="status" aria-live="polite"></span>
+        </div>
       </div>
-      <div class="filter-actions">
-        <label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label>
-      </div>
-    </section>
-
-    <section class="panel" aria-label="Save and reset">
-      <h2 style="margin-top:0">Save and reset</h2>
-      <p><button class="primary" id="saveBtn" type="button">Save</button>
-        <button id="resetBtn" type="button">Reset all to defaults</button>
-        <span class="status" id="status" role="status" aria-live="polite"></span></p>
     </section>
 
     <section class="panel" aria-label="Proxy status">
@@ -136,9 +137,17 @@
 
     /* Theme toggle (same contract as / and /tools). */
     var themeBtn = $("themeBtn");
+    var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
-      themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var label = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var icon = themeBtn.querySelector(".theme-icon");
+      var text = themeBtn.querySelector(".theme-text");
+      if (icon) icon.textContent = THEME_ICONS[t] || "🌓";
+      if (text) text.textContent = label;
+      else themeBtn.textContent = label;
+      themeBtn.setAttribute("aria-label", label + " (click to change)");
+      themeBtn.title = label + " (click to change)";
       var radio = document.querySelector('input[name="theme"][value="' + t + '"]');
       if (radio) radio.checked = true;
     }
@@ -153,6 +162,13 @@
       theme = t;
       storeSet("ytas.theme", t);
       paintTheme(t);
+    }
+    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    if (menuBtn && primaryNav) {
+      menuBtn.addEventListener("click", function () {
+        var open = primaryNav.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
     }
     // Theme radios stay pending until Save; the header toggle applies immediately
     // (and re-syncs the radios via paintTheme).

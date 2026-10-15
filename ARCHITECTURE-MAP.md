@@ -2,7 +2,7 @@
 
 ## Status
 
-IN_PROGRESS v1 — `worker.js` landed (T-0001); pages pending T-0002..T-0004.
+COMPLETE through M-0003 — Worker + pages + UI polish landed (T-0001..T-0008); no active milestone.
 
 ## Purpose
 
@@ -14,11 +14,11 @@ A compact navigation map for the codebase. Points to where capabilities will liv
 
 | Domain / Area | Primary Path(s) | Responsibility | Key Dependencies | Consumers | Tests |
 |---|---|---|---|---|---|
-| Search UI | `public/index.html` (route `/`) | Bar, Filters, results grid, pagination, enrichment toggle | `/api/search`, shared `public/styles.css`, `localStorage` | Browser user | Browser HDT |
+| Search UI | `public/index.html` (route `/`) | Searchpanel bar, Filters (`.advgrid` neat layout), results grid, pagination, enrichment toggle | `/api/search`, shared `public/styles.css`, `localStorage` | Browser user | Browser HDT |
 | Worker API | `worker.js` (`/api/search`, `/api/channel`) | Key rotation, operator resolution, `search.list`/`videos.list`/`channels.list` forwarding | `YOUTUBE_API_KEYS`, googleapis v3 | Search UI, Tools page | `node --check`, wrangler smoke |
 | Channel resolver | `public/tools.html` (route `/tools`) | URL/handle/username → ID + snippet + `Use in search` | `/api/channel` | Browser user | Browser HDT |
-| Settings | `public/settings.html` (route `/settings`) | Theme, defaults, enrichment opt-in, key-index status | `localStorage`, `/api/search` status | Search UI, Tools page | Browser HDT |
-| Shared style | `public/styles.css` | Auto-dark theme, Invidious-like filters/results | none | All pages | Visual check |
+| Settings | `public/settings.html` (route `/settings`) | Theme, neat defaults grid (Save/Reset merged), enrichment opt-in, key-index status | `localStorage`, `/api/search` status | Search UI, Tools page | Browser HDT |
+| Shared style | `public/styles.css` | Auto-dark theme, centered-brand hamburger topbar, Invidious-like filters/results | none | All pages | Visual check |
 
 ### Entry Points
 

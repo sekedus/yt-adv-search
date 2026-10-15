@@ -18,7 +18,7 @@
   --accent: #3ea6ff;
   --accent-ink: #06283f;
   --chip: #272727;
-  --danger: #ff8a80;
+  --danger: #dc3545;
   --ok: #7dd88a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.6);
 }
@@ -102,13 +102,16 @@ a {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
+  position: relative;
 }
 
 .brand {
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
-  margin-right: 12px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .nav {
@@ -122,9 +125,22 @@ a {
   color: var(--text);
 }
 
+.nav a:hover {
+  background: var(--chip);
+}
+
 .nav a[aria-current="page"] {
   background: var(--chip);
   font-weight: 600;
+}
+
+.menuBtn {
+  display: none;
+}
+
+.theme-icon,
+.settings-icon {
+  display: none;
 }
 
 .searchform {
@@ -133,6 +149,14 @@ a {
   max-width: 600px;
   margin-inline: auto;
   gap: 8px;
+}
+
+/* Topbar search (tools/settings) sits on its own centered row so the
+ * absolutely-centered brand never overlaps it. Index uses .searchpanel. */
+.topbar-inner .searchform {
+  order: 10;
+  flex-basis: 100%;
+  max-width: 720px;
 }
 
 .searchform input[type="search"] {
@@ -195,6 +219,15 @@ button.primary,
   border-color: transparent;
   color: var(--accent-ink);
   font-weight: 600;
+}
+
+button.danger:not(.hover),
+.btn.danger:not(.hover),
+button.danger.hover:hover,
+.btn.danger.hover:hover {
+  background: var(--danger);
+  border-color: transparent;
+  color: var(--text);
 }
 
 button:disabled,
@@ -285,6 +318,26 @@ label.disabled {
   }
 }
 
+/* Search panel (index: searchform lives above filters, not in topbar) */
+.searchpanel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+}
+
+.searchpanel .searchform {
+  max-width: none;
+  margin-inline: 0;
+}
+
+/* Hide the panel Search button while filters are open (JS also toggles
+ * `hidden` for browsers without :has). Apply still runs the search. */
+.container:has(#filtersPanel[open]) .searchpanel .searchform button[type="submit"] {
+  display: none;
+}
+
 .qrow {
   display: flex;
   align-items: center;
@@ -315,8 +368,8 @@ label.disabled {
   display: none;
   font-size: 13px;
   color: var(--text-dim);
-  margin: 0 0 8px;
-  width: 100%;
+  margin: 0;
+  min-width: 0;
 }
 
 .qtoggle:checked + .qinfo {
@@ -328,8 +381,86 @@ label.disabled {
   font-size: 12.5px;
 }
 
+/* Neat label-right grid (improve-4.png): label | control | ? | help.
+ * Used by Advanced filters (index) and Search defaults (settings). */
+.advgrid {
+  display: grid;
+  gap: 10px;
+  margin: 0 6px;
+  font-size: 15px;
+}
+
+.advrow {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 300px) 24px minmax(0, 1fr);
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.advlabel {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.advcontrol {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.advcontrol input[type="text"] {
+  width: 100%;
+  max-width: 300px;
+}
+
+.advcontrol input#f-scope {
+  width: 100%;
+  max-width: 300px;
+}
+
+.advcontrol input[type="date"] {
+  width: 160px;
+  max-width: 100%;
+}
+
+.advcontrol select {
+  max-width: 100%;
+}
+
+.advrow .qbtn {
+  grid-column: 3;
+  justify-self: start;
+}
+
+.advrow .qinfo,
+.advrow .hint {
+  grid-column: 4;
+  margin: 0;
+}
+
+.advrow .hint {
+  font-size: 13px;
+}
+
+/* Settings radios sit inline in the control column. */
+.advcontrol .radiorow {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.advrow.actions .advcontrol {
+  gap: 10px;
+}
+
 .moredetails {
   width: 100%;
+}
+
+.moredetails .advgrid {
+  margin: 10px 0;
 }
 
 .moredetails > summary {
@@ -338,47 +469,63 @@ label.disabled {
   padding: 6px 0;
 }
 
-.filter-actions {
+@media (max-width: 900px) {
+  .advrow {
+    grid-template-columns: 180px minmax(0, 1fr) 24px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .advgrid {
+    margin: 0;
+  }
+  .advrow {
+    grid-template-columns: 1fr 28px;
+  }
+  .advrow > span:empty {
+    display: none;
+  }
+  .advlabel {
+    text-align: left;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .advrow .qbtn {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .advcontrol {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .advrow .qinfo,
+  .advrow .hint {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  .advcontrol input[type="text"],
+  .advcontrol input#f-scope {
+    max-width: none;
+  }
+}
+
+.actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 12px 0 14px;
 }
 
-.advcol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 15px;
+.settings .actions {
+  padding-bottom: 0;
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
-.advcol label {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.advcol input[type="number"],
-.advcol input[type="text"] {
-  width: 140px;
-  max-width: 100%;
-}
-
-.advcol input[type="date"] {
-  width: 160px;
-  max-width: 100%;
-}
-
-.advcol select {
-  max-width: 100%;
-}
-
-.advcol input#f-scope {
-  width: 220px;
-}
+/* Legacy .advcol kept minimal (new markup uses .advgrid/.advrow). */
 
 .opslist {
   margin: 6px 0 2px;
@@ -402,6 +549,54 @@ label.disabled {
   }
 }
 
+/* Responsive topbar: row is [menu] [centered brand] [theme icon] [settings].
+ * Nav hides behind hamburger; topbar searchform (tools/settings) wraps to
+ * a full-width second row. */
+@media (max-width: 700px) {
+  .topbar-inner {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .menuBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+  }
+  .nav {
+    display: none;
+    order: 10;
+    flex-basis: 100%;
+    flex-direction: column;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+  }
+  .nav.open {
+    display: flex;
+  }
+  .nav a {
+    padding: 10px 12px;
+  }
+  .theme-text,
+  .settings-text {
+    display: none;
+  }
+  .theme-icon,
+  .settings-icon {
+    display: inline;
+  }
+  .topbar-inner .searchform {
+    order: 9;
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .searchpanel .searchform {
+    flex-basis: auto;
+  }
+}
+
 /* Narrow screens: stack horizontal (list) cards so the fixed-width thumb
  * never overflows a 360px viewport; thumb becomes full-width. */
 @media (max-width: 640px) {
@@ -419,6 +614,10 @@ label.disabled {
   margin: 12px 0;
   color: var(--text-dim);
   min-height: 1.4em;
+}
+
+.settings .status {
+  margin: 0;
 }
 
 .status.error {

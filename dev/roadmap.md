@@ -4,12 +4,13 @@
 
 ## Current Milestone
 
-M-0002 — Improve UI/UX (COMPLETE)
+M-0003 — Filter/topbar/settings neat pass (COMPLETE)
 
 ## Milestones
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 - M-0002 — Improve UI/UX — COMPLETE — Layout + filters + cards + settings polish.
+- M-0003 — Filter/topbar/settings neat pass — COMPLETE — Neat advanced filters, centered hamburger topbar, merged settings.
 
 ## Task Index
 
@@ -20,6 +21,7 @@ M-0002 — Improve UI/UX (COMPLETE)
 - T-0005 — Search layout + filter panel UX — COMPLETE (M-0002; HDT PASS)
 - T-0006 — Results cards + view modes + scopebar + dates — COMPLETE (M-0002; HDT PASS)
 - T-0007 — Settings polish + global responsive — COMPLETE (M-0002; HDT PASS)
+- T-0008 — Filter panel neat layout + topbar center/hamburger + settings merge — COMPLETE (M-0003; HDT PASS)
 
 ## Roadmap Rules
 

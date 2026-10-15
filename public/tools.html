@@ -18,41 +18,38 @@
     })();
   </script>
 </head>
-<body>
+<body class="tools">
   <header class="topbar">
     <div class="topbar-inner">
+      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
       <a class="brand" href="/">YT Adv Search</a>
-      <nav class="nav" aria-label="Primary">
-        <a href="/">Search</a><a href="/tools" aria-current="page">Tools</a>
+      <nav class="nav" id="primaryNav" aria-label="Primary">
+        <a href="/">Adv Search</a>
+        <a href="/tools" aria-current="page">Tools</a>
       </nav>
-      <form class="searchform" role="search" action="/" method="get">
-        <label class="visually-hidden" for="q">Search YouTube</label>
-        <input type="search" id="q" name="q" maxlength="500" autocomplete="off" placeholder="Search">
-        <button class="primary" type="submit">Search</button>
-      </form>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
-        <a class="iconbtn" href="/settings">Settings</a>
+        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span><span class="theme-text">Theme: Auto</span></button>
+        <a class="iconbtn" href="/settings"><span class="settings-icon" aria-hidden="true">⚙️</span><span class="settings-text">Settings</span></a>
       </div>
     </div>
   </header>
 
   <main class="container">
     <h1>Channel resolver</h1>
-    <p class="hint">Paste a channel URL, handle, ID, or legacy username — e.g.
+    <p class="hint">Paste a channel URL, handle, or legacy username — e.g.
       <code>https://www.youtube.com/@Fireship/videos</code>, <code>@fireship</code>,
-      <code>fireship</code>, <code>UCsBjURrPoezykLs9EqgamOA</code>.</p>
+      <code>fireship</code>, <code>CNN</code>.</p>
 
     <form class="panel" id="resolveForm" action="/tools" method="get">
       <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <label class="visually-hidden" for="input">Channel URL, handle, ID, or username</label>
+        <label class="visually-hidden" for="input">Channel URL, handle, or legacy username</label>
         <input type="text" id="input" name="input" maxlength="1000" autocomplete="off"
-        placeholder="Channel URL / @handle / UC… / username"
+        placeholder="Channel URL / @handle / handle / legacy username"
         style="flex:1 1 280px">
         <label class="visually-hidden" for="kind">Input kind</label>
         <select id="kind" name="kind">
           <option value="auto">Auto-detect</option>
-          <option value="url">URL / handle / ID</option>
+          <option value="url">URL</option>
           <option value="id">Channel ID</option>
           <option value="handle">Handle</option>
           <option value="username">Legacy username</option>
@@ -80,9 +77,17 @@
 
     /* Theme toggle (same contract as /). */
     var themeBtn = $("themeBtn");
+    var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
-      themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var label = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var icon = themeBtn.querySelector(".theme-icon");
+      var text = themeBtn.querySelector(".theme-text");
+      if (icon) icon.textContent = THEME_ICONS[t] || "🌓";
+      if (text) text.textContent = label;
+      else themeBtn.textContent = label;
+      themeBtn.setAttribute("aria-label", label + " (click to change)");
+      themeBtn.title = label + " (click to change)";
     }
     var theme = storeGet("ytas.theme", "auto");
     if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
@@ -92,6 +97,14 @@
       storeSet("ytas.theme", theme);
       paintTheme(theme);
     });
+
+    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    if (menuBtn && primaryNav) {
+      menuBtn.addEventListener("click", function () {
+        var open = primaryNav.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
 
     var form = $("resolveForm"), input = $("input"), kindSel = $("kind");
     var statusEl = $("status"), resultEl = $("result");
@@ -162,7 +175,7 @@
       }
       var use = document.createElement("a");
       use.className = "btn primary";
-      use.href = "/?channel=" + encodeURIComponent(item.id);
+      use.href = "/?scope=" + encodeURIComponent(item.id);
       use.textContent = "Use in search";
       body.append(title, idLine);
       if (sub.textContent) body.appendChild(sub);

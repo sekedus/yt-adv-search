@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>YouTube Advanced Search | YouTube Adv Search | yt-adv-search</title>
+  <title>YTAS | YouTube Advanced Search | YouTube Adv Search | yt-adv-search</title>
   <link rel="stylesheet" href="/styles.css">
   <script>
     // Apply persisted theme before first paint (avoids a theme flash).
@@ -23,23 +23,27 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="/">YT Adv Search</a>
-      <nav class="nav" aria-label="Primary">
-        <a href="/" aria-current="page">Search</a><a href="/tools">Tools</a>
+      <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
+      <a class="brand" href="/">YTAS</a>
+      <nav class="nav" id="primaryNav" aria-label="Primary">
+        <a href="/" aria-current="page">Adv Search</a>
+        <a href="/tools">Tools</a>
       </nav>
-      <form class="searchform" role="search" action="/" method="get">
-        <label class="visually-hidden" for="ytas-q">Search YouTube</label>
-        <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
-        <button class="primary" type="submit">Search</button>
-      </form>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
-        <a class="iconbtn" href="/settings">Settings</a>
+        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span><span class="theme-text">Theme: Auto</span></button>
+        <a class="iconbtn" href="/settings"><span class="settings-icon" aria-hidden="true">⚙️</span><span class="settings-text">Settings</span></a>
       </div>
     </div>
   </header>
 
   <main class="container">
+    <section class="searchpanel" aria-label="Search">
+      <form class="searchform" role="search" action="/" method="get">
+        <label class="visually-hidden" for="ytas-q">Search YouTube</label>
+        <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
+        <button class="primary" type="submit">Search</button>
+      </form>
+    </section>
     <details class="filters" id="filtersPanel" open>
       <summary>Filters</summary>
       <div class="filtergrid">
@@ -77,13 +81,10 @@
         <fieldset>
           <legend>Features</legend>
           <div class="checkrow">
-            <label><input type="checkbox" id="f-cc"> Captions</label>
-            <label><input type="checkbox" id="f-commons"> Creative Commons</label>
             <label><input type="checkbox" id="f-live"> Live</label>
             <label><input type="checkbox" id="f-hd"> HD</label>
-            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 4K</label>
-            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 360&deg;</label>
-            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> HDR</label>
+            <label><input type="checkbox" id="f-cc"> Captions</label>
+            <label><input type="checkbox" id="f-commons"> Creative Commons</label>
           </div>
         </fieldset>
         <fieldset>
@@ -99,125 +100,143 @@
         </fieldset>
         <fieldset class="spanfull">
           <legend>Advanced</legend>
-          <div class="advcol">
-            <div class="qrow">
-              <label>Channel scope <input type="text" id="f-scope" maxlength="120" autocomplete="off" placeholder="@handle, channel_id, username"></label>
+          <div class="advgrid">
+            <div class="advrow">
+              <label class="advlabel" for="f-scope">Channel scope</label>
+              <div class="advcontrol"><input type="text" id="f-scope" maxlength="120" autocomplete="off" placeholder="channel_id, @handle, legacy_username"></div>
               <label class="qbtn" for="qh-scope" title="What is Channel scope?">?</label>
+              <input type="checkbox" class="qtoggle" id="qh-scope">
+              <p class="qinfo">Scope results to one channel. Accepts a channel id (<code>UC…</code>), a handle (<code>@name</code>), or <code>user:name</code>. Added to the query as an operator (<code>channel:</code>/<code>handle:</code>/<code>user:</code>).</p>
             </div>
-            <input type="checkbox" class="qtoggle" id="qh-scope">
-            <p class="qinfo">Scope results to one channel. Accepts a channel id (<code>UC…</code>), a handle (<code>@name</code>), or <code>user:name</code>. Added to the query as an operator (<code>channel:</code>/<code>handle:</code>/<code>user:</code>).</p>
-            <div class="qrow">
-              <label>After (from) <input type="date" id="f-after"></label>
+            <div class="advrow">
+              <label class="advlabel" for="f-after">After (from)</label>
+              <div class="advcontrol"><input type="date" id="f-after"></div>
               <label class="qbtn" for="qh-after" title="What is After?">?</label>
+              <input type="checkbox" class="qtoggle" id="qh-after">
+              <p class="qinfo">Keep only videos published on or after this date. Uses the API <code>publishedAfter</code>. A <code>after:</code> token typed in the query wins over this field.</p>
             </div>
-            <input type="checkbox" class="qtoggle" id="qh-after">
-            <p class="qinfo">Keep only videos published on or after this date. Uses the API <code>publishedAfter</code>. A <code>after:</code> token typed in the query wins over this field.</p>
-            <div class="qrow">
-              <label>Before (to) <input type="date" id="f-before"></label>
+            <div class="advrow">
+              <label class="advlabel" for="f-before">Before (to)</label>
+              <div class="advcontrol"><input type="date" id="f-before"></div>
               <label class="qbtn" for="qh-before" title="What is Before?">?</label>
+              <input type="checkbox" class="qtoggle" id="qh-before">
+              <p class="qinfo">Keep only videos published on or before this date. Uses the API <code>publishedBefore</code>. A <code>before:</code> token typed in the query wins over this field.</p>
             </div>
-            <input type="checkbox" class="qtoggle" id="qh-before">
-            <p class="qinfo">Keep only videos published on or before this date. Uses the API <code>publishedBefore</code>. A <code>before:</code> token typed in the query wins over this field.</p>
-            <div class="qrow">
-              <label>Exclude words <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="spoiler live"></label>
+            <div class="advrow">
+              <label class="advlabel" for="f-ex">Exclude words</label>
+              <div class="advcontrol"><input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="spoiler"></div>
               <label class="qbtn" for="qh-ex" title="What is Exclude words?">?</label>
+              <input type="checkbox" class="qtoggle" id="qh-ex">
+              <p class="qinfo">Drop results containing any of these words. Each word is sent as <code>-word</code> in the query (YouTube <code>NOT</code>). Separate with spaces or commas.</p>
             </div>
-            <input type="checkbox" class="qtoggle" id="qh-ex">
-            <p class="qinfo">Drop results containing any of these words. Each word is sent as <code>-word</code> in the query (YouTube <code>NOT</code>). Separate with spaces or commas.</p>
-            <div class="qrow">
-              <label><input type="checkbox" id="f-upcoming"> Upcoming broadcasts</label>
-              <label class="qbtn" for="qh-upcoming" title="What is Upcoming broadcasts?">?</label>
-            </div>
-            <input type="checkbox" class="qtoggle" id="qh-upcoming">
-            <p class="qinfo">Keep only upcoming premieres/streams. Uses the API <code>eventType=upcoming</code> (forces type Video). Live in Features wins when both are set.</p>
             <details class="moredetails">
               <summary>More</summary>
-              <div class="advcol">
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-completed"> Completed broadcasts</label>
+              <div class="advgrid">
+                <div class="advrow">
+                  <label class="advlabel" for="f-upcoming">Upcoming broadcasts</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-upcoming"></div>
+                  <label class="qbtn" for="qh-upcoming" title="What is Upcoming broadcasts?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-upcoming">
+                  <p class="qinfo">Keep only upcoming premieres/streams. Uses the API <code>eventType=upcoming</code> (forces type Video). Live in Features wins when both are set.</p>
+                </div>
+                <div class="advrow">
+                  <label class="advlabel" for="f-completed">Completed broadcasts</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-completed"></div>
                   <label class="qbtn" for="qh-completed" title="What is Completed broadcasts?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-completed">
+                  <p class="qinfo">Keep only ended streams. Uses the API <code>eventType=completed</code> (forces type Video). Live wins, then Upcoming.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-completed">
-                <p class="qinfo">Keep only ended streams. Uses the API <code>eventType=completed</code> (forces type Video). Live wins, then Upcoming.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-sd"> Standard definition</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-sd">Standard definition</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-sd"></div>
                   <label class="qbtn" for="qh-sd" title="What is Standard definition?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-sd">
+                  <p class="qinfo">Keep only SD videos. Uses the API <code>videoDefinition=standard</code> (forces type Video). HD in Features wins when both are set.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-sd">
-                <p class="qinfo">Keep only SD videos. Uses the API <code>videoDefinition=standard</code> (forces type Video). HD in Features wins when both are set.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-stdlic"> Standard YouTube license</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-stdlic">Standard YouTube license</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-stdlic"></div>
                   <label class="qbtn" for="qh-stdlic" title="What is Standard YouTube license?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-stdlic">
+                  <p class="qinfo">Keep only videos with the standard license (excludes Creative Commons). Uses the API <code>videoLicense=youtube</code>. Creative Commons in Features wins when both are set.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-stdlic">
-                <p class="qinfo">Keep only videos with the standard license (excludes Creative Commons). Uses the API <code>videoLicense=youtube</code>. Creative Commons in Features wins when both are set.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-nocap"> No captions</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-nocap">No captions</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-nocap"></div>
                   <label class="qbtn" for="qh-nocap" title="What is No captions?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-nocap">
+                  <p class="qinfo">Keep only videos without captions. Uses the API <code>videoCaption=none</code>. Captions in Features wins when both are set.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-nocap">
-                <p class="qinfo">Keep only videos without captions. Uses the API <code>videoCaption=none</code>. Captions in Features wins when both are set.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-emb"> Embeddable only</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-emb">Embeddable only</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-emb"></div>
                   <label class="qbtn" for="qh-emb" title="What is Embeddable only?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-emb">
+                  <p class="qinfo">Keep only videos allowed to be embedded on other sites. Uses the API <code>videoEmbeddable=true</code>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-emb">
-                <p class="qinfo">Keep only videos allowed to be embedded on other sites. Uses the API <code>videoEmbeddable=true</code>.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-syn"> Playable outside YouTube</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-syn">Playable outside YouTube</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-syn"></div>
                   <label class="qbtn" for="qh-syn" title="What is Playable outside YouTube?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-syn">
+                  <p class="qinfo">Keep only videos playable outside youtube.com. Uses the API <code>videoSyndicated=true</code>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-syn">
-                <p class="qinfo">Keep only videos playable outside youtube.com. Uses the API <code>videoSyndicated=true</code>.</p>
-                <div class="qrow">
-                  <label><input type="checkbox" id="f-paid"> Paid promotion</label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-paid">Paid promotion</label>
+                  <div class="advcontrol"><input type="checkbox" id="f-paid"></div>
                   <label class="qbtn" for="qh-paid" title="What is Paid promotion?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-paid">
+                  <p class="qinfo">Keep only videos the creator marked as paid promotion. Uses the API <code>videoPaidProductPlacement=true</code>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-paid">
-                <p class="qinfo">Keep only videos the creator marked as paid promotion. Uses the API <code>videoPaidProductPlacement=true</code>.</p>
-                <div class="qrow">
-                  <label>Channel type
+                <div class="advrow">
+                  <label class="advlabel" for="f-channelType">Channel type</label>
+                  <div class="advcontrol">
                     <select id="f-channelType">
                       <option value="any">Any</option>
                       <option value="show">Show</option>
                     </select>
-                  </label>
+                  </div>
                   <label class="qbtn" for="qh-channelType" title="What is Channel type?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-channelType">
+                  <p class="qinfo">Restrict to show channels. Uses the API <code>channelType=show</code> and automatically switches Type to Channel.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-channelType">
-                <p class="qinfo">Restrict to show channels. Uses the API <code>channelType=show</code> and automatically switches Type to Channel.</p>
-                <div class="qrow">
-                  <label>Dimension
+                <div class="advrow">
+                  <label class="advlabel" for="f-dim">Dimension</label>
+                  <div class="advcontrol">
                     <select id="f-dim">
                       <option value="any">Any</option>
                       <option value="2d">2D</option>
                       <option value="3d">3D</option>
                     </select>
-                  </label>
+                  </div>
                   <label class="qbtn" for="qh-dim" title="What is Dimension?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-dim">
+                  <p class="qinfo">Keep only 2D or only 3D videos. Uses the API <code>videoDimension</code> (forces type Video).</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-dim">
-                <p class="qinfo">Keep only 2D or only 3D videos. Uses the API <code>videoDimension</code> (forces type Video).</p>
-                <div class="qrow">
-                  <label>Location (lat,lon) <input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08"></label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-loc">Location (lat,lon)</label>
+                  <div class="advcontrol"><input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08"></div>
                   <label class="qbtn" for="qh-loc" title="What is Location?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-loc">
+                  <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-loc">
-                <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
-                <div class="qrow">
-                  <label>Radius <input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km"></label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-locRad">Radius</label>
+                  <div class="advcontrol"><input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km"></div>
                   <label class="qbtn" for="qh-locRad" title="What is Radius?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-locRad">
+                  <p class="qinfo">Search radius around Location, e.g. <code>1500m</code>, <code>5km</code>, <code>10000ft</code>, and <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-locRad">
-                <p class="qinfo">Search radius around Location, e.g. <code>10km</code>, <code>1500m</code>, <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
-                <div class="qrow">
-                  <label>Topic id <input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf"></label>
+                <div class="advrow">
+                  <label class="advlabel" for="f-topic">Topic id</label>
+                  <div class="advcontrol"><input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf"></div>
                   <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-topic">
+                  <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-topic">
-                <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
-                <div class="qrow">
-                  <label>Category
+                <div class="advrow">
+                  <label class="advlabel" for="f-cat">Category</label>
+                  <div class="advcontrol">
                     <select id="f-cat">
                       <option value="">Any</option>
                       <option value="1">Film &amp; Animation</option>
@@ -239,19 +258,19 @@
                       <option value="29">Nonprofits &amp; Activism</option>
                       <option value="30">Movies</option>
                     </select>
-                  </label>
+                  </div>
                   <label class="qbtn" for="qh-cat" title="What is Category?">?</label>
+                  <input type="checkbox" class="qtoggle" id="qh-cat">
+                  <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region — see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
                 </div>
-                <input type="checkbox" class="qtoggle" id="qh-cat">
-                <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region — see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
               </div>
             </details>
           </div>
         </fieldset>
       </div>
-      <div class="filter-actions">
-        <button class="primary" id="applyBtn" type="button">Apply</button>
-        <button id="resetBtn" type="button">Reset</button>
+      <div class="actions">
+        <button class="primary" id="applyBtn" type="button">Search</button>
+        <button class="danger hover" id="resetBtn" type="button">Reset</button>
         <label>Page size
           <select id="maxResults">
             <option value="5">5</option>
@@ -260,7 +279,7 @@
             <option value="50">50</option>
           </select>
         </label>
-        <label><input type="checkbox" id="enrich"> Extra: displays duration + views (uses more api quota)</label>
+        <label><input type="checkbox" id="enrich"> <strong>Extra:</strong> displays duration + views (uses more api quota)</label>
       </div>
     </details>
 
@@ -329,9 +348,17 @@
 
     /* Theme toggle (cycles Auto -> Light -> Dark). */
     var themeBtn = el("#themeBtn");
+    var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
-      themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var label = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
+      var icon = themeBtn.querySelector(".theme-icon");
+      var text = themeBtn.querySelector(".theme-text");
+      if (icon) icon.textContent = THEME_ICONS[t] || "🌓";
+      if (text) text.textContent = label;
+      else themeBtn.textContent = label;
+      themeBtn.setAttribute("aria-label", label + " (click to change)");
+      themeBtn.title = label + " (click to change)";
     }
     var theme = storeGet("ytas.theme", "auto");
     if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
@@ -341,6 +368,15 @@
       storeSet("ytas.theme", theme);
       paintTheme(theme);
     });
+
+    /* Mobile hamburger: toggles the primary nav. */
+    var menuBtn = $("menuBtn"), primaryNav = $("primaryNav");
+    if (menuBtn && primaryNav) {
+      menuBtn.addEventListener("click", function () {
+        var open = primaryNav.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
 
     /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
     var maxSel = $("maxResults"), enrichBox = $("enrich");
@@ -478,9 +514,21 @@
     }
     readStateFromURL();
 
-    /* Panel open on homepage/first load when no keyword yet (T-0005). */
+    /* Panel open on homepage/first load when no keyword yet (T-0005).
+     * T-0008: also sync the searchpanel Search-button visibility (CSS :has
+     * covers modern browsers; this is the fallback + initial state). */
+    var searchSubmitBtn = document.querySelector(".searchpanel .searchform button[type='submit']");
+    function syncSearchBtn() {
+      try {
+        if (searchSubmitBtn) searchSubmitBtn.hidden = !!filtersPanel.open;
+      } catch (e) { /* no details support */ }
+    }
     var hasInitialQuery = hasKeyword();
     try { filtersPanel.open = !hasInitialQuery; } catch (e) { /* no details support */ }
+    syncSearchBtn();
+    try {
+      filtersPanel.addEventListener("toggle", syncSearchBtn);
+    } catch (e) { /* older browsers: CSS :has still applies */ }
 
     /* Filter -> search.list params. */
     var DATE_MS = { hour: 36e5, today: 24 * 36e5, week: 7 * 24 * 36e5, month: 30 * 24 * 36e5, year: 365 * 24 * 36e5 };
@@ -893,10 +941,12 @@
     el(".searchform").addEventListener("submit", function (ev) {
       ev.preventDefault();
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+      syncSearchBtn();
       runSearch(null, { push: true });
     });
     $("applyBtn").addEventListener("click", function () {
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+      syncSearchBtn();
       runSearch(null, { push: true });
     });
     $("resetBtn").addEventListener("click", function () {
@@ -908,10 +958,12 @@
       readStateFromURL();
       if (hasKeyword()) {
         try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+        syncSearchBtn();
         runSearch(null);
       } else {
         resetFilters();
         try { filtersPanel.open = true; } catch (e) { /* no details support */ }
+        syncSearchBtn();
         resultsEl.innerHTML = "";
         setStatus("Type a keyword to search.", false);
         hideChrome();
