@@ -1,925 +1,925 @@
 <!doctype html>
 <html lang="en" data-theme="auto">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YouTube Advanced Search | YouTube Adv Search | yt-adv-search</title>
-<link rel="stylesheet" href="/styles.css">
-<script>
-// Apply persisted theme before first paint (avoids a theme flash).
-// Contract (mirrored by /tools + /settings): localStorage "ytas.theme"
-// holds "auto" (default), "dark" or "light".
-(function () {
-  try {
-    var t = localStorage.getItem("ytas.theme") || "auto";
-    if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
-    document.documentElement.dataset.theme = t;
-  } catch (e) {
-    document.documentElement.setAttribute("data-theme", "auto");
-  }
-})();
-</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>YouTube Advanced Search | YouTube Adv Search | yt-adv-search</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    // Apply persisted theme before first paint (avoids a theme flash).
+    // Contract (mirrored by /tools + /settings): localStorage "ytas.theme"
+    // holds "auto" (default), "dark" or "light".
+    (function () {
+      try {
+        var t = localStorage.getItem("ytas.theme") || "auto";
+        if (t !== "auto" && t !== "dark" && t !== "light") t = "auto";
+        document.documentElement.dataset.theme = t;
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "auto");
+      }
+    })();
+  </script>
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="/">YT Adv Search</a>
-    <nav class="nav" aria-label="Primary">
-      <a href="/" aria-current="page">Search</a><a href="/tools">Tools</a>
-    </nav>
-    <form class="searchform" role="search" action="/" method="get">
-      <label class="visually-hidden" for="ytas-q">Search YouTube</label>
-      <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
-      <button class="primary" type="submit">Search</button>
-    </form>
-    <div class="topbar-actions">
-      <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
-      <a class="iconbtn" href="/settings">Settings</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">YT Adv Search</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" aria-current="page">Search</a><a href="/tools">Tools</a>
+      </nav>
+      <form class="searchform" role="search" action="/" method="get">
+        <label class="visually-hidden" for="ytas-q">Search YouTube</label>
+        <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
+        <button class="primary" type="submit">Search</button>
+      </form>
+      <div class="topbar-actions">
+        <button class="iconbtn" id="themeBtn" type="button">Theme: Auto</button>
+        <a class="iconbtn" href="/settings">Settings</a>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main class="container">
-  <details class="filters" id="filtersPanel" open>
-    <summary>Filters</summary>
-    <div class="filtergrid">
-      <fieldset>
-        <legend>Upload date</legend>
-        <div class="radiorow">
-          <label><input type="radio" name="date" value="any" checked> Any time</label>
-          <label><input type="radio" name="date" value="hour"> Last Hour</label>
-          <label><input type="radio" name="date" value="today"> Today</label>
-          <label><input type="radio" name="date" value="week"> This week</label>
-          <label><input type="radio" name="date" value="month"> This month</label>
-          <label><input type="radio" name="date" value="year"> This year</label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Type</legend>
-        <div class="radiorow">
-          <label><input type="radio" name="type" value="any" checked> Any</label>
-          <label><input type="radio" name="type" value="video"> Video</label>
-          <label><input type="radio" name="type" value="channel"> Channel</label>
-          <label><input type="radio" name="type" value="playlist"> Playlist</label>
-          <label><input type="radio" name="type" value="movie"> Movie</label>
-          <label><input type="radio" name="type" value="show"> Show</label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Duration</legend>
-        <div class="radiorow">
-          <label><input type="radio" name="dur" value="any" checked> Any</label>
-          <label><input type="radio" name="dur" value="short"> Short (&lt; 4 min)</label>
-          <label><input type="radio" name="dur" value="medium"> Medium (4–20 min)</label>
-          <label><input type="radio" name="dur" value="long"> Long (&gt; 20 min)</label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Features</legend>
-        <div class="checkrow">
-          <label><input type="checkbox" id="f-cc"> Captions</label>
-          <label><input type="checkbox" id="f-commons"> Creative Commons</label>
-          <label><input type="checkbox" id="f-live"> Live</label>
-          <label><input type="checkbox" id="f-hd"> HD</label>
-          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 4K</label>
-          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 360&deg;</label>
-          <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> HDR</label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Sort by</legend>
-        <div class="radiorow" id="orderGroup">
-          <label><input type="radio" name="order" value="relevance" checked> Relevance</label>
-          <label><input type="radio" name="order" value="date"> Date</label>
-          <label><input type="radio" name="order" value="rating"> Rating</label>
-          <label><input type="radio" name="order" value="viewCount"> View count</label>
-          <label><input type="radio" name="order" value="videoCount"> Channel video count</label>
-          <label><input type="radio" name="order" value="title"> Title</label>
-        </div>
-      </fieldset>
-      <fieldset class="spanfull">
-        <legend>Advanced</legend>
-        <div class="advcol">
-          <div class="qrow">
-          <label>Channel scope <input type="text" id="f-scope" maxlength="120" autocomplete="off" placeholder="@handle, channel_id, username"></label>
-          <label class="qbtn" for="qh-scope" title="What is Channel scope?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-scope">
-        <p class="qinfo">Scope results to one channel. Accepts a channel id (<code>UC…</code>), a handle (<code>@name</code>), or <code>user:name</code>. Added to the query as an operator (<code>channel:</code>/<code>handle:</code>/<code>user:</code>).</p>
-          <div class="qrow">
-          <label>After (from) <input type="date" id="f-after"></label>
-          <label class="qbtn" for="qh-after" title="What is After?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-after">
-        <p class="qinfo">Keep only videos published on or after this date. Uses the API <code>publishedAfter</code>. A <code>after:</code> token typed in the query wins over this field.</p>
-          <div class="qrow">
-          <label>Before (to) <input type="date" id="f-before"></label>
-          <label class="qbtn" for="qh-before" title="What is Before?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-before">
-        <p class="qinfo">Keep only videos published on or before this date. Uses the API <code>publishedBefore</code>. A <code>before:</code> token typed in the query wins over this field.</p>
-          <div class="qrow">
-          <label>Exclude words <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="spoiler live"></label>
-          <label class="qbtn" for="qh-ex" title="What is Exclude words?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-ex">
-        <p class="qinfo">Drop results containing any of these words. Each word is sent as <code>-word</code> in the query (YouTube <code>NOT</code>). Separate with spaces or commas.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-upcoming"> Upcoming broadcasts</label>
-          <label class="qbtn" for="qh-upcoming" title="What is Upcoming broadcasts?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-upcoming">
-        <p class="qinfo">Keep only upcoming premieres/streams. Uses the API <code>eventType=upcoming</code> (forces type Video). Live in Features wins when both are set.</p>
-          <details class="moredetails">
-            <summary>More</summary>
-            <div class="advcol">
-          <div class="qrow">
-          <label><input type="checkbox" id="f-completed"> Completed broadcasts</label>
-          <label class="qbtn" for="qh-completed" title="What is Completed broadcasts?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-completed">
-        <p class="qinfo">Keep only ended streams. Uses the API <code>eventType=completed</code> (forces type Video). Live wins, then Upcoming.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-sd"> Standard definition</label>
-          <label class="qbtn" for="qh-sd" title="What is Standard definition?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-sd">
-        <p class="qinfo">Keep only SD videos. Uses the API <code>videoDefinition=standard</code> (forces type Video). HD in Features wins when both are set.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-stdlic"> Standard YouTube license</label>
-          <label class="qbtn" for="qh-stdlic" title="What is Standard YouTube license?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-stdlic">
-        <p class="qinfo">Keep only videos with the standard license (excludes Creative Commons). Uses the API <code>videoLicense=youtube</code>. Creative Commons in Features wins when both are set.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-nocap"> No captions</label>
-          <label class="qbtn" for="qh-nocap" title="What is No captions?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-nocap">
-        <p class="qinfo">Keep only videos without captions. Uses the API <code>videoCaption=none</code>. Captions in Features wins when both are set.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-emb"> Embeddable only</label>
-          <label class="qbtn" for="qh-emb" title="What is Embeddable only?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-emb">
-        <p class="qinfo">Keep only videos allowed to be embedded on other sites. Uses the API <code>videoEmbeddable=true</code>.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-syn"> Playable outside YouTube</label>
-          <label class="qbtn" for="qh-syn" title="What is Playable outside YouTube?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-syn">
-        <p class="qinfo">Keep only videos playable outside youtube.com. Uses the API <code>videoSyndicated=true</code>.</p>
-          <div class="qrow">
-          <label><input type="checkbox" id="f-paid"> Paid promotion</label>
-          <label class="qbtn" for="qh-paid" title="What is Paid promotion?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-paid">
-        <p class="qinfo">Keep only videos the creator marked as paid promotion. Uses the API <code>videoPaidProductPlacement=true</code>.</p>
-          <div class="qrow">
-          <label>Channel type
-                <select id="f-channelType">
-                  <option value="any">Any</option>
-                  <option value="show">Show</option>
-                </select>
-              </label>
-          <label class="qbtn" for="qh-channelType" title="What is Channel type?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-channelType">
-        <p class="qinfo">Restrict to show channels. Uses the API <code>channelType=show</code> and automatically switches Type to Channel.</p>
-          <div class="qrow">
-          <label>Dimension
-                <select id="f-dim">
-                  <option value="any">Any</option>
-                  <option value="2d">2D</option>
-                  <option value="3d">3D</option>
-                </select>
-              </label>
-          <label class="qbtn" for="qh-dim" title="What is Dimension?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-dim">
-        <p class="qinfo">Keep only 2D or only 3D videos. Uses the API <code>videoDimension</code> (forces type Video).</p>
-          <div class="qrow">
-          <label>Location (lat,lon) <input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08"></label>
-          <label class="qbtn" for="qh-loc" title="What is Location?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-loc">
-        <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
-          <div class="qrow">
-          <label>Radius <input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km"></label>
-          <label class="qbtn" for="qh-locRad" title="What is Radius?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-locRad">
-        <p class="qinfo">Search radius around Location, e.g. <code>10km</code>, <code>1500m</code>, <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
-          <div class="qrow">
-          <label>Topic id <input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf"></label>
-          <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-topic">
-        <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
-          <div class="qrow">
-          <label>Category
-                <select id="f-cat">
-                  <option value="">Any</option>
-                  <option value="1">Film &amp; Animation</option>
-                  <option value="2">Autos &amp; Vehicles</option>
-                  <option value="10">Music</option>
-                  <option value="15">Pets &amp; Animals</option>
-                  <option value="17">Sports</option>
-                  <option value="18">Short Movies</option>
-                  <option value="19">Travel &amp; Events</option>
-                  <option value="20">Gaming</option>
-                  <option value="21">Videoblogging</option>
-                  <option value="22">People &amp; Blogs</option>
-                  <option value="23">Comedy</option>
-                  <option value="24">Entertainment</option>
-                  <option value="25">News &amp; Politics</option>
-                  <option value="26">Howto &amp; Style</option>
-                  <option value="27">Education</option>
-                  <option value="28">Science &amp; Technology</option>
-                  <option value="29">Nonprofits &amp; Activism</option>
-                  <option value="30">Movies</option>
-                </select>
-              </label>
-          <label class="qbtn" for="qh-cat" title="What is Category?">?</label>
-        </div>
-        <input type="checkbox" class="qtoggle" id="qh-cat">
-        <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region — see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
+  <main class="container">
+    <details class="filters" id="filtersPanel" open>
+      <summary>Filters</summary>
+      <div class="filtergrid">
+        <fieldset>
+          <legend>Upload date</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="date" value="any" checked> Any time</label>
+            <label><input type="radio" name="date" value="hour"> Last Hour</label>
+            <label><input type="radio" name="date" value="today"> Today</label>
+            <label><input type="radio" name="date" value="week"> This week</label>
+            <label><input type="radio" name="date" value="month"> This month</label>
+            <label><input type="radio" name="date" value="year"> This year</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Type</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="type" value="any" checked> Any</label>
+            <label><input type="radio" name="type" value="video"> Video</label>
+            <label><input type="radio" name="type" value="channel"> Channel</label>
+            <label><input type="radio" name="type" value="playlist"> Playlist</label>
+            <label><input type="radio" name="type" value="movie"> Movie</label>
+            <label><input type="radio" name="type" value="show"> Show</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Duration</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="dur" value="any" checked> Any</label>
+            <label><input type="radio" name="dur" value="short"> Short (&lt; 4 min)</label>
+            <label><input type="radio" name="dur" value="medium"> Medium (4–20 min)</label>
+            <label><input type="radio" name="dur" value="long"> Long (&gt; 20 min)</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Features</legend>
+          <div class="checkrow">
+            <label><input type="checkbox" id="f-cc"> Captions</label>
+            <label><input type="checkbox" id="f-commons"> Creative Commons</label>
+            <label><input type="checkbox" id="f-live"> Live</label>
+            <label><input type="checkbox" id="f-hd"> HD</label>
+            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 4K</label>
+            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> 360&deg;</label>
+            <label class="disabled" title="No YouTube API equivalent"><input type="checkbox" disabled> HDR</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Sort by</legend>
+          <div class="radiorow" id="orderGroup">
+            <label><input type="radio" name="order" value="relevance" checked> Relevance</label>
+            <label><input type="radio" name="order" value="date"> Date</label>
+            <label><input type="radio" name="order" value="rating"> Rating</label>
+            <label><input type="radio" name="order" value="viewCount"> View count</label>
+            <label><input type="radio" name="order" value="videoCount"> Channel video count</label>
+            <label><input type="radio" name="order" value="title"> Title</label>
+          </div>
+        </fieldset>
+        <fieldset class="spanfull">
+          <legend>Advanced</legend>
+          <div class="advcol">
+            <div class="qrow">
+              <label>Channel scope <input type="text" id="f-scope" maxlength="120" autocomplete="off" placeholder="@handle, channel_id, username"></label>
+              <label class="qbtn" for="qh-scope" title="What is Channel scope?">?</label>
             </div>
-          </details>
-        </div>
-      </fieldset>
-    </div>
-    <div class="filter-actions">
-      <button class="primary" id="applyBtn" type="button">Apply</button>
-      <button id="resetBtn" type="button">Reset</button>
-      <label>Page size
-        <select id="maxResults">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25" selected>25</option>
-          <option value="50">50</option>
-        </select>
-      </label>
-      <label><input type="checkbox" id="enrich"> Extra: displays duration + views (uses more api quota)</label>
-    </div>
-  </details>
+            <input type="checkbox" class="qtoggle" id="qh-scope">
+            <p class="qinfo">Scope results to one channel. Accepts a channel id (<code>UC…</code>), a handle (<code>@name</code>), or <code>user:name</code>. Added to the query as an operator (<code>channel:</code>/<code>handle:</code>/<code>user:</code>).</p>
+            <div class="qrow">
+              <label>After (from) <input type="date" id="f-after"></label>
+              <label class="qbtn" for="qh-after" title="What is After?">?</label>
+            </div>
+            <input type="checkbox" class="qtoggle" id="qh-after">
+            <p class="qinfo">Keep only videos published on or after this date. Uses the API <code>publishedAfter</code>. A <code>after:</code> token typed in the query wins over this field.</p>
+            <div class="qrow">
+              <label>Before (to) <input type="date" id="f-before"></label>
+              <label class="qbtn" for="qh-before" title="What is Before?">?</label>
+            </div>
+            <input type="checkbox" class="qtoggle" id="qh-before">
+            <p class="qinfo">Keep only videos published on or before this date. Uses the API <code>publishedBefore</code>. A <code>before:</code> token typed in the query wins over this field.</p>
+            <div class="qrow">
+              <label>Exclude words <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="spoiler live"></label>
+              <label class="qbtn" for="qh-ex" title="What is Exclude words?">?</label>
+            </div>
+            <input type="checkbox" class="qtoggle" id="qh-ex">
+            <p class="qinfo">Drop results containing any of these words. Each word is sent as <code>-word</code> in the query (YouTube <code>NOT</code>). Separate with spaces or commas.</p>
+            <div class="qrow">
+              <label><input type="checkbox" id="f-upcoming"> Upcoming broadcasts</label>
+              <label class="qbtn" for="qh-upcoming" title="What is Upcoming broadcasts?">?</label>
+            </div>
+            <input type="checkbox" class="qtoggle" id="qh-upcoming">
+            <p class="qinfo">Keep only upcoming premieres/streams. Uses the API <code>eventType=upcoming</code> (forces type Video). Live in Features wins when both are set.</p>
+            <details class="moredetails">
+              <summary>More</summary>
+              <div class="advcol">
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-completed"> Completed broadcasts</label>
+                  <label class="qbtn" for="qh-completed" title="What is Completed broadcasts?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-completed">
+                <p class="qinfo">Keep only ended streams. Uses the API <code>eventType=completed</code> (forces type Video). Live wins, then Upcoming.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-sd"> Standard definition</label>
+                  <label class="qbtn" for="qh-sd" title="What is Standard definition?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-sd">
+                <p class="qinfo">Keep only SD videos. Uses the API <code>videoDefinition=standard</code> (forces type Video). HD in Features wins when both are set.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-stdlic"> Standard YouTube license</label>
+                  <label class="qbtn" for="qh-stdlic" title="What is Standard YouTube license?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-stdlic">
+                <p class="qinfo">Keep only videos with the standard license (excludes Creative Commons). Uses the API <code>videoLicense=youtube</code>. Creative Commons in Features wins when both are set.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-nocap"> No captions</label>
+                  <label class="qbtn" for="qh-nocap" title="What is No captions?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-nocap">
+                <p class="qinfo">Keep only videos without captions. Uses the API <code>videoCaption=none</code>. Captions in Features wins when both are set.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-emb"> Embeddable only</label>
+                  <label class="qbtn" for="qh-emb" title="What is Embeddable only?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-emb">
+                <p class="qinfo">Keep only videos allowed to be embedded on other sites. Uses the API <code>videoEmbeddable=true</code>.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-syn"> Playable outside YouTube</label>
+                  <label class="qbtn" for="qh-syn" title="What is Playable outside YouTube?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-syn">
+                <p class="qinfo">Keep only videos playable outside youtube.com. Uses the API <code>videoSyndicated=true</code>.</p>
+                <div class="qrow">
+                  <label><input type="checkbox" id="f-paid"> Paid promotion</label>
+                  <label class="qbtn" for="qh-paid" title="What is Paid promotion?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-paid">
+                <p class="qinfo">Keep only videos the creator marked as paid promotion. Uses the API <code>videoPaidProductPlacement=true</code>.</p>
+                <div class="qrow">
+                  <label>Channel type
+                    <select id="f-channelType">
+                      <option value="any">Any</option>
+                      <option value="show">Show</option>
+                    </select>
+                  </label>
+                  <label class="qbtn" for="qh-channelType" title="What is Channel type?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-channelType">
+                <p class="qinfo">Restrict to show channels. Uses the API <code>channelType=show</code> and automatically switches Type to Channel.</p>
+                <div class="qrow">
+                  <label>Dimension
+                    <select id="f-dim">
+                      <option value="any">Any</option>
+                      <option value="2d">2D</option>
+                      <option value="3d">3D</option>
+                    </select>
+                  </label>
+                  <label class="qbtn" for="qh-dim" title="What is Dimension?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-dim">
+                <p class="qinfo">Keep only 2D or only 3D videos. Uses the API <code>videoDimension</code> (forces type Video).</p>
+                <div class="qrow">
+                  <label>Location (lat,lon) <input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08"></label>
+                  <label class="qbtn" for="qh-loc" title="What is Location?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-loc">
+                <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
+                <div class="qrow">
+                  <label>Radius <input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km"></label>
+                  <label class="qbtn" for="qh-locRad" title="What is Radius?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-locRad">
+                <p class="qinfo">Search radius around Location, e.g. <code>10km</code>, <code>1500m</code>, <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
+                <div class="qrow">
+                  <label>Topic id <input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf"></label>
+                  <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-topic">
+                <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
+                <div class="qrow">
+                  <label>Category
+                    <select id="f-cat">
+                      <option value="">Any</option>
+                      <option value="1">Film &amp; Animation</option>
+                      <option value="2">Autos &amp; Vehicles</option>
+                      <option value="10">Music</option>
+                      <option value="15">Pets &amp; Animals</option>
+                      <option value="17">Sports</option>
+                      <option value="18">Short Movies</option>
+                      <option value="19">Travel &amp; Events</option>
+                      <option value="20">Gaming</option>
+                      <option value="21">Videoblogging</option>
+                      <option value="22">People &amp; Blogs</option>
+                      <option value="23">Comedy</option>
+                      <option value="24">Entertainment</option>
+                      <option value="25">News &amp; Politics</option>
+                      <option value="26">Howto &amp; Style</option>
+                      <option value="27">Education</option>
+                      <option value="28">Science &amp; Technology</option>
+                      <option value="29">Nonprofits &amp; Activism</option>
+                      <option value="30">Movies</option>
+                    </select>
+                  </label>
+                  <label class="qbtn" for="qh-cat" title="What is Category?">?</label>
+                </div>
+                <input type="checkbox" class="qtoggle" id="qh-cat">
+                <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region — see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
+              </div>
+            </details>
+          </div>
+        </fieldset>
+      </div>
+      <div class="filter-actions">
+        <button class="primary" id="applyBtn" type="button">Apply</button>
+        <button id="resetBtn" type="button">Reset</button>
+        <label>Page size
+          <select id="maxResults">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="enrich"> Extra: displays duration + views (uses more api quota)</label>
+      </div>
+    </details>
 
-  <div class="resultbar" id="resultBar" hidden>
-    <div class="status" id="status" role="status" aria-live="polite"></div>
-    <div class="view" id="viewBar" role="group" aria-label="Results view" hidden>
-      <span class="view-label">View:</span>
-      <button id="gridBtn" type="button" aria-pressed="true">Grid</button>
-      <button id="listBtn" type="button" aria-pressed="false">List</button>
+    <div class="resultbar" id="resultBar" hidden>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+      <div class="view" id="viewBar" role="group" aria-label="Results view" hidden>
+        <span class="view-label">View:</span>
+        <button id="gridBtn" type="button" aria-pressed="true">Grid</button>
+        <button id="listBtn" type="button" aria-pressed="false">List</button>
+      </div>
     </div>
-  </div>
-  <section class="results grid" id="results" aria-label="Results" hidden></section>
-  <div class="pager" id="pager" hidden>
-    <button id="prevBtn" type="button" disabled>Prev</button>
-    <button id="nextBtn" type="button" disabled>Next</button>
-  </div>
-</main>
+    <section class="results grid" id="results" aria-label="Results" hidden></section>
+    <div class="pager" id="pager" hidden>
+      <button id="prevBtn" type="button" disabled>Prev</button>
+      <button id="nextBtn" type="button" disabled>Next</button>
+    </div>
+  </main>
 
-<script>
-(function () {
-"use strict";
+  <script>
+    (function () {
+    "use strict";
 
-// Simple querySelector https://codepen.io/sekedus/pen/oKYOEK
-function el(e,l,m,n) {
-  var elem, parent = l != 'all' && l != 'xpath' && (l || l === null) ? l : document;
-  if (parent === null) {
-    elem = parent;
-    console.error('selector: '+ e +' => parent: '+ parent);
-  } else {
-    if ((n || m || l) == 'xpath') {
-      // https://stackoverflow.com/q/10596417
-      if ((m || l) == 'all') {
-        var result = document.evaluate(e, parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        elem = [];
-        for (var i = 0; i < result.snapshotLength; i++) {
-          elem.push(result.snapshotItem(i));
+    // Simple querySelector https://codepen.io/sekedus/pen/oKYOEK
+    function el(e,l,m,n) {
+      var elem, parent = l != 'all' && l != 'xpath' && (l || l === null) ? l : document;
+      if (parent === null) {
+        elem = parent;
+        console.error('selector: '+ e +' => parent: '+ parent);
+      } else {
+        if ((n || m || l) == 'xpath') {
+          // https://stackoverflow.com/q/10596417
+          if ((m || l) == 'all') {
+            var result = document.evaluate(e, parent, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            elem = [];
+            for (var i = 0; i < result.snapshotLength; i++) {
+              elem.push(result.snapshotItem(i));
+            }
+          } else {
+            elem = document.evaluate(e, parent, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+          }
+        } else {
+          elem = ((m || l) == 'all') ? parent.querySelectorAll(e) : parent.querySelector(e);
         }
-      } else {
-        elem = document.evaluate(e, parent, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
       }
-    } else {
-      elem = ((m || l) == 'all') ? parent.querySelectorAll(e) : parent.querySelector(e);
+      return elem;
     }
-  }
-  return elem;
-}
 
-function $(id) { return document.getElementById(id); }
+    function $(id) { return document.getElementById(id); }
 
-function storeGet(k, fb) {
-  try { var v = localStorage.getItem(k); return v === null ? fb : v; }
-  catch (e) { return fb; }
-}
-
-function storeSet(k, v) {
-  try { localStorage.setItem(k, v); } catch (e) { /* private mode: prefs just don't persist */ }
-}
-
-// Escape API-supplied text before injecting into HTML (titles and
-// descriptions are untrusted user-generated content).
-function esc(s) {
-  return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
-    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-  });
-}
-
-/* Theme toggle (cycles Auto -> Light -> Dark). */
-var themeBtn = el("#themeBtn");
-function paintTheme(t) {
-  document.documentElement.dataset.theme = t;
-  themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
-}
-var theme = storeGet("ytas.theme", "auto");
-if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
-paintTheme(theme);
-themeBtn.addEventListener("click", function () {
-  theme = theme === "auto" ? "light" : (theme === "light" ? "dark" : "auto");
-  storeSet("ytas.theme", theme);
-  paintTheme(theme);
-});
-
-/* Defaults shared with /settings (T-0004 reads/writes the same keys). */
-var maxSel = $("maxResults"), enrichBox = $("enrich");
-var scopeInput = $("f-scope"), afterInput = $("f-after"), beforeInput = $("f-before");
-var channelTypeSel = $("f-channelType");
-var upcomingBox = $("f-upcoming"), completedBox = $("f-completed");
-var locInput = $("f-loc"), locRadInput = $("f-locRad");
-var topicInput = $("f-topic"), catSel = $("f-cat");
-var sdBox = $("f-sd"), dimSel = $("f-dim");
-var embBox = $("f-emb"), synBox = $("f-syn"), stdlicBox = $("f-stdlic");
-var paidBox = $("f-paid"), nocapBox = $("f-nocap");
-var exInput = $("f-ex");
-var filtersPanel = $("filtersPanel");
-function setRadio(name, value, fallback) {
-  var vals = [];
-  var nodes = document.querySelectorAll('input[name="' + name + '"]');
-  for (var i = 0; i < nodes.length; i++) vals.push(nodes[i].value);
-  var want = vals.indexOf(value) >= 0 ? value : fallback;
-  for (var j = 0; j < nodes.length; j++) nodes[j].checked = (nodes[j].value === want);
-  return want;
-}
-maxSel.value = storeGet("ytas.maxResults", "25");
-if (maxSel.selectedIndex < 0) maxSel.value = "25";
-setRadio("order", storeGet("ytas.order", "relevance"), "relevance");
-enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
-
-/* Filter state <-> URL sync (T-0005): shareable/bookmarkable; back/forward restores. */
-var qInput = el("#ytas-q");
-var scopedChannel = "";
-var resultBar = $("resultBar");
-var viewBar = $("viewBar"), pagerEl = $("pager");
-function readStateFromURL() {
-  var qs = new URLSearchParams(location.search);
-  if (qs.get("q")) {
-    qInput.value = qs.get("q").slice(0, 500);
-  } else if (!qs.has("q")) {
-    qInput.value = "";
-  }
-
-  scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
-  var pick = function (k, fb) { var v = qs.get(k); return v === null || v === "" ? fb : v; };
-  setRadio("date", pick("date", checkedRadio("date")), "any");
-  setRadio("type", pick("type", checkedRadio("type")), "any");
-  setRadio("dur", pick("dur", checkedRadio("dur")), "any");
-  setRadio("order", pick("order", checkedRadio("order")), "relevance");
-  $("f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("f-cc").checked;
-  $("f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("f-commons").checked;
-  $("f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("f-live").checked;
-  $("f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("f-hd").checked;
-  upcomingBox.checked = qs.has("upcoming") ? qs.get("upcoming") === "1" : upcomingBox.checked;
-  completedBox.checked = qs.has("completed") ? qs.get("completed") === "1" : completedBox.checked;
-  sdBox.checked = qs.has("sd") ? qs.get("sd") === "1" : sdBox.checked;
-  embBox.checked = qs.has("emb") ? qs.get("emb") === "1" : embBox.checked;
-  synBox.checked = qs.has("syn") ? qs.get("syn") === "1" : synBox.checked;
-  stdlicBox.checked = qs.has("stdLic") ? qs.get("stdLic") === "1" : stdlicBox.checked;
-  paidBox.checked = qs.has("paid") ? qs.get("paid") === "1" : paidBox.checked;
-  nocapBox.checked = qs.has("nocap") ? qs.get("nocap") === "1" : nocapBox.checked;
-  if (qs.has("channelType")) {
-    channelTypeSel.value = qs.get("channelType");
-    if (channelTypeSel.selectedIndex < 0) channelTypeSel.value = "any";
-  }
-  if (qs.has("dim")) {
-    dimSel.value = qs.get("dim");
-    if (dimSel.selectedIndex < 0) dimSel.value = "any";
-  }
-  if (qs.has("loc")) locInput.value = qs.get("loc").slice(0, 40);
-  if (qs.has("locRad")) locRadInput.value = qs.get("locRad").slice(0, 12);
-  if (qs.has("topic")) topicInput.value = qs.get("topic").slice(0, 40);
-  if (qs.has("cat")) {
-    catSel.value = qs.get("cat");
-    if (catSel.selectedIndex < 0) catSel.value = "";
-  }
-  if (qs.has("ex")) exInput.value = qs.get("ex").slice(0, 200);
-  if (qs.has("maxResults")) {
-    maxSel.value = qs.get("maxResults");
-    if (maxSel.selectedIndex < 0) maxSel.value = "25";
-  }
-  if (qs.has("enrich")) enrichBox.checked = qs.get("enrich") === "1";
-  // Legacy T-0005 URLs: year=YYYY maps to the After/Before range once.
-  if (!qs.has("after") && !qs.has("before") && /^\d{4}$/.test(qs.get("year") || "")) {
-    var ly = qs.get("year");
-    afterInput.value = ly + "-01-01";
-    beforeInput.value = (+ly + 1) + "-01-01";
-  } else {
-    if (qs.has("after")) afterInput.value = qs.get("after").slice(0, 10);
-    if (qs.has("before")) beforeInput.value = qs.get("before").slice(0, 10);
-  }
-  if (qs.has("scope")) scopeInput.value = qs.get("scope").slice(0, 120);
-}
-function currentStateToURL() {
-  var u = new URLSearchParams();
-  var q = qInput.value.trim();
-  if (q) u.set("q", q);
-  if (scopedChannel) u.set("channel", scopedChannel);
-  var dateV = checkedRadio("date"), typeV = checkedRadio("type");
-  var durV = checkedRadio("dur"), orderV = checkedRadio("order");
-  if (dateV !== "any") u.set("date", dateV);
-  if (typeV !== "any") u.set("type", typeV);
-  if (durV !== "any") u.set("dur", durV);
-  if (orderV !== "relevance") u.set("order", orderV);
-  if ($("f-cc").checked) u.set("cc", "1");
-  if ($("f-commons").checked) u.set("commons", "1");
-  if ($("f-live").checked) u.set("live", "1");
-  if ($("f-hd").checked) u.set("hd", "1");
-  if (upcomingBox.checked) u.set("upcoming", "1");
-  if (completedBox.checked) u.set("completed", "1");
-  if (sdBox.checked) u.set("sd", "1");
-  if (embBox.checked) u.set("emb", "1");
-  if (synBox.checked) u.set("syn", "1");
-  if (stdlicBox.checked) u.set("stdLic", "1");
-  if (paidBox.checked) u.set("paid", "1");
-  if (nocapBox.checked) u.set("nocap", "1");
-  if (channelTypeSel.value !== "any") u.set("channelType", channelTypeSel.value);
-  if (dimSel.value !== "any") u.set("dim", dimSel.value);
-  if (locInput.value.trim()) u.set("loc", locInput.value.trim());
-  if (locRadInput.value.trim()) u.set("locRad", locRadInput.value.trim());
-  if (topicInput.value.trim()) u.set("topic", topicInput.value.trim());
-  if (catSel.value) u.set("cat", catSel.value);
-  if (exInput.value.trim()) u.set("ex", exInput.value.trim());
-  if (maxSel.value !== "25") u.set("maxResults", maxSel.value);
-  if (enrichBox.checked) u.set("enrich", "1");
-  if (scopeInput.value.trim()) u.set("scope", scopeInput.value.trim());
-  if (afterInput.value) u.set("after", afterInput.value);
-  if (beforeInput.value) u.set("before", beforeInput.value);
-  return u;
-}
-function syncURL(mode) {
-  var u = currentStateToURL();
-  var s = u.toString();
-  var next = s ? ("/?" + s) : "/";
-  try {
-    if (mode === "push") history.pushState(null, "", next);
-    else history.replaceState(null, "", next);
-  } catch (e) { /* file:// or private mode: URL just won't sync */ }
-}
-readStateFromURL();
-
-/* Panel open on homepage/first load when no keyword yet (T-0005). */
-var hasInitialQuery = hasKeyword();
-try { filtersPanel.open = !hasInitialQuery; } catch (e) { /* no details support */ }
-
-/* Filter -> search.list params. */
-var DATE_MS = { hour: 36e5, today: 24 * 36e5, week: 7 * 24 * 36e5, month: 30 * 24 * 36e5, year: 365 * 24 * 36e5 };
-function checkedRadio(name) {
-  var el = document.querySelector('input[name="' + name + '"]:checked');
-  return el ? el.value : "any";
-}
-
-var statusEl = $("status"), resultsEl = $("results");
-var prevBtn = $("prevBtn"), nextBtn = $("nextBtn");
-var pageTokens = { prev: null, next: null };
-
-/* Grid/List view toggle (T-0006): persisted, default grid. */
-var gridBtn = $("gridBtn"), listBtn = $("listBtn");
-function setView(v) {
-  if (v !== "grid" && v !== "list") v = "grid";
-  resultsEl.classList.toggle("grid", v === "grid");
-  resultsEl.classList.toggle("list", v === "list");
-  gridBtn.setAttribute("aria-pressed", v === "grid" ? "true" : "false");
-  listBtn.setAttribute("aria-pressed", v === "list" ? "true" : "false");
-  storeSet("ytas.view", v);
-  return v;
-}
-var initialView = storeGet("ytas.view", "grid");
-setView(initialView === "list" ? "list" : "grid");
-gridBtn.addEventListener("click", function () { setView("grid"); });
-listBtn.addEventListener("click", function () { setView("list"); });
-
-function fmtCardDate(d) {
-  function pad(n) { return (n < 10 ? "0" : "") + n; }
-  var off = -d.getTimezoneOffset();
-  var sign = off >= 0 ? "+" : "-";
-  var abs = Math.abs(off);
-  var oh = Math.floor(abs / 60), om = abs % 60;
-  return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate()) +
-    ", " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) +
-    " UTC" + sign + oh + (om ? ":" + pad(om) : "");
-}
-
-function relTime(iso) {
-  var d = new Date(iso);
-  if (isNaN(d.getTime())) return null;
-  var diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
-  var n, unit;
-  if (diff < 60) { n = diff; unit = "second"; }
-  else if (diff < 3600) { n = Math.floor(diff / 60); unit = "minute"; }
-  else if (diff < 86400) { n = Math.floor(diff / 3600); unit = "hour"; }
-  else if (diff < 7 * 86400) { n = Math.floor(diff / 86400); unit = "day"; }
-  else if (diff < 365 * 86400) { n = Math.floor(diff / (7 * 86400)); unit = "week"; }
-  else { n = Math.floor(diff / (365 * 86400)); unit = "year"; }
-  return { text: n + " " + unit + (n === 1 ? "" : "s") + " ago", title: fmtCardDate(d) };
-}
-
-function channelUrlFor(it) {
-  var sn = it.snippet || {};
-  if (sn.channelId) return "https://youtube.com/channel/" + encodeURIComponent(sn.channelId);
-  if (it.id && it.id.kind === "youtube#channel" && it.id.channelId) {
-    return "https://youtube.com/channel/" + encodeURIComponent(it.id.channelId);
-  }
-  return null;
-}
-
-/* Embed is video-only; Invidious is offered for video + channel + playlist. */
-function actionUrlsFor(it, kind) {
-  var emb = null, inv = null;
-  if (kind === "video" && it.id && it.id.videoId) {
-    var id = encodeURIComponent(it.id.videoId);
-    emb = "https://youtube.com/embed/" + id;
-    inv = "https://redirect.invidious.io/watch?v=" + id;
-  } else if (kind === "channel") {
-    var cid = (it.snippet && it.snippet.channelId) || (it.id && it.id.channelId);
-    if (cid) inv = "https://redirect.invidious.io/channel/" + encodeURIComponent(cid);
-  } else if (kind === "playlist") {
-    if (it.id && it.id.playlistId) {
-      inv = "https://redirect.invidious.io/playlist?list=" + encodeURIComponent(it.id.playlistId);
+    function storeGet(k, fb) {
+      try { var v = localStorage.getItem(k); return v === null ? fb : v; }
+      catch (e) { return fb; }
     }
-  }
-  return { embed: emb, invidious: inv };
-}
 
-/* Channel-scope input -> query operator or channelId (T-0006): accepts a
- * channel id (UC…), @handle, user:name, or a bare operator token. */
-function scopeToParams(scopeRaw, p, q) {
-  var s = String(scopeRaw || "").trim();
-  if (!s) return { q: q, scoped: false };
-  if (/^UC[\w-]{10,}$/.test(s)) {
-    if (!p.get("channelId")) p.set("channelId", s);
-    return { q: q, scoped: true };
-  }
-  var tok;
-  if (/^(channel|handle|user):/i.test(s)) tok = s.split(/\s+/)[0];
-  else if (s.charAt(0) === "@") tok = "handle:" + s;
-  else if (s.indexOf(" ") < 0) tok = "handle:" + s.replace(/^@/, "");
-  else tok = null;
-  if (tok) {
-    var low = tok.toLowerCase();
-    if (low.indexOf("channel:") === 0) {
-      var cid = tok.slice(tok.indexOf(":") + 1);
-      if (cid && !p.get("channelId")) p.set("channelId", cid);
-      return { q: q, scoped: true };
+    function storeSet(k, v) {
+      try { localStorage.setItem(k, v); } catch (e) { /* private mode: prefs just don't persist */ }
     }
-    var rx = new RegExp("(?:^|\\s)" + low.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:\\s|$)", "i");
-    if (!rx.test(q)) q = (q ? q + " " : "") + tok;
-    return { q: q, scoped: true };
-  }
-  return { q: q, scoped: false };
-}
 
-function buildParams(pageToken) {
-  var p = new URLSearchParams();
-  var q = qInput.value.trim();
-  if (q) p.set("q", q);
-  if (scopedChannel) p.set("channelId", scopedChannel);
-  var scopeUsed = false;
-  var sr = scopeToParams(scopeInput.value, p, q);
-  q = sr.q;
-  scopeUsed = sr.scoped;
-  if (q) p.set("q", q); else p.delete("q");
-
-  var hasDateOp = /(?:^|\s)(?:before|after):/i.test(q);
-  var rangeUsed = false;
-  if (!hasDateOp) {
-    var afterV = afterInput.value, beforeV = beforeInput.value;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(afterV)) {
-      p.set("publishedAfter", afterV + "T00:00:00Z");
-      rangeUsed = true;
+    // Escape API-supplied text before injecting into HTML (titles and
+    // descriptions are untrusted user-generated content).
+    function esc(s) {
+      return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
     }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(beforeV)) {
-      p.set("publishedBefore", beforeV + "T00:00:00Z");
-      rangeUsed = true;
+
+    /* Theme toggle (cycles Auto -> Light -> Dark). */
+    var themeBtn = el("#themeBtn");
+    function paintTheme(t) {
+      document.documentElement.dataset.theme = t;
+      themeBtn.textContent = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
     }
-  }
-  if (!rangeUsed && !hasDateOp) {
-    var dateP = checkedRadio("date");
-    if (dateP !== "any" && DATE_MS[dateP]) {
-      p.set("publishedAfter", new Date(Date.now() - DATE_MS[dateP]).toISOString());
-    }
-  }
-
-  var type = checkedRadio("type");
-  var locPair = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(locInput.value.trim()) &&
-    /^\d+(\.\d+)?(m|km|ft|mi)$/i.test(locRadInput.value.trim());
-  // Exclude words ride along as -tokens in the query (YouTube NOT).
-  var exWords = exInput.value.split(/[\s,]+/).map(function (s) {
-    return s.trim().replace(/^-+/, "");
-  }).filter(Boolean);
-  for (var xi = 0; xi < exWords.length; xi++) {
-    var xtok = "-" + exWords[xi];
-    if (q.toLowerCase().indexOf(xtok.toLowerCase()) < 0) q = (q ? q + " " : "") + xtok;
-  }
-  if (exWords.length) { if (q) p.set("q", q); else p.delete("q"); }
-  var wantVideoOnly = $("f-cc").checked || $("f-commons").checked || $("f-live").checked || $("f-hd").checked ||
-    upcomingBox.checked || completedBox.checked || sdBox.checked || nocapBox.checked || stdlicBox.checked ||
-    embBox.checked || synBox.checked || paidBox.checked || dimSel.value !== "any" ||
-    catSel.value !== "" || locPair || checkedRadio("dur") !== "any";
-  // Video-constrained params only combine with type=video upstream,
-  // so they coerce an Any/Channel/Playlist pick to Video.
-  var coerced = false, channeled = false;
-  var effType = type;
-  if (wantVideoOnly && (type === "any" || type === "channel" || type === "playlist")) {
-    effType = "video";
-    coerced = true;
-  }
-  // Channel-type filter switches Type to Channel automatically.
-  if (channelTypeSel.value === "show" && (type === "any" || type === "channel" || type === "playlist")) {
-    effType = "channel";
-    coerced = false;
-    channeled = type !== "channel";
-  }
-  if (type === "movie") { p.set("type", "video"); p.set("videoType", "movie"); }
-  else if (type === "show") { p.set("type", "video"); p.set("videoType", "episode"); }
-  else if (effType !== "any") { p.set("type", effType); }
-  if (effType === "channel" && channelTypeSel.value === "show") p.set("channelType", "show");
-  if (topicInput.value.trim()) p.set("topicId", topicInput.value.trim());
-
-  if (effType === "video" || type === "movie" || type === "show") {
-    var dur = checkedRadio("dur");
-    if (dur !== "any") p.set("videoDuration", dur);
-    if ($("f-cc").checked) p.set("videoCaption", "closedCaption");
-    else if (nocapBox.checked) p.set("videoCaption", "none");
-    if ($("f-commons").checked) p.set("videoLicense", "creativeCommon");
-    else if (stdlicBox.checked) p.set("videoLicense", "youtube");
-    // Live (Features) wins over Upcoming/Completed (Advanced).
-    if ($("f-live").checked) p.set("eventType", "live");
-    else if (upcomingBox.checked) p.set("eventType", "upcoming");
-    else if (completedBox.checked) p.set("eventType", "completed");
-    if ($("f-hd").checked) p.set("videoDefinition", "high");
-    else if (sdBox.checked) p.set("videoDefinition", "standard");
-    if (dimSel.value === "2d" || dimSel.value === "3d") p.set("videoDimension", dimSel.value);
-    if (embBox.checked) p.set("videoEmbeddable", "true");
-    if (synBox.checked) p.set("videoSyndicated", "true");
-    if (paidBox.checked) p.set("videoPaidProductPlacement", "true");
-    if (catSel.value !== "") p.set("videoCategoryId", catSel.value);
-    if (locPair) {
-      p.set("location", locInput.value.trim());
-      p.set("locationRadius", locRadInput.value.trim().toLowerCase());
-    }
-  }
-
-  var orderV = checkedRadio("order");
-  if (["relevance", "date", "rating", "viewCount", "videoCount", "title"].indexOf(orderV) < 0) orderV = "relevance";
-  p.set("order", orderV);
-  p.set("maxResults", maxSel.value);
-  p.set("safeSearch", storeGet("ytas.safeSearch", "moderate"));
-  var region = storeGet("ytas.region", ""), lang = storeGet("ytas.lang", "");
-  if (region) p.set("regionCode", region);
-  if (lang) p.set("relevanceLanguage", lang);
-  if (enrichBox.checked) p.set("enrich", "true");
-  if (pageToken) p.set("pageToken", pageToken);
-
-  storeSet("ytas.maxResults", maxSel.value);
-  storeSet("ytas.order", orderV);
-  storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
-  return { params: p, coerced: coerced, channeled: channeled, scoped: scopeUsed, ranged: rangeUsed, excluded: exWords.length > 0 };
-}
-
-function fmtDuration(iso) {
-  var m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(String(iso || ""));
-  if (!m) return "";
-  var h = +(m[1] || 0), min = +(m[2] || 0), s = +(m[3] || 0);
-  function pad(n) { return (n < 10 ? "0" : "") + n; }
-  return h > 0 ? h + ":" + pad(min) + ":" + pad(s) : min + ":" + pad(s);
-}
-
-function itemLink(it) {
-  if (!it || !it.id) return "https://youtube.com/";
-  if (it.id.kind === "youtube#video" && it.id.videoId) {
-    return "https://youtube.com/watch?v=" + encodeURIComponent(it.id.videoId);
-  }
-  if (it.id.kind === "youtube#channel" && it.id.channelId) {
-    return "https://youtube.com/channel/" + encodeURIComponent(it.id.channelId);
-  }
-  if (it.id.kind === "youtube#playlist" && it.id.playlistId) {
-    return "https://youtube.com/playlist?list=" + encodeURIComponent(it.id.playlistId);
-  }
-  return "https://youtube.com/";
-}
-
-function renderItems(items) {
-  resultsEl.innerHTML = "";
-  (items || []).forEach(function (it) {
-    var sn = it.snippet || {};
-    var thumbs = sn.thumbnails || {};
-    var turl = (thumbs.medium && thumbs.medium.url) || (thumbs.default && thumbs.default.url) || "";
-    var idKind = (it.id && it.id.kind) || "";
-    var kind = idKind === "youtube#channel" ? "channel"
-      : idKind === "youtube#playlist" ? "playlist" : "video";
-    var act = actionUrlsFor(it, kind);
-    var card = document.createElement("article");
-    card.className = "card kind-" + kind + ((act.embed || act.invidious) ? " has-actions" : "");
-    var html = '<div class="thumb">' +
-      '<a class="thumb-link" target="_blank" rel="noopener">' +
-      (turl ? '<img loading="lazy" alt="">' : "") +
-      (kind === "playlist" ? '<span class="badge">☰ Playlist</span>' :
-        (it.enrichment && it.enrichment.duration ? '<span class="badge"></span>' : "")) +
-      "</a>" +
-      "</div>" +
-      '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener"></a></h3>' +
-      '<p class="card-meta"></p>' +
-      (it.enrichment && it.enrichment.viewCount ? '<p class="views"></p>' : "") +
-      ((act.embed || act.invidious) ? '<p class="card-actions">' +
-        (act.embed ? '<a data-act="embed" target="_blank" rel="noopener" title="Open embed URL">Embed &nearr;</a>' : "") +
-        (act.invidious ? '<a data-act="invidious" target="_blank" rel="noopener" title="Open in Invidious">Invidious &nearr;</a>' : "") +
-        '</p>' : "") +
-      '<p class="card-desc"></p></div>';
-    card.innerHTML = html;
-    card.querySelector(".thumb-link").href = itemLink(it);
-    var titleLink = card.querySelector(".card-title a");
-    titleLink.href = itemLink(it);
-    titleLink.textContent = sn.title || "(untitled)";
-    titleLink.title = sn.title || "(untitled)";
-    if (turl) card.querySelector("img").src = turl;
-    var badge = card.querySelector(".badge");
-    if (badge && kind !== "playlist" && it.enrichment) badge.textContent = fmtDuration(it.enrichment.duration);
-    if (act.embed || act.invidious) {
-      var acts = card.querySelectorAll('.card-actions a[data-act]');
-      for (var a = 0; a < acts.length; a++) {
-        acts[a].href = acts[a].getAttribute("data-act") === "embed" ? act.embed : act.invidious;
-        acts[a].removeAttribute("data-act");
-      }
-    }
-    var meta = card.querySelector(".card-meta");
-    var curl = channelUrlFor(it);
-    if (sn.channelTitle && curl) {
-      var ch = document.createElement("a");
-      ch.href = curl;
-      ch.target = "_blank";
-      ch.rel = "noopener";
-      ch.textContent = sn.channelTitle;
-      meta.appendChild(ch);
-    } else if (sn.channelTitle) {
-      meta.appendChild(document.createTextNode(sn.channelTitle));
-    }
-    if (sn.publishedAt) {
-      var rt = relTime(sn.publishedAt);
-      if (meta.childNodes.length) meta.appendChild(document.createTextNode(" · "));
-      if (rt) {
-        var t = document.createElement("time");
-        t.setAttribute("datetime", sn.publishedAt);
-        t.setAttribute("title", rt.title);
-        t.textContent = rt.text;
-        meta.appendChild(t);
-      } else {
-        meta.appendChild(document.createTextNode(new Date(sn.publishedAt).toLocaleDateString()));
-      }
-    }
-    var views = card.querySelector(".views");
-    if (views) views.textContent = Number(it.enrichment.viewCount).toLocaleString("en-US") + " views";
-    card.querySelector(".card-desc").textContent = sn.description || "";
-    resultsEl.appendChild(card);
-  });
-}
-
-function setStatus(msg, isError) {
-  statusEl.textContent = msg;
-  statusEl.classList.toggle("error", !!isError);
-}
-
-/* A keyword is required: filters alone never trigger a search. */
-function hasKeyword() {
-  return !!qInput.value.trim();
-}
-
-/* Reset every filter control to its default (keyword kept). */
-function resetFilters() {
-  setRadio("date", "any", "any");
-  setRadio("type", "any", "any");
-  setRadio("dur", "any", "any");
-  setRadio("order", "relevance", "relevance");
-  var boxes = ["f-cc", "f-commons", "f-live", "f-hd", "f-upcoming", "f-completed",
-    "f-sd", "f-emb", "f-syn", "f-stdlic", "f-paid", "f-nocap"];
-  for (var i = 0; i < boxes.length; i++) $(boxes[i]).checked = false;
-  enrichBox.checked = false;
-  maxSel.value = "25";
-  channelTypeSel.value = "any";
-  dimSel.value = "any";
-  catSel.value = "";
-  var texts = [scopeInput, afterInput, beforeInput, exInput, locInput, locRadInput,
-    topicInput];
-  for (var j = 0; j < texts.length; j++) texts[j].value = "";
-}
-
-/* Resultbar, pager, and results stay hidden until a search displays. The
- * view toggle appears together with the results. */
-function showStatusOnly() {
-  resultBar.hidden = false;
-  viewBar.hidden = true;
-  resultsEl.hidden = true;
-  pagerEl.hidden = true;
-}
-function showChrome(showResults) {
-  resultBar.hidden = false;
-  viewBar.hidden = !showResults;
-  resultsEl.hidden = !showResults;
-  pagerEl.hidden = !showResults;
-}
-function hideChrome() {
-  resultBar.hidden = true;
-  viewBar.hidden = true;
-  resultsEl.hidden = true;
-  pagerEl.hidden = true;
-}
-
-function runSearch(pageToken, opts) {
-  var built = buildParams(pageToken);
-  if (!hasKeyword()) {
-    setStatus("Type a keyword to search.", false);
-    showStatusOnly();
-    return;
-  }
-  syncURL(opts && opts.push ? "push" : "replace");
-  setStatus("Searching…", false);
-  showStatusOnly();
-  resultsEl.innerHTML = "";
-  prevBtn.disabled = true;
-  nextBtn.disabled = true;
-  fetch("/api/search?" + built.params.toString(), { headers: { "accept": "application/json" } })
-    .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
-    .then(function (out) {
-      if (!out.ok) {
-        setStatus((out.data && out.data.error) || "Search failed.", true);
-        return;
-      }
-      var items = out.data.items || [];
-      pageTokens.prev = out.data.prevPageToken || null;
-      pageTokens.next = out.data.nextPageToken || null;
-      prevBtn.disabled = !pageTokens.prev;
-      nextBtn.disabled = !pageTokens.next;
-      if (items.length === 0) {
-        setStatus("No results.", false);
-        return;
-      }
-      var shown = items;
-      var note = shown.length + " result" + (shown.length === 1 ? "" : "s") + ".";
-      if (built.coerced) note += " (Video-only filters: type set to Video.)";
-      if (built.channeled) note += " (Channel-type filter: type set to Channel.)";
-      if (built.scoped || scopedChannel) note += " (Channel-scoped.)";
-      if (built.ranged) note += " (Date range.)";
-      if (built.excluded) note += " (Exclusions.)";
-      if (out.data.enrichmentError) note += " Duration/views unavailable.";
-      setStatus(note, false);
-      renderItems(shown);
-      showChrome(true);
-    })
-    .catch(function () {
-      setStatus("Network error talking to the proxy.", true);
+    var theme = storeGet("ytas.theme", "auto");
+    if (theme !== "auto" && theme !== "dark" && theme !== "light") theme = "auto";
+    paintTheme(theme);
+    themeBtn.addEventListener("click", function () {
+      theme = theme === "auto" ? "light" : (theme === "light" ? "dark" : "auto");
+      storeSet("ytas.theme", theme);
+      paintTheme(theme);
     });
-}
 
-el(".searchform").addEventListener("submit", function (ev) {
-  ev.preventDefault();
-  try { filtersPanel.open = false; } catch (e) { /* no details support */ }
-  runSearch(null, { push: true });
-});
-$("applyBtn").addEventListener("click", function () {
-  try { filtersPanel.open = false; } catch (e) { /* no details support */ }
-  runSearch(null, { push: true });
-});
-$("resetBtn").addEventListener("click", function () {
-  resetFilters();
-});
-prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
-nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
-window.addEventListener("popstate", function () {
-  readStateFromURL();
-  if (hasKeyword()) {
-    try { filtersPanel.open = false; } catch (e) { /* no details support */ }
-    runSearch(null);
-  } else {
-    resetFilters();
-    try { filtersPanel.open = true; } catch (e) { /* no details support */ }
-    resultsEl.innerHTML = "";
-    setStatus("Type a keyword to search.", false);
-    hideChrome();
-  }
-});
+    /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
+    var maxSel = $("maxResults"), enrichBox = $("enrich");
+    var scopeInput = $("f-scope"), afterInput = $("f-after"), beforeInput = $("f-before");
+    var channelTypeSel = $("f-channelType");
+    var upcomingBox = $("f-upcoming"), completedBox = $("f-completed");
+    var locInput = $("f-loc"), locRadInput = $("f-locRad");
+    var topicInput = $("f-topic"), catSel = $("f-cat");
+    var sdBox = $("f-sd"), dimSel = $("f-dim");
+    var embBox = $("f-emb"), synBox = $("f-syn"), stdlicBox = $("f-stdlic");
+    var paidBox = $("f-paid"), nocapBox = $("f-nocap");
+    var exInput = $("f-ex");
+    var filtersPanel = $("filtersPanel");
+    function setRadio(name, value, fallback) {
+      var vals = [];
+      var nodes = document.querySelectorAll('input[name="' + name + '"]');
+      for (var i = 0; i < nodes.length; i++) vals.push(nodes[i].value);
+      var want = vals.indexOf(value) >= 0 ? value : fallback;
+      for (var j = 0; j < nodes.length; j++) nodes[j].checked = (nodes[j].value === want);
+      return want;
+    }
+    maxSel.value = storeGet("ytas.maxResults", "25");
+    if (maxSel.selectedIndex < 0) maxSel.value = "25";
+    setRadio("order", storeGet("ytas.order", "relevance"), "relevance");
+    enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
 
-if (hasKeyword()) runSearch(null);
-})();
-</script>
+    /* Filter state <-> URL sync (T-0005): shareable/bookmarkable; back/forward restores. */
+    var qInput = el("#ytas-q");
+    var scopedChannel = "";
+    var resultBar = $("resultBar");
+    var viewBar = $("viewBar"), pagerEl = $("pager");
+    function readStateFromURL() {
+      var qs = new URLSearchParams(location.search);
+      if (qs.get("q")) {
+        qInput.value = qs.get("q").slice(0, 500);
+      } else if (!qs.has("q")) {
+        qInput.value = "";
+      }
+
+      scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
+      var pick = function (k, fb) { var v = qs.get(k); return v === null || v === "" ? fb : v; };
+      setRadio("date", pick("date", checkedRadio("date")), "any");
+      setRadio("type", pick("type", checkedRadio("type")), "any");
+      setRadio("dur", pick("dur", checkedRadio("dur")), "any");
+      setRadio("order", pick("order", checkedRadio("order")), "relevance");
+      $("f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("f-cc").checked;
+      $("f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("f-commons").checked;
+      $("f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("f-live").checked;
+      $("f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("f-hd").checked;
+      upcomingBox.checked = qs.has("upcoming") ? qs.get("upcoming") === "1" : upcomingBox.checked;
+      completedBox.checked = qs.has("completed") ? qs.get("completed") === "1" : completedBox.checked;
+      sdBox.checked = qs.has("sd") ? qs.get("sd") === "1" : sdBox.checked;
+      embBox.checked = qs.has("emb") ? qs.get("emb") === "1" : embBox.checked;
+      synBox.checked = qs.has("syn") ? qs.get("syn") === "1" : synBox.checked;
+      stdlicBox.checked = qs.has("stdLic") ? qs.get("stdLic") === "1" : stdlicBox.checked;
+      paidBox.checked = qs.has("paid") ? qs.get("paid") === "1" : paidBox.checked;
+      nocapBox.checked = qs.has("nocap") ? qs.get("nocap") === "1" : nocapBox.checked;
+      if (qs.has("channelType")) {
+        channelTypeSel.value = qs.get("channelType");
+        if (channelTypeSel.selectedIndex < 0) channelTypeSel.value = "any";
+      }
+      if (qs.has("dim")) {
+        dimSel.value = qs.get("dim");
+        if (dimSel.selectedIndex < 0) dimSel.value = "any";
+      }
+      if (qs.has("loc")) locInput.value = qs.get("loc").slice(0, 40);
+      if (qs.has("locRad")) locRadInput.value = qs.get("locRad").slice(0, 12);
+      if (qs.has("topic")) topicInput.value = qs.get("topic").slice(0, 40);
+      if (qs.has("cat")) {
+        catSel.value = qs.get("cat");
+        if (catSel.selectedIndex < 0) catSel.value = "";
+      }
+      if (qs.has("ex")) exInput.value = qs.get("ex").slice(0, 200);
+      if (qs.has("maxResults")) {
+        maxSel.value = qs.get("maxResults");
+        if (maxSel.selectedIndex < 0) maxSel.value = "25";
+      }
+      if (qs.has("enrich")) enrichBox.checked = qs.get("enrich") === "1";
+      // Legacy T-0005 URLs: year=YYYY maps to the After/Before range once.
+      if (!qs.has("after") && !qs.has("before") && /^\d{4}$/.test(qs.get("year") || "")) {
+        var ly = qs.get("year");
+        afterInput.value = ly + "-01-01";
+        beforeInput.value = (+ly + 1) + "-01-01";
+      } else {
+        if (qs.has("after")) afterInput.value = qs.get("after").slice(0, 10);
+        if (qs.has("before")) beforeInput.value = qs.get("before").slice(0, 10);
+      }
+      if (qs.has("scope")) scopeInput.value = qs.get("scope").slice(0, 120);
+    }
+    function currentStateToURL() {
+      var u = new URLSearchParams();
+      var q = qInput.value.trim();
+      if (q) u.set("q", q);
+      if (scopedChannel) u.set("channel", scopedChannel);
+      var dateV = checkedRadio("date"), typeV = checkedRadio("type");
+      var durV = checkedRadio("dur"), orderV = checkedRadio("order");
+      if (dateV !== "any") u.set("date", dateV);
+      if (typeV !== "any") u.set("type", typeV);
+      if (durV !== "any") u.set("dur", durV);
+      if (orderV !== "relevance") u.set("order", orderV);
+      if ($("f-cc").checked) u.set("cc", "1");
+      if ($("f-commons").checked) u.set("commons", "1");
+      if ($("f-live").checked) u.set("live", "1");
+      if ($("f-hd").checked) u.set("hd", "1");
+      if (upcomingBox.checked) u.set("upcoming", "1");
+      if (completedBox.checked) u.set("completed", "1");
+      if (sdBox.checked) u.set("sd", "1");
+      if (embBox.checked) u.set("emb", "1");
+      if (synBox.checked) u.set("syn", "1");
+      if (stdlicBox.checked) u.set("stdLic", "1");
+      if (paidBox.checked) u.set("paid", "1");
+      if (nocapBox.checked) u.set("nocap", "1");
+      if (channelTypeSel.value !== "any") u.set("channelType", channelTypeSel.value);
+      if (dimSel.value !== "any") u.set("dim", dimSel.value);
+      if (locInput.value.trim()) u.set("loc", locInput.value.trim());
+      if (locRadInput.value.trim()) u.set("locRad", locRadInput.value.trim());
+      if (topicInput.value.trim()) u.set("topic", topicInput.value.trim());
+      if (catSel.value) u.set("cat", catSel.value);
+      if (exInput.value.trim()) u.set("ex", exInput.value.trim());
+      if (maxSel.value !== "25") u.set("maxResults", maxSel.value);
+      if (enrichBox.checked) u.set("enrich", "1");
+      if (scopeInput.value.trim()) u.set("scope", scopeInput.value.trim());
+      if (afterInput.value) u.set("after", afterInput.value);
+      if (beforeInput.value) u.set("before", beforeInput.value);
+      return u;
+    }
+    function syncURL(mode) {
+      var u = currentStateToURL();
+      var s = u.toString();
+      var next = s ? ("/?" + s) : "/";
+      try {
+        if (mode === "push") history.pushState(null, "", next);
+        else history.replaceState(null, "", next);
+      } catch (e) { /* file:// or private mode: URL just won't sync */ }
+    }
+    readStateFromURL();
+
+    /* Panel open on homepage/first load when no keyword yet (T-0005). */
+    var hasInitialQuery = hasKeyword();
+    try { filtersPanel.open = !hasInitialQuery; } catch (e) { /* no details support */ }
+
+    /* Filter -> search.list params. */
+    var DATE_MS = { hour: 36e5, today: 24 * 36e5, week: 7 * 24 * 36e5, month: 30 * 24 * 36e5, year: 365 * 24 * 36e5 };
+    function checkedRadio(name) {
+      var el = document.querySelector('input[name="' + name + '"]:checked');
+      return el ? el.value : "any";
+    }
+
+    var statusEl = $("status"), resultsEl = $("results");
+    var prevBtn = $("prevBtn"), nextBtn = $("nextBtn");
+    var pageTokens = { prev: null, next: null };
+
+    /* Grid/List view toggle (T-0006): persisted, default grid. */
+    var gridBtn = $("gridBtn"), listBtn = $("listBtn");
+    function setView(v) {
+      if (v !== "grid" && v !== "list") v = "grid";
+      resultsEl.classList.toggle("grid", v === "grid");
+      resultsEl.classList.toggle("list", v === "list");
+      gridBtn.setAttribute("aria-pressed", v === "grid" ? "true" : "false");
+      listBtn.setAttribute("aria-pressed", v === "list" ? "true" : "false");
+      storeSet("ytas.view", v);
+      return v;
+    }
+    var initialView = storeGet("ytas.view", "grid");
+    setView(initialView === "list" ? "list" : "grid");
+    gridBtn.addEventListener("click", function () { setView("grid"); });
+    listBtn.addEventListener("click", function () { setView("list"); });
+
+    function fmtCardDate(d) {
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      var off = -d.getTimezoneOffset();
+      var sign = off >= 0 ? "+" : "-";
+      var abs = Math.abs(off);
+      var oh = Math.floor(abs / 60), om = abs % 60;
+      return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate()) +
+        ", " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) +
+        " UTC" + sign + oh + (om ? ":" + pad(om) : "");
+    }
+
+    function relTime(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return null;
+      var diff = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+      var n, unit;
+      if (diff < 60) { n = diff; unit = "second"; }
+      else if (diff < 3600) { n = Math.floor(diff / 60); unit = "minute"; }
+      else if (diff < 86400) { n = Math.floor(diff / 3600); unit = "hour"; }
+      else if (diff < 7 * 86400) { n = Math.floor(diff / 86400); unit = "day"; }
+      else if (diff < 365 * 86400) { n = Math.floor(diff / (7 * 86400)); unit = "week"; }
+      else { n = Math.floor(diff / (365 * 86400)); unit = "year"; }
+      return { text: n + " " + unit + (n === 1 ? "" : "s") + " ago", title: fmtCardDate(d) };
+    }
+
+    function channelUrlFor(it) {
+      var sn = it.snippet || {};
+      if (sn.channelId) return "https://youtube.com/channel/" + encodeURIComponent(sn.channelId);
+      if (it.id && it.id.kind === "youtube#channel" && it.id.channelId) {
+        return "https://youtube.com/channel/" + encodeURIComponent(it.id.channelId);
+      }
+      return null;
+    }
+
+    /* Embed is video-only; Invidious is offered for video + channel + playlist. */
+    function actionUrlsFor(it, kind) {
+      var emb = null, inv = null;
+      if (kind === "video" && it.id && it.id.videoId) {
+        var id = encodeURIComponent(it.id.videoId);
+        emb = "https://youtube.com/embed/" + id;
+        inv = "https://redirect.invidious.io/watch?v=" + id;
+      } else if (kind === "channel") {
+        var cid = (it.snippet && it.snippet.channelId) || (it.id && it.id.channelId);
+        if (cid) inv = "https://redirect.invidious.io/channel/" + encodeURIComponent(cid);
+      } else if (kind === "playlist") {
+        if (it.id && it.id.playlistId) {
+          inv = "https://redirect.invidious.io/playlist?list=" + encodeURIComponent(it.id.playlistId);
+        }
+      }
+      return { embed: emb, invidious: inv };
+    }
+
+    /* Channel-scope input -> query operator or channelId (T-0006): accepts a
+     * channel id (UC…), @handle, user:name, or a bare operator token. */
+    function scopeToParams(scopeRaw, p, q) {
+      var s = String(scopeRaw || "").trim();
+      if (!s) return { q: q, scoped: false };
+      if (/^UC[\w-]{10,}$/.test(s)) {
+        if (!p.get("channelId")) p.set("channelId", s);
+        return { q: q, scoped: true };
+      }
+      var tok;
+      if (/^(channel|handle|user):/i.test(s)) tok = s.split(/\s+/)[0];
+      else if (s.charAt(0) === "@") tok = "handle:" + s;
+      else if (s.indexOf(" ") < 0) tok = "handle:" + s.replace(/^@/, "");
+      else tok = null;
+      if (tok) {
+        var low = tok.toLowerCase();
+        if (low.indexOf("channel:") === 0) {
+          var cid = tok.slice(tok.indexOf(":") + 1);
+          if (cid && !p.get("channelId")) p.set("channelId", cid);
+          return { q: q, scoped: true };
+        }
+        var rx = new RegExp("(?:^|\\s)" + low.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:\\s|$)", "i");
+        if (!rx.test(q)) q = (q ? q + " " : "") + tok;
+        return { q: q, scoped: true };
+      }
+      return { q: q, scoped: false };
+    }
+
+    function buildParams(pageToken) {
+      var p = new URLSearchParams();
+      var q = qInput.value.trim();
+      if (q) p.set("q", q);
+      if (scopedChannel) p.set("channelId", scopedChannel);
+      var scopeUsed = false;
+      var sr = scopeToParams(scopeInput.value, p, q);
+      q = sr.q;
+      scopeUsed = sr.scoped;
+      if (q) p.set("q", q); else p.delete("q");
+
+      var hasDateOp = /(?:^|\s)(?:before|after):/i.test(q);
+      var rangeUsed = false;
+      if (!hasDateOp) {
+        var afterV = afterInput.value, beforeV = beforeInput.value;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(afterV)) {
+          p.set("publishedAfter", afterV + "T00:00:00Z");
+          rangeUsed = true;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(beforeV)) {
+          p.set("publishedBefore", beforeV + "T00:00:00Z");
+          rangeUsed = true;
+        }
+      }
+      if (!rangeUsed && !hasDateOp) {
+        var dateP = checkedRadio("date");
+        if (dateP !== "any" && DATE_MS[dateP]) {
+          p.set("publishedAfter", new Date(Date.now() - DATE_MS[dateP]).toISOString());
+        }
+      }
+
+      var type = checkedRadio("type");
+      var locPair = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(locInput.value.trim()) &&
+        /^\d+(\.\d+)?(m|km|ft|mi)$/i.test(locRadInput.value.trim());
+      // Exclude words ride along as -tokens in the query (YouTube NOT).
+      var exWords = exInput.value.split(/[\s,]+/).map(function (s) {
+        return s.trim().replace(/^-+/, "");
+      }).filter(Boolean);
+      for (var xi = 0; xi < exWords.length; xi++) {
+        var xtok = "-" + exWords[xi];
+        if (q.toLowerCase().indexOf(xtok.toLowerCase()) < 0) q = (q ? q + " " : "") + xtok;
+      }
+      if (exWords.length) { if (q) p.set("q", q); else p.delete("q"); }
+      var wantVideoOnly = $("f-cc").checked || $("f-commons").checked || $("f-live").checked || $("f-hd").checked ||
+        upcomingBox.checked || completedBox.checked || sdBox.checked || nocapBox.checked || stdlicBox.checked ||
+        embBox.checked || synBox.checked || paidBox.checked || dimSel.value !== "any" ||
+        catSel.value !== "" || locPair || checkedRadio("dur") !== "any";
+      // Video-constrained params only combine with type=video upstream,
+      // so they coerce an Any/Channel/Playlist pick to Video.
+      var coerced = false, channeled = false;
+      var effType = type;
+      if (wantVideoOnly && (type === "any" || type === "channel" || type === "playlist")) {
+        effType = "video";
+        coerced = true;
+      }
+      // Channel-type filter switches Type to Channel automatically.
+      if (channelTypeSel.value === "show" && (type === "any" || type === "channel" || type === "playlist")) {
+        effType = "channel";
+        coerced = false;
+        channeled = type !== "channel";
+      }
+      if (type === "movie") { p.set("type", "video"); p.set("videoType", "movie"); }
+      else if (type === "show") { p.set("type", "video"); p.set("videoType", "episode"); }
+      else if (effType !== "any") { p.set("type", effType); }
+      if (effType === "channel" && channelTypeSel.value === "show") p.set("channelType", "show");
+      if (topicInput.value.trim()) p.set("topicId", topicInput.value.trim());
+
+      if (effType === "video" || type === "movie" || type === "show") {
+        var dur = checkedRadio("dur");
+        if (dur !== "any") p.set("videoDuration", dur);
+        if ($("f-cc").checked) p.set("videoCaption", "closedCaption");
+        else if (nocapBox.checked) p.set("videoCaption", "none");
+        if ($("f-commons").checked) p.set("videoLicense", "creativeCommon");
+        else if (stdlicBox.checked) p.set("videoLicense", "youtube");
+        // Live (Features) wins over Upcoming/Completed (Advanced).
+        if ($("f-live").checked) p.set("eventType", "live");
+        else if (upcomingBox.checked) p.set("eventType", "upcoming");
+        else if (completedBox.checked) p.set("eventType", "completed");
+        if ($("f-hd").checked) p.set("videoDefinition", "high");
+        else if (sdBox.checked) p.set("videoDefinition", "standard");
+        if (dimSel.value === "2d" || dimSel.value === "3d") p.set("videoDimension", dimSel.value);
+        if (embBox.checked) p.set("videoEmbeddable", "true");
+        if (synBox.checked) p.set("videoSyndicated", "true");
+        if (paidBox.checked) p.set("videoPaidProductPlacement", "true");
+        if (catSel.value !== "") p.set("videoCategoryId", catSel.value);
+        if (locPair) {
+          p.set("location", locInput.value.trim());
+          p.set("locationRadius", locRadInput.value.trim().toLowerCase());
+        }
+      }
+
+      var orderV = checkedRadio("order");
+      if (["relevance", "date", "rating", "viewCount", "videoCount", "title"].indexOf(orderV) < 0) orderV = "relevance";
+      p.set("order", orderV);
+      p.set("maxResults", maxSel.value);
+      p.set("safeSearch", storeGet("ytas.safeSearch", "moderate"));
+      var region = storeGet("ytas.region", ""), lang = storeGet("ytas.lang", "");
+      if (region) p.set("regionCode", region);
+      if (lang) p.set("relevanceLanguage", lang);
+      if (enrichBox.checked) p.set("enrich", "true");
+      if (pageToken) p.set("pageToken", pageToken);
+
+      storeSet("ytas.maxResults", maxSel.value);
+      storeSet("ytas.order", orderV);
+      storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
+      return { params: p, coerced: coerced, channeled: channeled, scoped: scopeUsed, ranged: rangeUsed, excluded: exWords.length > 0 };
+    }
+
+    function fmtDuration(iso) {
+      var m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(String(iso || ""));
+      if (!m) return "";
+      var h = +(m[1] || 0), min = +(m[2] || 0), s = +(m[3] || 0);
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+      return h > 0 ? h + ":" + pad(min) + ":" + pad(s) : min + ":" + pad(s);
+    }
+
+    function itemLink(it) {
+      if (!it || !it.id) return "https://youtube.com/";
+      if (it.id.kind === "youtube#video" && it.id.videoId) {
+        return "https://youtube.com/watch?v=" + encodeURIComponent(it.id.videoId);
+      }
+      if (it.id.kind === "youtube#channel" && it.id.channelId) {
+        return "https://youtube.com/channel/" + encodeURIComponent(it.id.channelId);
+      }
+      if (it.id.kind === "youtube#playlist" && it.id.playlistId) {
+        return "https://youtube.com/playlist?list=" + encodeURIComponent(it.id.playlistId);
+      }
+      return "https://youtube.com/";
+    }
+
+    function renderItems(items) {
+      resultsEl.innerHTML = "";
+      (items || []).forEach(function (it) {
+        var sn = it.snippet || {};
+        var thumbs = sn.thumbnails || {};
+        var turl = (thumbs.medium && thumbs.medium.url) || (thumbs.default && thumbs.default.url) || "";
+        var idKind = (it.id && it.id.kind) || "";
+        var kind = idKind === "youtube#channel" ? "channel"
+          : idKind === "youtube#playlist" ? "playlist" : "video";
+        var act = actionUrlsFor(it, kind);
+        var card = document.createElement("article");
+        card.className = "card kind-" + kind + ((act.embed || act.invidious) ? " has-actions" : "");
+        var html = '<div class="thumb">' +
+          '<a class="thumb-link" target="_blank" rel="noopener">' +
+          (turl ? '<img loading="lazy" alt="">' : "") +
+          (kind === "playlist" ? '<span class="badge">☰ Playlist</span>' :
+            (it.enrichment && it.enrichment.duration ? '<span class="badge"></span>' : "")) +
+          "</a>" +
+          "</div>" +
+          '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener"></a></h3>' +
+          '<p class="card-meta"></p>' +
+          (it.enrichment && it.enrichment.viewCount ? '<p class="views"></p>' : "") +
+          ((act.embed || act.invidious) ? '<p class="card-actions">' +
+            (act.embed ? '<a data-act="embed" target="_blank" rel="noopener" title="Open embed URL">Embed &nearr;</a>' : "") +
+            (act.invidious ? '<a data-act="invidious" target="_blank" rel="noopener" title="Open in Invidious">Invidious &nearr;</a>' : "") +
+            '</p>' : "") +
+          '<p class="card-desc"></p></div>';
+        card.innerHTML = html;
+        card.querySelector(".thumb-link").href = itemLink(it);
+        var titleLink = card.querySelector(".card-title a");
+        titleLink.href = itemLink(it);
+        titleLink.textContent = sn.title || "(untitled)";
+        titleLink.title = sn.title || "(untitled)";
+        if (turl) card.querySelector("img").src = turl;
+        var badge = card.querySelector(".badge");
+        if (badge && kind !== "playlist" && it.enrichment) badge.textContent = fmtDuration(it.enrichment.duration);
+        if (act.embed || act.invidious) {
+          var acts = card.querySelectorAll('.card-actions a[data-act]');
+          for (var a = 0; a < acts.length; a++) {
+            acts[a].href = acts[a].getAttribute("data-act") === "embed" ? act.embed : act.invidious;
+            acts[a].removeAttribute("data-act");
+          }
+        }
+        var meta = card.querySelector(".card-meta");
+        var curl = channelUrlFor(it);
+        if (sn.channelTitle && curl) {
+          var ch = document.createElement("a");
+          ch.href = curl;
+          ch.target = "_blank";
+          ch.rel = "noopener";
+          ch.textContent = sn.channelTitle;
+          meta.appendChild(ch);
+        } else if (sn.channelTitle) {
+          meta.appendChild(document.createTextNode(sn.channelTitle));
+        }
+        if (sn.publishedAt) {
+          var rt = relTime(sn.publishedAt);
+          if (meta.childNodes.length) meta.appendChild(document.createTextNode(" · "));
+          if (rt) {
+            var t = document.createElement("time");
+            t.setAttribute("datetime", sn.publishedAt);
+            t.setAttribute("title", rt.title);
+            t.textContent = rt.text;
+            meta.appendChild(t);
+          } else {
+            meta.appendChild(document.createTextNode(new Date(sn.publishedAt).toLocaleDateString()));
+          }
+        }
+        var views = card.querySelector(".views");
+        if (views) views.textContent = Number(it.enrichment.viewCount).toLocaleString("en-US") + " views";
+        card.querySelector(".card-desc").textContent = sn.description || "";
+        resultsEl.appendChild(card);
+      });
+    }
+
+    function setStatus(msg, isError) {
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("error", !!isError);
+    }
+
+    /* A keyword is required: filters alone never trigger a search. */
+    function hasKeyword() {
+      return !!qInput.value.trim();
+    }
+
+    /* Reset every filter control to its default (keyword kept). */
+    function resetFilters() {
+      setRadio("date", "any", "any");
+      setRadio("type", "any", "any");
+      setRadio("dur", "any", "any");
+      setRadio("order", "relevance", "relevance");
+      var boxes = ["f-cc", "f-commons", "f-live", "f-hd", "f-upcoming", "f-completed",
+        "f-sd", "f-emb", "f-syn", "f-stdlic", "f-paid", "f-nocap"];
+      for (var i = 0; i < boxes.length; i++) $(boxes[i]).checked = false;
+      enrichBox.checked = false;
+      maxSel.value = "25";
+      channelTypeSel.value = "any";
+      dimSel.value = "any";
+      catSel.value = "";
+      var texts = [scopeInput, afterInput, beforeInput, exInput, locInput, locRadInput,
+        topicInput];
+      for (var j = 0; j < texts.length; j++) texts[j].value = "";
+    }
+
+    /* Resultbar, pager, and results stay hidden until a search displays. The
+     * view toggle appears together with the results. */
+    function showStatusOnly() {
+      resultBar.hidden = false;
+      viewBar.hidden = true;
+      resultsEl.hidden = true;
+      pagerEl.hidden = true;
+    }
+    function showChrome(showResults) {
+      resultBar.hidden = false;
+      viewBar.hidden = !showResults;
+      resultsEl.hidden = !showResults;
+      pagerEl.hidden = !showResults;
+    }
+    function hideChrome() {
+      resultBar.hidden = true;
+      viewBar.hidden = true;
+      resultsEl.hidden = true;
+      pagerEl.hidden = true;
+    }
+
+    function runSearch(pageToken, opts) {
+      var built = buildParams(pageToken);
+      if (!hasKeyword()) {
+        setStatus("Type a keyword to search.", false);
+        showStatusOnly();
+        return;
+      }
+      syncURL(opts && opts.push ? "push" : "replace");
+      setStatus("Searching…", false);
+      showStatusOnly();
+      resultsEl.innerHTML = "";
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      fetch("/api/search?" + built.params.toString(), { headers: { "accept": "application/json" } })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+        .then(function (out) {
+          if (!out.ok) {
+            setStatus((out.data && out.data.error) || "Search failed.", true);
+            return;
+          }
+          var items = out.data.items || [];
+          pageTokens.prev = out.data.prevPageToken || null;
+          pageTokens.next = out.data.nextPageToken || null;
+          prevBtn.disabled = !pageTokens.prev;
+          nextBtn.disabled = !pageTokens.next;
+          if (items.length === 0) {
+            setStatus("No results.", false);
+            return;
+          }
+          var shown = items;
+          var note = shown.length + " result" + (shown.length === 1 ? "" : "s") + ".";
+          if (built.coerced) note += " (Video-only filters: type set to Video.)";
+          if (built.channeled) note += " (Channel-type filter: type set to Channel.)";
+          if (built.scoped || scopedChannel) note += " (Channel-scoped.)";
+          if (built.ranged) note += " (Date range.)";
+          if (built.excluded) note += " (Exclusions.)";
+          if (out.data.enrichmentError) note += " Duration/views unavailable.";
+          setStatus(note, false);
+          renderItems(shown);
+          showChrome(true);
+        })
+        .catch(function () {
+          setStatus("Network error talking to the proxy.", true);
+        });
+    }
+
+    el(".searchform").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+      runSearch(null, { push: true });
+    });
+    $("applyBtn").addEventListener("click", function () {
+      try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+      runSearch(null, { push: true });
+    });
+    $("resetBtn").addEventListener("click", function () {
+      resetFilters();
+    });
+    prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
+    nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
+    window.addEventListener("popstate", function () {
+      readStateFromURL();
+      if (hasKeyword()) {
+        try { filtersPanel.open = false; } catch (e) { /* no details support */ }
+        runSearch(null);
+      } else {
+        resetFilters();
+        try { filtersPanel.open = true; } catch (e) { /* no details support */ }
+        resultsEl.innerHTML = "";
+        setStatus("Type a keyword to search.", false);
+        hideChrome();
+      }
+    });
+
+    if (hasKeyword()) runSearch(null);
+    })();
+  </script>
 </body>
 </html>
