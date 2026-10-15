@@ -1,6 +1,6 @@
 ---
 id: M-0003
-status: COMPLETE
+status: IN_PROGRESS
 created: "2026-10-15"
 updated: "2026-10-16"
 ---
@@ -22,10 +22,12 @@ Second UI polish pass: neater advanced filters + search placement, centered bran
 ## Exit Criteria
 
 - [x] T-0008 acceptance criteria pass + HDT PASS.
+- [x] T-0009 acceptance criteria pass + HDT PASS.
 
 ## Tasks
 
 - [x] T-0008 — Filter panel neat layout + topbar center/hamburger + settings merge (COMPLETE; HDT PASS 2026-10-16)
+- [x] T-0009 — Mobile nav overlay fix + focus/autofocus + topbar/nav + stacked help + no-inline-style (COMPLETE; HDT PASS 2026-10-16)
 
 ## Related Parking-Lot Ideas
 
@@ -39,4 +41,6 @@ None reviewed yet for this milestone.
 ## Notes
 
 Created 2026-10-15 from user edit list + improve-4.png reference.
-T-0008 COMPLETE (HDT PASS 2026-10-16). M-0003 COMPLETE — task done, exit criterion satisfied.
+T-0008 COMPLETE (HDT PASS 2026-10-16).
+M-0003 REOPENED 2026-10-16 for T-0009 follow-up; milestone completes only on explicit user confirmation.
+T-0009 COMPLETE (HDT PASS 2026-10-16) — committed; milestone left open per user instruction.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Tools — yt-adv-search</title>
+  <title>Tools &ndash; YouTube Advanced Search (YTAS)</title>
   <link rel="stylesheet" href="/styles.css">
   <script>
     // Same theme-init contract as / (see public/index.html).
@@ -22,30 +22,29 @@
   <header class="topbar">
     <div class="topbar-inner">
       <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
-      <a class="brand" href="/">YT Adv Search</a>
+      <a class="brand" href="/">YTAS</a>
       <nav class="nav" id="primaryNav" aria-label="Primary">
         <a href="/">Adv Search</a>
         <a href="/tools" aria-current="page">Tools</a>
+        <a href="/settings">Settings</a>
       </nav>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span><span class="theme-text">Theme: Auto</span></button>
-        <a class="iconbtn" href="/settings"><span class="settings-icon" aria-hidden="true">⚙️</span><span class="settings-text">Settings</span></a>
+        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
     </div>
   </header>
 
   <main class="container">
     <h1>Channel resolver</h1>
-    <p class="hint">Paste a channel URL, handle, or legacy username — e.g.
+    <p class="hint">Paste a channel URL, handle, or legacy username – e.g.
       <code>https://www.youtube.com/@Fireship/videos</code>, <code>@fireship</code>,
       <code>fireship</code>, <code>CNN</code>.</p>
 
     <form class="panel" id="resolveForm" action="/tools" method="get">
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <div class="resolve-row">
         <label class="visually-hidden" for="input">Channel URL, handle, or legacy username</label>
-        <input type="text" id="input" name="input" maxlength="1000" autocomplete="off"
-        placeholder="Channel URL / @handle / handle / legacy username"
-        style="flex:1 1 280px">
+        <input type="text" id="input" class="resolve-input" name="input" maxlength="1000" autocomplete="off"
+        placeholder="Channel URL / @handle / handle / legacy username">
         <label class="visually-hidden" for="kind">Input kind</label>
         <select id="kind" name="kind">
           <option value="auto">Auto-detect</option>
@@ -75,17 +74,15 @@
       try { localStorage.setItem(k, v); } catch (e) { /* prefs just don't persist */ }
     }
 
-    /* Theme toggle (same contract as /). */
+    /* Theme toggle (same contract as /). Emoji-only button. */
     var themeBtn = $("themeBtn");
     var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
       var label = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
       var icon = themeBtn.querySelector(".theme-icon");
-      var text = themeBtn.querySelector(".theme-text");
       if (icon) icon.textContent = THEME_ICONS[t] || "🌓";
-      if (text) text.textContent = label;
-      else themeBtn.textContent = label;
+      else themeBtn.textContent = THEME_ICONS[t] || "🌓";
       themeBtn.setAttribute("aria-label", label + " (click to change)");
       themeBtn.title = label + " (click to change)";
     }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Settings — yt-adv-search</title>
+  <title>Settings &ndash; YouTube Advanced Search (YTAS)</title>
   <link rel="stylesheet" href="/styles.css">
   <script>
     // Same theme-init contract as / and /tools.
@@ -22,26 +22,25 @@
   <header class="topbar">
     <div class="topbar-inner">
       <button class="iconbtn menuBtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primaryNav">☰</button>
-      <a class="brand" href="/">YT Adv Search</a>
+      <a class="brand" href="/">YTAS</a>
       <nav class="nav" id="primaryNav" aria-label="Primary">
         <a href="/">Adv Search</a>
         <a href="/tools">Tools</a>
+        <a href="/settings" aria-current="page">Settings</a>
       </nav>
       <div class="topbar-actions">
-        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span><span class="theme-text">Theme: Auto</span></button>
-        <a class="iconbtn" href="/settings" aria-current="page"><span class="settings-icon" aria-hidden="true">⚙️</span><span class="settings-text">Settings</span></a>
+        <button class="iconbtn" id="themeBtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
     </div>
   </header>
 
   <main class="container">
     <h1>Settings</h1>
-    <p><a href="/">&larr; Back to Search</a></p>
     <p class="hint">Preferences are stored in this browser only
       (<code>localStorage</code>) and applied as search defaults. Press Save to apply
       your changes.</p>
 
-    <section class="panel" aria-label="Appearance">
+    <section class="panel config" aria-label="Configuration">
       <fieldset>
         <legend>Theme</legend>
         <div class="radiorow" id="themeGroup">
@@ -50,60 +49,59 @@
           <label><input type="radio" name="theme" value="light"> Light</label>
         </div>
       </fieldset>
-    </section>
-
-    <section class="panel" aria-label="Search defaults">
-      <h2 style="margin-top:0">Search defaults</h2>
-      <div class="advgrid">
-        <div class="advrow">
-          <label class="advlabel" for="maxResults">Max results</label>
-          <div class="advcontrol">
-            <select id="maxResults">
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-          <span></span>
-          <p class="hint">Default page size for search results.</p>
-        </div>
-        <div class="advrow">
-          <span class="advlabel" id="safeLabel">SafeSearch</span>
-          <div class="advcontrol">
-            <div class="radiorow" id="safeGroup" role="radiogroup" aria-labelledby="safeLabel">
-              <label><input type="radio" name="safeSearch" value="none"> Off</label>
-              <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
-              <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
+      <fieldset>
+        <legend>Search defaults</legend>
+        <div class="advgrid">
+          <div class="advrow">
+            <label class="advlabel" for="maxResults">Max results</label>
+            <div class="advcontrol">
+              <select id="maxResults">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
             </div>
+            <span></span>
+            <p class="hint">Default page size for search results.</p>
           </div>
-          <p class="hint">YouTube SafeSearch filtering level.</p>
+          <div class="advrow">
+            <span class="advlabel" id="safeLabel">SafeSearch</span>
+            <div class="advcontrol">
+              <div class="radiorow" id="safeGroup" role="radiogroup" aria-labelledby="safeLabel">
+                <label><input type="radio" name="safeSearch" value="none"> Off</label>
+                <label><input type="radio" name="safeSearch" value="moderate"> Moderate</label>
+                <label><input type="radio" name="safeSearch" value="strict"> Strict</label>
+              </div>
+            </div>
+            <p class="hint">YouTube SafeSearch filtering level.</p>
+          </div>
+          <div class="advrow">
+            <label class="advlabel" for="region">Region</label>
+            <div class="advcontrol"><input type="text" id="region" class="code-input" autocomplete="off" placeholder="US"></div>
+            <p class="hint">YouTube uses <a href="https://en.wikipedia.org/wiki/ISO_3166-1#Codes" target="_blank">ISO 3166-1 codes</a> (e.g. <code>US</code>). Empty = unset.</p>
+          </div>
+          <div class="advrow">
+            <label class="advlabel" for="lang">Language</label>
+            <div class="advcontrol"><input type="text" id="lang" class="code-input" maxlength="10" autocomplete="off" placeholder="en"></div>
+            <p class="hint">YouTube uses <a href="https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes" target="_blank">ISO 639-1 codes</a> (e.g. <code>en</code>, <code>de</code>). Empty = unset.</p>
+          </div>
+          <div class="advrow">
+            <span class="advlabel">Extra data</span>
+            <div class="advcontrol"><label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label></div>
+            <p class="hint">Off by default to save quota.</p>
+          </div>
         </div>
-        <div class="advrow">
-          <label class="advlabel" for="region">Region</label>
-          <div class="advcontrol"><input type="text" id="region" autocomplete="off" placeholder="US" style="width:6em"></div>
-          <p class="hint">YouTube uses ISO 3166-1 codes (e.g. US). Empty = unset.</p>
-        </div>
-        <div class="advrow">
-          <label class="advlabel" for="lang">Language</label>
-          <div class="advcontrol"><input type="text" id="lang" maxlength="10" autocomplete="off" placeholder="en" style="width:6em"></div>
-          <p class="hint">YouTube uses ISO 639-1 codes (e.g. en, de). Empty = unset.</p>
-        </div>
-        <div class="advrow">
-          <span class="advlabel">Extra data</span>
-          <div class="advcontrol"><label><input type="checkbox" id="enrich"> Extra duration + views (uses more quota)</label></div>
-          <p class="hint">Off by default to save quota.</p>
-        </div>
-        <div class="actions">
-          <button class="primary" id="saveBtn" type="button">Save</button>
-          <button class="danger hover" id="resetBtn" type="button">Reset all to defaults</button>
-          <span class="status" id="status" role="status" aria-live="polite"></span>
-        </div>
+      </fieldset>
+      <div class="actions">
+        <button class="primary" id="saveBtn" type="button">Save</button>
+        <button class="danger hover" id="resetBtn" type="button">Reset all to defaults</button>
+        <span class="status" id="status" role="status" aria-live="polite"></span>
       </div>
     </section>
 
     <section class="panel" aria-label="Proxy status">
-      <h2 style="margin-top:0">Proxy status</h2>
+      <h2>Proxy status</h2>
       <p class="hint">API keys live only in the Worker and are never shown here.
         The check below only verifies the proxy answers, without spending quota.</p>
       <p>
@@ -135,17 +133,15 @@
       "ytas.enrich": "0"
     };
 
-    /* Theme toggle (same contract as / and /tools). */
+    /* Theme toggle (same contract as / and /tools). Emoji-only button. */
     var themeBtn = $("themeBtn");
     var THEME_ICONS = { auto: "🌓", light: "☀️", dark: "🌙" };
     function paintTheme(t) {
       document.documentElement.dataset.theme = t;
       var label = "Theme: " + t.charAt(0).toUpperCase() + t.slice(1);
       var icon = themeBtn.querySelector(".theme-icon");
-      var text = themeBtn.querySelector(".theme-text");
       if (icon) icon.textContent = THEME_ICONS[t] || "🌓";
-      if (text) text.textContent = label;
-      else themeBtn.textContent = label;
+      else themeBtn.textContent = THEME_ICONS[t] || "🌓";
       themeBtn.setAttribute("aria-label", label + " (click to change)");
       themeBtn.title = label + " (click to change)";
       var radio = document.querySelector('input[name="theme"][value="' + t + '"]');
@@ -208,6 +204,26 @@
     langInput.value = storeGet("ytas.lang", "");
     enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
 
+    /* Unsaved-changes guard (T-0009): leaving with unsaved edits warns via
+     * beforeunload. Save/Reset clear the flag. Programmatic sets above and
+     * in paintTheme/reset never fire change, so they stay clean. */
+    var dirty = false;
+    function markDirty() { dirty = true; }
+    function clearDirty() { dirty = false; }
+    try {
+      var watched = document.querySelectorAll(
+        "#themeGroup input, #maxResults, #safeGroup input, #region, #lang, #enrich"
+      );
+      for (var wi = 0; wi < watched.length; wi++) {
+        watched[wi].addEventListener("change", markDirty);
+      }
+    } catch (e) { /* guard is best-effort */ }
+    window.addEventListener("beforeunload", function (ev) {
+      if (!dirty) return;
+      ev.preventDefault();
+      ev.returnValue = "";
+    });
+
     $("saveBtn").addEventListener("click", function () {
       var region = regionInput.value.trim().toUpperCase();
       if (region !== "" && !/^[A-Z]{2}$/.test(region)) {
@@ -226,10 +242,12 @@
       langInput.value = lang;
       storeSet("ytas.lang", lang);
       storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
+      clearDirty();
       note("Settings saved.");
     });
 
     $("resetBtn").addEventListener("click", function () {
+      if (!window.confirm("Are you sure you want to reset all settings to defaults?")) return;
       Object.keys(DEFAULTS).forEach(function (k) { storeSet(k, DEFAULTS[k]); });
       setTheme("auto");
       maxSel.value = "25";
@@ -237,6 +255,7 @@
       regionInput.value = "";
       langInput.value = "";
       enrichBox.checked = false;
+      clearDirty();
       note("Defaults restored.");
     });
 

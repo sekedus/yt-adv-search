@@ -21,6 +21,8 @@
   --danger: #dc3545;
   --ok: #7dd88a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  --code-bg: rgba(255, 255, 255, 0.1);
+  --code-color: #d7ba7d;
 }
 
 @media (prefers-color-scheme: light) {
@@ -38,6 +40,8 @@
     --danger: #b3261e;
     --ok: #137333;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+    --code-bg: rgba(0, 0, 0, 0.1);
+    --code-color: #a31515;
   }
 }
 
@@ -55,6 +59,8 @@
   --danger: #b3261e;
   --ok: #137333;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  --code-bg: rgba(0, 0, 0, 0.1);
+  --code-color: #a31515;
 }
 
 * {
@@ -110,8 +116,9 @@ a {
   color: var(--text);
   white-space: nowrap;
   position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .nav {
@@ -126,7 +133,7 @@ a {
 }
 
 .nav a:hover {
-  background: var(--chip);
+  background: var(--border);
 }
 
 .nav a[aria-current="page"] {
@@ -138,9 +145,11 @@ a {
   display: none;
 }
 
-.theme-icon,
-.settings-icon {
-  display: none;
+/* Theme toggle is emoji-only on all viewports; accessible name via
+ * aria-label/title set by JS. */
+#themeBtn {
+  min-width: 40px;
+  text-align: center;
 }
 
 .searchform {
@@ -227,7 +236,7 @@ button.danger.hover:hover,
 .btn.danger.hover:hover {
   background: var(--danger);
   border-color: transparent;
-  color: var(--text);
+  color: #f1f1f1;
 }
 
 button:disabled,
@@ -254,8 +263,8 @@ legend {
 
 code {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  background: rgba(255, 255, 255, 0.1);
-  color: #d7ba7d;
+  background: var(--code-bg);
+  color: var(--code-color);
   border-radius: 4px;
   padding: 2px 4px;
   font-size: 12.5px;
@@ -381,8 +390,9 @@ label.disabled {
   font-size: 12.5px;
 }
 
-/* Neat label-right grid (improve-4.png): label | control | ? | help.
- * Used by Advanced filters (index) and Search defaults (settings). */
+/* Neat inline rows (neat-1.png): label + control + ? on one line, help
+ * full-width at the bottom of the row. Used by Advanced filters (index)
+ * and Search defaults (settings). */
 .advgrid {
   display: grid;
   gap: 10px;
@@ -392,13 +402,21 @@ label.disabled {
 
 .advrow {
   display: grid;
-  grid-template-columns: 180px minmax(0, 300px) 24px minmax(0, 1fr);
+  grid-template-columns: 200px 1fr 28px;
   gap: 4px 8px;
   align-items: center;
+  margin: 0 0 4px;
+}
+
+.advrow > span:empty {
+  display: none;
 }
 
 .advlabel {
   text-align: right;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
   overflow-wrap: anywhere;
 }
 
@@ -407,7 +425,6 @@ label.disabled {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
 .advcontrol input[type="text"] {
@@ -431,12 +448,20 @@ label.disabled {
 
 .advrow .qbtn {
   grid-column: 3;
+  grid-row: 1;
   justify-self: start;
+}
+
+/* ? badge takes the border color only while its help is open (neat-2.png).
+ * :has covers modern browsers; older ones keep the plain circle. */
+.advrow:has(.qtoggle:checked) .qbtn {
+  background: var(--border);
 }
 
 .advrow .qinfo,
 .advrow .hint {
-  grid-column: 4;
+  grid-column: 2 / -1;
+  grid-row: 2;
   margin: 0;
 }
 
@@ -469,12 +494,6 @@ label.disabled {
   padding: 6px 0;
 }
 
-@media (max-width: 900px) {
-  .advrow {
-    grid-template-columns: 180px minmax(0, 1fr) 24px minmax(0, 1fr);
-  }
-}
-
 @media (max-width: 720px) {
   .advgrid {
     margin: 0;
@@ -482,22 +501,19 @@ label.disabled {
   .advrow {
     grid-template-columns: 1fr 28px;
   }
-  .advrow > span:empty {
-    display: none;
-  }
   .advlabel {
     text-align: left;
     grid-column: 1;
     grid-row: 1;
   }
+  .advcontrol {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
   .advrow .qbtn {
     grid-column: 2;
     grid-row: 1;
     justify-self: end;
-  }
-  .advcontrol {
-    grid-column: 1 / -1;
-    grid-row: 2;
   }
   .advrow .qinfo,
   .advrow .hint {
@@ -521,8 +537,6 @@ label.disabled {
 
 .settings .actions {
   padding-bottom: 0;
-  margin-top: 12px;
-  border-top: 1px solid var(--border);
 }
 
 /* Legacy .advcol kept minimal (new markup uses .advgrid/.advrow). */
@@ -549,9 +563,10 @@ label.disabled {
   }
 }
 
-/* Responsive topbar: row is [menu] [centered brand] [theme icon] [settings].
- * Nav hides behind hamburger; topbar searchform (tools/settings) wraps to
- * a full-width second row. */
+/* Responsive topbar: row is [menu] [centered brand] [theme].
+ * Nav hides behind hamburger as an absolute overlay dropdown so opening it
+ * never moves .brand; topbar searchform (tools/settings) wraps to a
+ * full-width second row. */
 @media (max-width: 700px) {
   .topbar-inner {
     flex-wrap: wrap;
@@ -565,27 +580,23 @@ label.disabled {
   }
   .nav {
     display: none;
-    order: 10;
-    flex-basis: 100%;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 8px;
+    right: 8px;
+    z-index: 20;
     flex-direction: column;
     background: var(--bg-raised);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 6px;
+    box-shadow: var(--shadow);
   }
   .nav.open {
     display: flex;
   }
   .nav a {
     padding: 10px 12px;
-  }
-  .theme-text,
-  .settings-text {
-    display: none;
-  }
-  .theme-icon,
-  .settings-icon {
-    display: inline;
   }
   .topbar-inner .searchform {
     order: 9;
@@ -618,6 +629,12 @@ label.disabled {
 
 .settings .status {
   margin: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.settings .status:empty {
+  display: none;
 }
 
 .status.error {
@@ -636,6 +653,9 @@ label.disabled {
 }
 
 .resultbar .status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   flex: 1;
   min-width: 0;
 }
@@ -851,6 +871,31 @@ label.disabled {
   border-radius: 12px;
   padding: 14px;
   margin: 16px 0;
+}
+
+.panel.config {
+  display: grid;
+  gap: 12px;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+/* Short code inputs (region/lang) previously used inline width. */
+.code-input {
+  width: 6em;
+}
+
+/* Channel-resolver form row (tools page) previously inline. */
+.resolve-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resolve-input {
+  flex: 1 1 280px;
 }
 
 .mono {
