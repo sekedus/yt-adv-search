@@ -24,6 +24,7 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — reopened for T-0009
 - T-0008 — Filter panel neat layout + topbar center/hamburger + settings merge — COMPLETE (M-0003; HDT PASS)
 - T-0009 — Mobile nav overlay fix + focus/autofocus + topbar/nav + stacked help + no-inline-style — COMPLETE (M-0003; HDT PASS)
 - T-0010 — Quota-aware keys + result cache + playlist scope + keyboard/scroll UX — COMPLETE (M-0003; HDT PASS)
+- T-0011 — Favicon wiring + beginner README — COMPLETE (M-0003; HDT PASS)
 
 ## Roadmap Rules
 

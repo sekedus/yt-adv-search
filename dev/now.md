@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (M-0003 IN_PROGRESS — T-0008/T-0009/T-0010 COMPLETE; closes only on explicit user confirmation; no active task)
+BUILD (M-0003 IN_PROGRESS — T-0008/T-0009/T-0010/T-0011 COMPLETE; closes only on explicit user confirmation; no active task)
 
 ## State Integrity
 
@@ -13,23 +13,23 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009 COMPLETE; closes only on explicit user confirmation). See `dev/milestones/M-0003-filter-topbar-settings.md`.
+M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009/T-0010/T-0011 COMPLETE; closes only on explicit user confirmation). See `dev/milestones/M-0003-filter-topbar-settings.md`.
 
 ## Current Task
 
-None — T-0010 COMPLETE (HDT PASS 2026-10-16). M-0003 left open per user instruction.
+None — T-0011 COMPLETE (HDT PASS 2026-10-15). M-0003 left open per user instruction.
 
 ## Current Step
 
-T-0010 complete and verified. Committing on user request.
+T-0011 complete and verified. Committing on user request.
 
 ## Objective
 
-Ship T-0010: quota-aware key exclusion, cached API results with refresh, `playlist:` scope + filter, `/`-to-focus, top/bottom jump buttons, plus follow-ups (entity decode, custom cache TTL, live categories, resultbar/list mobile fixes, back-nav crash fix).
+Ship T-0011: wire `public/favicon.png` on all pages + Worker serving (`/favicon.png` + `/favicon.ico`), rewrite `README.md` beginner-friendly.
 
 ## Next Action
 
-Commit T-0010 completion. No further work without user direction; M-0003 closes only when user says complete.
+Implement T-0011 on user go-ahead (heads + worker static + README, smoke + browser check + HDT).
 
 ## Current Blocker
 
@@ -37,6 +37,7 @@ None.
 
 ## Relevant Files
 
+- `dev/tasks/done/T-0011-favicon-beginner-readme.md`
 - `dev/milestones/M-0003-filter-topbar-settings.md`
 - `dev/tasks/done/T-0010-quota-cache-playlist-ux.md`
 - `worker.js`
@@ -56,14 +57,16 @@ None.
 
 ## Verification Snapshot
 
-Status: T-0010_COMPLETE (M-0003 held open per user instruction)
+Status: T-0011_COMPLETE (M-0003 held open per user instruction)
 
 Evidence:
 
+- T-0011 automated: `node --check worker.js` PASS; `rel="icon"` 3/3 pages (disk + served HTML) PASS; wrangler smoke (`/`, `/tools`, `/settings` 200; `/favicon.png` + `/favicon.ico` 200 image); README read-back PASS (structure verified after each user-driven revision: `.env`, repo URL, 3-option setup, h4 API-key steps, quota link).
 - T-0008 COMPLETE (HDT PASS 2026-10-16).
 - T-0009 COMPLETE (HDT PASS 2026-10-16).
 - T-0010 automated: `node --check worker.js` PASS; inline scripts PASS; `style=` zero PASS; 43/43 mocked functional PASS (quota/rotation/exclusion, cache MISS/HIT/fresh, TTL clamp + key strip, categories slim/cache/region, playlist fetch/filter); wrangler smoke (`/`, `/tools`, `/settings` 200; API 400s clean + `x-cache-status`; live `/api/categories` 200 with 15 US categories). One 100-unit live probe spent diagnosing the entity title (upstream sends `&#39;` verbatim).
-- HDT REQUIRED — PASS (user report 2026-10-16: pass).
+- T-0010 HDT REQUIRED — PASS (user report 2026-10-16: pass).
+- T-0011 HDT REQUIRED — PASS (user report 2026-10-15: pass).
 
 ## Commit Policy
 
@@ -75,17 +78,17 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-c33a00a feat: quota-aware key rotation, cached search with refresh, playlist scope, slash-focus and jump buttons (T-0010 COMPLETE)
+feat: wire favicon on all pages plus beginner-friendly README (T-0011 COMPLETE)
 
 ## README Status
 
-REVIEWED — still accurate (bar + filters + tools + settings); no layout-detail changes needed for T-0009.
+REWRITTEN in T-0011 — beginner-friendly (what/use/setup via 3 options/deploy key/quotas/troubleshooting); HDT PASS 2026-10-15.
 
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
-- M-0003 IN_PROGRESS held open per user (T-0008 + T-0009 COMPLETE in `dev/tasks/done/`).
+- M-0003 IN_PROGRESS held open per user (T-0008 + T-0009 + T-0010 + T-0011 COMPLETE in `dev/tasks/done/`).
 
 ## Do Not Change
 

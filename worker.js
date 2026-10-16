@@ -66,6 +66,7 @@ const STATIC_ASSETS = new Set([
   "/settings.html",
   "/styles.css",
   "/app.js",
+  "/favicon.png",
   "/favicon.ico",
 ]);
 
@@ -451,7 +452,11 @@ async function serveStatic(pathname, env) {
   if (STATIC_ROUTES.has(pathname) || STATIC_ASSETS.has(pathname)) {
     if (env && env.ASSETS && typeof env.ASSETS.fetch === "function") {
       try {
-        const assetPath = STATIC_ROUTES.get(pathname) || pathname;
+        // Browsers auto-request /favicon.ico; the file on disk is
+        // favicon.png, so serve the same bytes for both paths.
+        const assetPath =
+          STATIC_ROUTES.get(pathname) ||
+          (pathname === "/favicon.ico" ? "/favicon.png" : pathname);
         const res = await env.ASSETS.fetch(new Request(`https://assets${assetPath}`));
         if (res && res.ok) return res;
       } catch {
