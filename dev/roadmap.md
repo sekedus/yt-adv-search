@@ -4,13 +4,13 @@
 
 ## Current Milestone
 
-M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — reopened for T-0009)
+M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — all tasks COMPLETE with HDT PASS; awaits explicit user close)
 
 ## Milestones
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 - M-0002 — Improve UI/UX — COMPLETE — Layout + filters + cards + settings polish.
-- M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009/T-0010 COMPLETE; closes only on explicit user confirmation).
+- M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009/T-0010/T-0011/T-0012 COMPLETE with HDT PASS; closes only on explicit user confirmation).
 
 ## Task Index
 
@@ -25,6 +25,7 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — reopened for T-0009
 - T-0009 — Mobile nav overlay fix + focus/autofocus + topbar/nav + stacked help + no-inline-style — COMPLETE (M-0003; HDT PASS)
 - T-0010 — Quota-aware keys + result cache + playlist scope + keyboard/scroll UX — COMPLETE (M-0003; HDT PASS)
 - T-0011 — Favicon wiring + beginner README — COMPLETE (M-0003; HDT PASS)
+- T-0012 — Broadcast, Dates + four video-quality filter panels (Episode (Show) value `episode`, Features removed, exclude words in the search bar, Advanced full width, clear ✕ on text inputs, flexible Advanced → More layout on narrow screens) — COMPLETE (M-0003; HDT PASS 2026-10-19)
 
 ## Roadmap Rules
 

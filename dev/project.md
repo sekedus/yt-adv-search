@@ -11,8 +11,8 @@ YouTube.com removed useful search filters (Last Hour, Sort by Rating/Date) and I
 ## Scope
 
 - Routes on one Worker: `/` search, `/tools` channel-ID resolver, `/settings` preferences. Shared vanilla CSS.
-- Search page: Invidious-like bar + Filters (Upload date / Type / Duration / Features / Sort By + Apply) + results grid + pagination + theme toggle + enrichment opt-in.
-- All `search.list` parameters implemented; re-added Last Hour, Sort Rating/Date, Movie/Show via API mappings; unmappable features shown disabled with tooltip.
+- Search page: Invidious-like search bar (keyword + exclude words; clear ✕ on text fields) + Filters (Upload date / Dates / Type / Duration / Broadcasts / Definitions / Captions / Licenses / Dimensions / Sort By + Advanced (always full width) + Apply) + results grid (bidi-safe card meta) + pagination + theme toggle + enrichment opt-in.
+- All `search.list` parameters implemented; re-added Last Hour, Sort Rating/Date, Movie/Episode (Show) via API mappings; unmappable features shown disabled with tooltip.
 - Operators resolved server-side: `channel:UC...`, `handle:@x`/`handle:x` via `channels.list forHandle`, `before:`/`after:` to `publishedBefore/After`.
 - Tools page: paste URL / `@handle` / `UC...` / username → `channels.list` → ID + title + `Use in search`.
 - Settings page (gear): theme, max results, safeSearch, region, language, enrichment opt-in, key-index status. `localStorage` persisted.

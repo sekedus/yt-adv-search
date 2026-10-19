@@ -38,14 +38,14 @@
   <main class="container">
     <h1>Channel resolver</h1>
     <p class="hint">Paste a channel URL, handle, or legacy username – e.g.
-      <code>https://www.youtube.com/@Fireship/videos</code>, <code>@fireship</code>,
+      <code>https://www.youtube.com/c/madebygoogle</code>, <code>@fireship</code>,
       <code>fireship</code>, <code>CNN</code>.</p>
 
     <form class="panel" id="resolveForm" action="/tools" method="get">
       <div class="resolve-row">
         <label class="visually-hidden" for="input">Channel URL, handle, or legacy username</label>
         <input type="text" id="input" class="resolve-input" name="input" maxlength="1000" autocomplete="off"
-        placeholder="Channel URL / @handle / handle / legacy username">
+        placeholder="Channel URL / @handle / legacy username">
         <label class="visually-hidden" for="kind">Input kind</label>
         <select id="kind" name="kind">
           <option value="auto">Auto-detect</option>
@@ -210,5 +210,6 @@
     });
     })();
   </script>
+  <script src="/input-clear.js"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ No login. No build step. Just open it in your browser and search.
 
 ## What can you do with it?
 
-- **Search page (`/`)** – type a query, open **Filters** to narrow by upload date, type, duration, features, and sort order. Filters become part of the page URL, so you can bookmark or share a search.
+- **Search page (`/`)** – type a query and optional exclude words in the search bar (any text field has a small ✕ to clear it), open **Filters** to narrow by upload date or an exact date range, type, duration, broadcast status, four video-quality panels (definitions, captions, licenses, dimensions), and sort order. Filters become part of the page URL, so you can bookmark or share a search.
 - **Search shortcuts** – type these right in the search box:
   - `channel:UCK8sQmJBp8GCxrOtXWBpyEA space` – search inside one channel
   - `handle:@madebygoogle health` – same, using a channel's @handle
@@ -209,6 +209,7 @@ wrangler.toml    Worker config: serves ./public as assets
 ## Similar projects
 
 - [mkuchak/youtube-advanced-search](https://github.com/mkuchak/youtube-advanced-search?tab=readme-ov-file#readme)
+- [flazeIguess/zerodig](https://github.com/flazeIguess/zerodig?tab=readme-ov-file#readme)
 
 <br>
 

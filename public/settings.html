@@ -282,6 +282,7 @@
       langInput.value = "";
       enrichBox.checked = false;
       cacheTtlSel.value = "300";
+      if (window.syncInputClear) window.syncInputClear();
       clearDirty();
       note("Defaults restored.");
     });
@@ -306,5 +307,6 @@
     });
     })();
   </script>
+  <script src="/input-clear.js"></script>
 </body>
 </html>

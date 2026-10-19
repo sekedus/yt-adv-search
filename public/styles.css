@@ -244,6 +244,64 @@ button:disabled,
   cursor: not-allowed;
 }
 
+/* Text-input clear buttons (T-0012 rev 7): input-clear.js wraps every
+ * input[type="text"] in .inputclear and mirrors the search field's cancel
+ * button instead of switching the input type. */
+.inputclear {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+}
+
+.inputclear > input {
+  width: 100%;
+  padding-right: 34px;
+}
+
+.inputclear > .clrbtn {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* The shared button rule would otherwise beat [hidden] { display: none }. */
+.inputclear > .clrbtn[hidden] {
+  display: none;
+}
+
+.inputclear > .clrbtn:hover {
+  color: var(--text);
+  background: var(--chip);
+}
+
+/* Wrapper sizing follows the input context it replaced. */
+.filtergrid .inputclear {
+  width: 100%;
+  max-width: 300px;
+}
+
+.resolve-row .inputclear {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.settings .inputclear {
+  width: 6em;
+}
+
 fieldset {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -290,9 +348,61 @@ label.disabled {
   cursor: help;
 }
 
+/* Broadcasts opt-in (T-0012): the radio row stays visible but dims while
+   the opt-in checkbox is off; JS also disables the inputs. */
+.eventrow {
+  margin-top: 6px;
+}
+
+.eventrow.off label {
+  opacity: 0.45;
+}
+
+/* Video quality panels (T-0012): Definitions / Captions / Licenses /
+   Dimensions each render as a regular filter fieldset. */
 .hint {
   color: var(--text-dim);
   font-size: 13px;
+}
+
+/* Dates panel (T-0012): exact After/Before range in one panel, with a
+   single help badge in the legend and combined info at the bottom. */
+.daterow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.daterow label {
+  font-size: 15px;
+  text-align: left;
+}
+
+.daterow input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  margin: 2px 0;
+}
+
+legend .qbtn {
+  width: 20px;
+  height: 20px;
+  line-height: 18px;
+  font-size: 12px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.daterow ~ .qinfo {
+  margin: 12px 0 0;
+  line-height: 1.45;
+}
+
+/* Help badge takes the border color while its info is open. */
+fieldset:has(> .qtoggle:checked) > legend .qbtn {
+  background: var(--border);
 }
 
 /* Filters panel */
@@ -317,12 +427,16 @@ label.disabled {
   padding-bottom: 6px;
 }
 
+/* Advanced spans the whole filter grid at every viewport (T-0012 review):
+   its label + control rows need the full width, not just at 5-column
+   desktop. */
+.filtergrid > fieldset.fs-full {
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 1200px) {
   .filtergrid {
     grid-template-columns: repeat(5, 1fr);
-  }
-  .filtergrid > fieldset.spanfull {
-    grid-column: 1 / -1;
   }
 }
 
@@ -336,8 +450,24 @@ label.disabled {
 }
 
 .search-panel .search-form {
+  flex-wrap: wrap;
   max-width: none;
   margin-inline: 0;
+}
+
+/* Keyword + exclude words + Search share one row; inputs grow to fill the
+ * panel and wrap to stacked full-width fields (button right-aligned) when
+ * the viewport — or the hidden submit button — leaves no room. The
+ * .inputclear wrappers carry the flex role once JS wraps the text input. */
+.search-panel .search-form > input,
+.search-panel .search-form > .inputclear {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.search-panel .search-form button[type="submit"] {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 /* Hide the panel Search button while filters are open (JS also toggles
@@ -523,6 +653,41 @@ label.disabled {
   .advcontrol input#f-scope {
     max-width: none;
   }
+  .filtergrid .inputclear {
+    max-width: none;
+  }
+  /* Advanced → More (T-0012 rev 8): flexible rows — a compact control
+   * (checkbox, the short Channel type select) shares the label's line;
+   * wide fields (text inputs, the long Category select) take the full
+   * width on their own line below the label. */
+  .moredetails .advrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 0 0 8px;
+  }
+  .moredetails .advlabel {
+    text-align: left;
+    flex: 0 0 auto;
+  }
+  .moredetails .advcontrol {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .moredetails .advcontrol:has(input[type="text"]),
+  .moredetails .advcontrol:has(#f-cat) {
+    flex: 1 1 100%;
+  }
+  .moredetails .advcontrol .inputclear,
+  .moredetails .advcontrol:has(#f-cat) select {
+    width: 100%;
+  }
+  .moredetails .advrow .qinfo,
+  .moredetails .advrow .hint {
+    flex: 1 1 100%;
+  }
 }
 
 .actions {
@@ -536,6 +701,11 @@ label.disabled {
 
 .settings .actions {
   padding-bottom: 0;
+}
+
+.actions .enrich{
+  flex: 0 0 100%;
+  text-align: center;
 }
 
 /* Legacy .advcol kept minimal (new markup uses .advgrid/.advrow). */
@@ -556,6 +726,10 @@ label.disabled {
   .search-form {
     flex-basis: 100%;
     max-width: none;
+  }
+  .search-panel .search-form > input,
+  .search-panel .search-form > .inputclear {
+    flex-basis: 100%;
   }
   .filtergrid {
     grid-template-columns: 1fr;
@@ -898,6 +1072,14 @@ label.disabled {
 
 .card-meta time {
   white-space: nowrap;
+}
+
+/* B-0001: isolate each mixed-direction run so an RTL channel name cannot
+ * reorder the " · time" that follows it (and vice versa). */
+.card-meta a,
+.card-meta time,
+.card-meta bdi {
+  unicode-bidi: isolate;
 }
 
 .card-desc {

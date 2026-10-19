@@ -42,6 +42,8 @@
       <form class="search-form" role="search" action="/" method="get">
         <label class="visually-hidden" for="ytas-q">Search YouTube</label>
         <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
+        <label class="visually-hidden" for="f-ex">Exclude words</label>
+        <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="exclude words" title="Drop results containing these words (sent as -word in the query). Separate with spaces or commas.">
         <button class="primary" type="submit">Search</button>
       </form>
     </section>
@@ -67,7 +69,7 @@
             <label><input type="radio" name="type" value="channel"> Channel</label>
             <label><input type="radio" name="type" value="playlist"> Playlist</label>
             <label><input type="radio" name="type" value="movie"> Movie</label>
-            <label><input type="radio" name="type" value="show"> Show</label>
+            <label><input type="radio" name="type" value="episode"> Episode (Show)</label>
           </div>
         </fieldset>
         <fieldset>
@@ -77,15 +79,6 @@
             <label><input type="radio" name="dur" value="short"> Short (&lt; 4 min)</label>
             <label><input type="radio" name="dur" value="medium"> Medium (4-20 min)</label>
             <label><input type="radio" name="dur" value="long"> Long (&gt; 20 min)</label>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Features</legend>
-          <div class="checkrow">
-            <label><input type="checkbox" id="f-live"> Live</label>
-            <label><input type="checkbox" id="f-hd"> HD</label>
-            <label><input type="checkbox" id="f-cc"> Captions</label>
-            <label><input type="checkbox" id="f-commons"> Creative Commons</label>
           </div>
         </fieldset>
         <fieldset>
@@ -99,7 +92,61 @@
             <label><input type="radio" name="order" value="title"> Title</label>
           </div>
         </fieldset>
-        <fieldset class="spanfull">
+        <fieldset>
+          <legend>Broadcasts</legend>
+          <div class="checkrow">
+            <label><input type="checkbox" id="f-event"> <span id="f-eventText">Disabled</span></label>
+          </div>
+          <div class="radiorow eventrow off">
+            <label><input type="radio" name="event" value="live" disabled> Live</label>
+            <label><input type="radio" name="event" value="upcoming" disabled> Upcoming</label>
+            <label><input type="radio" name="event" value="completed" disabled> Completed</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Dates <label class="qbtn" for="qh-dates" title="What are Dates?">?</label></legend>
+          <div class="daterow">
+            <label for="f-after">After</label>
+            <input type="date" id="f-after">
+            <label for="f-before">Before</label>
+            <input type="date" id="f-before">
+          </div>
+          <input type="checkbox" class="qtoggle" id="qh-dates">
+          <p class="qinfo">Only videos published in this range. An <code>after:</code> or <code>before:</code> query token wins.</p>
+        </fieldset>
+        <fieldset>
+          <legend>Definitions</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="definition" value="any" checked> Any</label>
+            <label><input type="radio" name="definition" value="high"> High definition (HD)</label>
+            <label><input type="radio" name="definition" value="standard"> Standard definition (SD)</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Captions</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="caption" value="any" checked> Any</label>
+            <label><input type="radio" name="caption" value="closedCaption"> Has captions</label>
+            <label><input type="radio" name="caption" value="none"> No captions</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Licenses</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="license" value="any" checked> Any</label>
+            <label><input type="radio" name="license" value="creativeCommon"> Creative Commons (CC)</label>
+            <label><input type="radio" name="license" value="youtube"> Standard YouTube</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Dimensions</legend>
+          <div class="radiorow">
+            <label><input type="radio" name="dimension" value="any" checked> Any</label>
+            <label><input type="radio" name="dimension" value="2d"> 2D</label>
+            <label><input type="radio" name="dimension" value="3d"> 3D</label>
+          </div>
+        </fieldset>
+        <fieldset class="fs-full">
           <legend>Advanced</legend>
           <div class="advgrid">
             <div class="advrow">
@@ -120,81 +167,9 @@
               <input type="checkbox" class="qtoggle" id="qh-plscope">
               <p class="qinfo">Search only inside one playlist. Accepts a <code>playlist_id</code>. Added to the query as a <code>playlist:</code> operator; keyword matching is done locally because the API has no playlist-scoped search.</p>
             </div>
-            <div class="advrow">
-              <label class="advlabel" for="f-after">After (from)</label>
-              <div class="advcontrol">
-                <input type="date" id="f-after">
-                <label class="qbtn" for="qh-after" title="What is After?">?</label>
-              </div>
-              <input type="checkbox" class="qtoggle" id="qh-after">
-              <p class="qinfo">Keep only videos published on or after this date. Uses the API <code>publishedAfter</code>. A <code>after:</code> token typed in the query wins over this field.</p>
-            </div>
-            <div class="advrow">
-              <label class="advlabel" for="f-before">Before (to)</label>
-              <div class="advcontrol">
-                <input type="date" id="f-before">
-                <label class="qbtn" for="qh-before" title="What is Before?">?</label>
-              </div>
-              <input type="checkbox" class="qtoggle" id="qh-before">
-              <p class="qinfo">Keep only videos published on or before this date. Uses the API <code>publishedBefore</code>. A <code>before:</code> token typed in the query wins over this field.</p>
-            </div>
-            <div class="advrow">
-              <label class="advlabel" for="f-ex">Exclude words</label>
-              <div class="advcontrol">
-                <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="spoiler">
-                <label class="qbtn" for="qh-ex" title="What is Exclude words?">?</label>
-              </div>
-              <input type="checkbox" class="qtoggle" id="qh-ex">
-              <p class="qinfo">Drop results containing any of these words. Each word is sent as <code>-word</code> in the query (YouTube <code>NOT</code>). Separate with spaces or commas.</p>
-            </div>
             <details class="moredetails">
               <summary>More</summary>
               <div class="advgrid">
-                <div class="advrow">
-                  <label class="advlabel" for="f-upcoming">Upcoming broadcasts</label>
-                  <div class="advcontrol">
-                    <input type="checkbox" id="f-upcoming">
-                    <label class="qbtn" for="qh-upcoming" title="What is Upcoming broadcasts?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-upcoming">
-                  <p class="qinfo">Keep only upcoming premieres/streams. Uses the API <code>eventType=upcoming</code> (forces type Video). Live in Features wins when both are set.</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-completed">Completed broadcasts</label>
-                  <div class="advcontrol">
-                    <input type="checkbox" id="f-completed">
-                    <label class="qbtn" for="qh-completed" title="What is Completed broadcasts?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-completed">
-                  <p class="qinfo">Keep only ended streams. Uses the API <code>eventType=completed</code> (forces type Video). Live wins, then Upcoming.</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-sd">Standard definition</label>
-                  <div class="advcontrol">
-                    <input type="checkbox" id="f-sd">
-                    <label class="qbtn" for="qh-sd" title="What is Standard definition?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-sd">
-                  <p class="qinfo">Keep only SD videos. Uses the API <code>videoDefinition=standard</code> (forces type Video). HD in Features wins when both are set.</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-stdlic">Standard YouTube license</label>
-                  <div class="advcontrol">
-                    <input type="checkbox" id="f-stdlic">
-                    <label class="qbtn" for="qh-stdlic" title="What is Standard YouTube license?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-stdlic">
-                  <p class="qinfo">Keep only videos with the standard license (excludes Creative Commons). Uses the API <code>videoLicense=youtube</code>. Creative Commons in Features wins when both are set.</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-nocap">No captions</label>
-                  <div class="advcontrol">
-                    <input type="checkbox" id="f-nocap">
-                    <label class="qbtn" for="qh-nocap" title="What is No captions?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-nocap">
-                  <p class="qinfo">Keep only videos without captions. Uses the API <code>videoCaption=none</code>. Captions in Features wins when both are set.</p>
-                </div>
                 <div class="advrow">
                   <label class="advlabel" for="f-emb">Embeddable only</label>
                   <div class="advcontrol">
@@ -235,46 +210,6 @@
                   <p class="qinfo">Restrict to show channels. Uses the API <code>channelType=show</code> and automatically switches Type to Channel.</p>
                 </div>
                 <div class="advrow">
-                  <label class="advlabel" for="f-dim">Dimension</label>
-                  <div class="advcontrol">
-                    <select id="f-dim">
-                      <option value="any">Any</option>
-                      <option value="2d">2D</option>
-                      <option value="3d">3D</option>
-                    </select>
-                    <label class="qbtn" for="qh-dim" title="What is Dimension?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-dim">
-                  <p class="qinfo">Keep only 2D or only 3D videos. Uses the API <code>videoDimension</code> (forces type Video).</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-loc">Location (lat,lon)</label>
-                  <div class="advcontrol">
-                    <input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08">
-                    <label class="qbtn" for="qh-loc" title="What is Location?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-loc">
-                  <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-locRad">Radius</label>
-                  <div class="advcontrol">
-                    <input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km">
-                    <label class="qbtn" for="qh-locRad" title="What is Radius?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-locRad">
-                  <p class="qinfo">Search radius around Location, e.g. <code>1500m</code>, <code>5km</code>, <code>10000ft</code>, and <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
-                </div>
-                <div class="advrow">
-                  <label class="advlabel" for="f-topic">Topic id</label>
-                  <div class="advcontrol">
-                    <input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf">
-                    <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
-                  </div>
-                  <input type="checkbox" class="qtoggle" id="qh-topic">
-                  <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
-                </div>
-                <div class="advrow">
                   <label class="advlabel" for="f-cat">Category</label>
                   <div class="advcontrol">
                     <select id="f-cat">
@@ -297,11 +232,52 @@
                       <option value="28">Science &amp; Technology</option>
                       <option value="29">Nonprofits &amp; Activism</option>
                       <option value="30">Movies</option>
+                      <option value="31">Anime/Animation</option>
+                      <option value="32">Action/Adventure</option>
+                      <option value="33">Classics</option>
+                      <option value="34">Comedy</option>
+                      <option value="35">Documentary</option>
+                      <option value="36">Drama</option>
+                      <option value="37">Family</option>
+                      <option value="38">Foreign</option>
+                      <option value="39">Horror</option>
+                      <option value="40">Sci-Fi/Fantasy</option>
+                      <option value="41">Thriller</option>
+                      <option value="42">Shorts</option>
+                      <option value="43">Shows</option>
+                      <option value="44">Trailers</option>
                     </select>
                     <label class="qbtn" for="qh-cat" title="What is Category?">?</label>
                   </div>
                   <input type="checkbox" class="qtoggle" id="qh-cat">
                   <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region – see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
+                </div>
+                <div class="advrow">
+                  <label class="advlabel" for="f-topic">Topic id</label>
+                  <div class="advcontrol">
+                    <input type="text" id="f-topic" maxlength="40" autocomplete="off" placeholder="/m/04rlf">
+                    <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
+                  </div>
+                  <input type="checkbox" class="qtoggle" id="qh-topic">
+                  <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
+                </div>
+                <div class="advrow">
+                  <label class="advlabel" for="f-loc">Location (lat,lon)</label>
+                  <div class="advcontrol">
+                    <input type="text" id="f-loc" maxlength="40" autocomplete="off" placeholder="37.42,-122.08">
+                    <label class="qbtn" for="qh-loc" title="What is Location?">?</label>
+                  </div>
+                  <input type="checkbox" class="qtoggle" id="qh-loc">
+                  <p class="qinfo">Keep videos geotagged near a point, e.g. <code>37.42,-122.08</code>. Needs Radius too. Uses the API <code>location</code> (forces type Video).</p>
+                </div>
+                <div class="advrow">
+                  <label class="advlabel" for="f-locRad">Radius</label>
+                  <div class="advcontrol">
+                    <input type="text" id="f-locRad" maxlength="12" autocomplete="off" placeholder="10km">
+                    <label class="qbtn" for="qh-locRad" title="What is Radius?">?</label>
+                  </div>
+                  <input type="checkbox" class="qtoggle" id="qh-locRad">
+                  <p class="qinfo">Search radius around Location, e.g. <code>1500m</code>, <code>5km</code>, <code>10000ft</code>, and <code>5mi</code> (max 1000km). Uses the API <code>locationRadius</code>.</p>
                 </div>
               </div>
             </details>
@@ -319,7 +295,7 @@
             <option value="50">50</option>
           </select>
         </label>
-        <label><input type="checkbox" class="enrich"> <strong>Extra:</strong> displays duration + views (uses more api quota)</label>
+        <label class="enrich"><input type="checkbox" name="enrich"> <strong>Extra:</strong> displays duration + views (uses more api quota)</label>
       </div>
     </details>
 
@@ -414,17 +390,20 @@
     }
 
     /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
-    var maxSel = $("#maxResults"), enrichBox = $(".enrich");
+    var maxSel = $("#maxResults"), enrichBox = $(".enrich input");
     var scopeInput = $("#f-scope"), plScopeInput = $("#f-plscope"), afterInput = $("#f-after"), beforeInput = $("#f-before");
     var channelTypeSel = $("#f-channelType");
-    var upcomingBox = $("#f-upcoming"), completedBox = $("#f-completed");
     var locInput = $("#f-loc"), locRadInput = $("#f-locRad");
     var topicInput = $("#f-topic"), catSel = $("#f-cat");
-    var sdBox = $("#f-sd"), dimSel = $("#f-dim");
-    var embBox = $("#f-emb"), synBox = $("#f-syn"), stdlicBox = $("#f-stdlic");
-    var paidBox = $("#f-paid"), nocapBox = $("#f-nocap");
+    var embBox = $("#f-emb"), synBox = $("#f-syn");
+    var paidBox = $("#f-paid");
     var exInput = $("#f-ex");
     var filtersPanel = $("#filtersPanel");
+    /* T-0012: opt-in Broadcasts panel (eventType) + four quality radio
+     * groups (videoDefinition / videoCaption / videoLicense / videoDimension). */
+    var EVENT_VALUES = ["live", "upcoming", "completed"];
+    var eventOnBox = $("#f-event"), eventRow = $(".eventrow");
+    var eventOnText = $("#f-eventText");
     function setRadio(name, value, fallback) {
       var vals = [];
       var nodes = document.querySelectorAll('input[name="' + name + '"]');
@@ -433,6 +412,21 @@
       for (var j = 0; j < nodes.length; j++) nodes[j].checked = (nodes[j].value === want);
       return want;
     }
+    /* Broadcasts opt-in: off = radios disabled + dimmed + cleared (no
+     * eventType); on = enabled, Live preselected when nothing is picked. */
+    function syncEventUI() {
+      var on = !!(eventOnBox && eventOnBox.checked);
+      if (eventOnText) eventOnText.textContent = on ? "Enabled" : "Disabled";
+      var nodes = document.querySelectorAll('input[name="event"]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].disabled = !on;
+      if (eventRow) eventRow.classList.toggle("off", !on);
+      if (!on) {
+        for (var j = 0; j < nodes.length; j++) nodes[j].checked = false;
+      } else if (EVENT_VALUES.indexOf(checkedRadio("event")) < 0) {
+        setRadio("event", "live", "live");
+      }
+    }
+    if (eventOnBox) eventOnBox.addEventListener("change", syncEventUI);
     maxSel.value = storeGet("ytas.maxResults", "25");
     if (maxSel.selectedIndex < 0) maxSel.value = "25";
     setRadio("order", storeGet("ytas.order", "relevance"), "relevance");
@@ -456,29 +450,47 @@
       scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
       var pick = function (k, fb) { var v = qs.get(k); return v === null || v === "" ? fb : v; };
       setRadio("date", pick("date", checkedRadio("date")), "any");
-      setRadio("type", pick("type", checkedRadio("type")), "any");
+      /* Legacy T-0005 value `show` maps onto the renamed `episode` value
+       * (T-0012) so older share links keep the Episode filter. */
+      var typeV = pick("type", checkedRadio("type"));
+      if (typeV === "show") typeV = "episode";
+      setRadio("type", typeV, "any");
       setRadio("dur", pick("dur", checkedRadio("dur")), "any");
       setRadio("order", pick("order", checkedRadio("order")), "relevance");
-      $("#f-live").checked = qs.has("live") ? qs.get("live") === "1" : $("#f-live").checked;
-      $("#f-hd").checked = qs.has("hd") ? qs.get("hd") === "1" : $("#f-hd").checked;
-      $("#f-cc").checked = qs.has("cc") ? qs.get("cc") === "1" : $("#f-cc").checked;
-      $("#f-commons").checked = qs.has("commons") ? qs.get("commons") === "1" : $("#f-commons").checked;
-      upcomingBox.checked = qs.has("upcoming") ? qs.get("upcoming") === "1" : upcomingBox.checked;
-      completedBox.checked = qs.has("completed") ? qs.get("completed") === "1" : completedBox.checked;
-      sdBox.checked = qs.has("sd") ? qs.get("sd") === "1" : sdBox.checked;
       embBox.checked = qs.has("emb") ? qs.get("emb") === "1" : embBox.checked;
       synBox.checked = qs.has("syn") ? qs.get("syn") === "1" : synBox.checked;
-      stdlicBox.checked = qs.has("stdLic") ? qs.get("stdLic") === "1" : stdlicBox.checked;
       paidBox.checked = qs.has("paid") ? qs.get("paid") === "1" : paidBox.checked;
-      nocapBox.checked = qs.has("nocap") ? qs.get("nocap") === "1" : nocapBox.checked;
       if (qs.has("channelType")) {
         channelTypeSel.value = qs.get("channelType");
         if (channelTypeSel.selectedIndex < 0) channelTypeSel.value = "any";
       }
-      if (qs.has("dim")) {
-        dimSel.value = qs.get("dim");
-        if (dimSel.selectedIndex < 0) dimSel.value = "any";
+      /* T-0012: broadcasts + quality groups. Missing keys restore defaults
+       * (URL is the source of truth after back/forward); the abbreviated
+       * rev-2 keys and pre-T-0012 keys below map onto their full-name groups. */
+      var evV = qs.get("event");
+      if (EVENT_VALUES.indexOf(evV) < 0) {
+        if (qs.get("live") === "1") evV = "live";
+        else if (qs.get("upcoming") === "1") evV = "upcoming";
+        else if (qs.get("completed") === "1") evV = "completed";
+        else evV = null;
       }
+      eventOnBox.checked = !!evV;
+      if (evV) setRadio("event", evV, "live");
+      syncEventUI();
+      var definitionV = qs.has("definition") ? qs.get("definition")
+        : (qs.has("def") ? qs.get("def")
+          : (qs.get("hd") === "1" ? "high" : (qs.get("sd") === "1" ? "standard" : "any")));
+      setRadio("definition", definitionV, "any");
+      var captionV = qs.has("caption") ? qs.get("caption")
+        : (qs.has("cap") ? qs.get("cap")
+          : (qs.get("cc") === "1" ? "closedCaption" : (qs.get("nocap") === "1" ? "none" : "any")));
+      setRadio("caption", captionV, "any");
+      var licenseV = qs.has("license") ? qs.get("license")
+        : (qs.has("lic") ? qs.get("lic")
+          : (qs.get("commons") === "1" ? "creativeCommon" : (qs.get("stdLic") === "1" ? "youtube" : "any")));
+      setRadio("license", licenseV, "any");
+      var dimensionV = qs.has("dimension") ? qs.get("dimension") : (qs.has("dim") ? qs.get("dim") : "any");
+      setRadio("dimension", dimensionV, "any");
       if (qs.has("loc")) locInput.value = qs.get("loc").slice(0, 40);
       if (qs.has("locRad")) locRadInput.value = qs.get("locRad").slice(0, 12);
       if (qs.has("topic")) topicInput.value = qs.get("topic").slice(0, 40);
@@ -506,6 +518,7 @@
       // survives back-navigation and resurrects a playlist search that
       // rewrites the URL (back to / became /?playlist=…).
       plScopeInput.value = qs.has("playlist") ? qs.get("playlist").slice(0, 60) : "";
+      if (window.syncInputClear) window.syncInputClear();
     }
     function currentStateToURL() {
       var u = new URLSearchParams();
@@ -518,20 +531,23 @@
       if (typeV !== "any") u.set("type", typeV);
       if (durV !== "any") u.set("dur", durV);
       if (orderV !== "relevance") u.set("order", orderV);
-      if ($("#f-live").checked) u.set("live", "1");
-      if ($("#f-hd").checked) u.set("hd", "1");
-      if ($("#f-cc").checked) u.set("cc", "1");
-      if ($("#f-commons").checked) u.set("commons", "1");
-      if (upcomingBox.checked) u.set("upcoming", "1");
-      if (completedBox.checked) u.set("completed", "1");
-      if (sdBox.checked) u.set("sd", "1");
+      // T-0012: broadcast opt-in + quality groups (off / Any is omitted).
+      if (eventOnBox.checked) {
+        var evU = checkedRadio("event");
+        if (EVENT_VALUES.indexOf(evU) >= 0) u.set("event", evU);
+      }
+      var definitionU = checkedRadio("definition");
+      if (definitionU !== "any") u.set("definition", definitionU);
+      var captionU = checkedRadio("caption");
+      if (captionU !== "any") u.set("caption", captionU);
+      var licenseU = checkedRadio("license");
+      if (licenseU !== "any") u.set("license", licenseU);
+      var dimensionU = checkedRadio("dimension");
+      if (dimensionU !== "any") u.set("dimension", dimensionU);
       if (embBox.checked) u.set("emb", "1");
       if (synBox.checked) u.set("syn", "1");
-      if (stdlicBox.checked) u.set("stdLic", "1");
       if (paidBox.checked) u.set("paid", "1");
-      if (nocapBox.checked) u.set("nocap", "1");
       if (channelTypeSel.value !== "any") u.set("channelType", channelTypeSel.value);
-      if (dimSel.value !== "any") u.set("dim", dimSel.value);
       if (locInput.value.trim()) u.set("loc", locInput.value.trim());
       if (locRadInput.value.trim()) u.set("locRad", locRadInput.value.trim());
       if (topicInput.value.trim()) u.set("topic", topicInput.value.trim());
@@ -815,9 +831,14 @@
         if (q.toLowerCase().indexOf(xtok.toLowerCase()) < 0) q = (q ? q + " " : "") + xtok;
       }
       if (exWords.length) { if (q) p.set("q", q); else p.delete("q"); }
-      var wantVideoOnly = $("#f-live").checked || $("#f-hd").checked || $("#f-cc").checked || $("#f-commons").checked ||
-        upcomingBox.checked || completedBox.checked || sdBox.checked || nocapBox.checked || stdlicBox.checked ||
-        embBox.checked || synBox.checked || paidBox.checked || dimSel.value !== "any" ||
+      // T-0012: broadcast opt-in + quality groups count as video-only
+      // filters (they coerce type to Video like Features used to).
+      var eventPick = eventOnBox.checked ? checkedRadio("event") : "any";
+      var hasEvent = EVENT_VALUES.indexOf(eventPick) >= 0;
+      var wantsQuality = checkedRadio("definition") !== "any" || checkedRadio("caption") !== "any" ||
+        checkedRadio("license") !== "any" || checkedRadio("dimension") !== "any";
+      var wantVideoOnly = hasEvent || wantsQuality ||
+        embBox.checked || synBox.checked || paidBox.checked ||
         catSel.value !== "" || locPair || checkedRadio("dur") !== "any";
       // Video-constrained params only combine with type=video upstream,
       // so they coerce an Any/Channel/Playlist pick to Video.
@@ -834,25 +855,23 @@
         channeled = type !== "channel";
       }
       if (type === "movie") { p.set("type", "video"); p.set("videoType", "movie"); }
-      else if (type === "show") { p.set("type", "video"); p.set("videoType", "episode"); }
+      else if (type === "episode") { p.set("type", "video"); p.set("videoType", "episode"); }
       else if (effType !== "any") { p.set("type", effType); }
       if (effType === "channel" && channelTypeSel.value === "show") p.set("channelType", "show");
       if (topicInput.value.trim()) p.set("topicId", topicInput.value.trim());
 
-      if (effType === "video" || type === "movie" || type === "show") {
+      if (effType === "video" || type === "movie" || type === "episode") {
         var dur = checkedRadio("dur");
         if (dur !== "any") p.set("videoDuration", dur);
-        if ($("#f-cc").checked) p.set("videoCaption", "closedCaption");
-        else if (nocapBox.checked) p.set("videoCaption", "none");
-        if ($("#f-commons").checked) p.set("videoLicense", "creativeCommon");
-        else if (stdlicBox.checked) p.set("videoLicense", "youtube");
-        // Live (Features) wins over Upcoming/Completed (Advanced).
-        if ($("#f-live").checked) p.set("eventType", "live");
-        else if (upcomingBox.checked) p.set("eventType", "upcoming");
-        else if (completedBox.checked) p.set("eventType", "completed");
-        if ($("#f-hd").checked) p.set("videoDefinition", "high");
-        else if (sdBox.checked) p.set("videoDefinition", "standard");
-        if (dimSel.value === "2d" || dimSel.value === "3d") p.set("videoDimension", dimSel.value);
+        var qDefinition = checkedRadio("definition");
+        if (qDefinition !== "any") p.set("videoDefinition", qDefinition);
+        var qCaption = checkedRadio("caption");
+        if (qCaption !== "any") p.set("videoCaption", qCaption);
+        var qLicense = checkedRadio("license");
+        if (qLicense !== "any") p.set("videoLicense", qLicense);
+        var qDimension = checkedRadio("dimension");
+        if (qDimension !== "any") p.set("videoDimension", qDimension);
+        if (hasEvent) p.set("eventType", eventPick);
         if (embBox.checked) p.set("videoEmbeddable", "true");
         if (synBox.checked) p.set("videoSyndicated", "true");
         if (paidBox.checked) p.set("videoPaidProductPlacement", "true");
@@ -956,10 +975,15 @@
           ch.href = curl;
           ch.target = "_blank";
           ch.rel = "noopener";
+          /* B-0001: bidi-isolate the channel name so an RTL name cannot
+           * reorder the " · time" that follows it. */
+          ch.setAttribute("dir", "auto");
           ch.textContent = decodeEntities(sn.channelTitle);
           meta.appendChild(ch);
         } else if (sn.channelTitle) {
-          meta.appendChild(document.createTextNode(decodeEntities(sn.channelTitle)));
+          var chPlain = document.createElement("bdi");
+          chPlain.textContent = decodeEntities(sn.channelTitle);
+          meta.appendChild(chPlain);
         }
         if (sn.publishedAt) {
           var rt = relTime(sn.publishedAt);
@@ -968,6 +992,10 @@
             var t = document.createElement("time");
             t.setAttribute("datetime", sn.publishedAt);
             t.setAttribute("title", rt.title);
+            /* B-0001: isolate the time too — "2 days ago" starts with a
+             * digit, which otherwise pairs with an RTL neighbour and pulls
+             * the number/separator to the wrong visual side. */
+            t.setAttribute("dir", "auto");
             t.textContent = rt.text;
             meta.appendChild(t);
           } else {
@@ -1002,17 +1030,22 @@
       setRadio("type", "any", "any");
       setRadio("dur", "any", "any");
       setRadio("order", "relevance", "relevance");
-      var boxes = ["f-live", "f-hd", "f-cc", "f-commons", "f-upcoming", "f-completed",
-        "f-sd", "f-emb", "f-syn", "f-stdlic", "f-paid", "f-nocap"];
+      setRadio("definition", "any", "any");
+      setRadio("caption", "any", "any");
+      setRadio("license", "any", "any");
+      setRadio("dimension", "any", "any");
+      if (eventOnBox) eventOnBox.checked = false;
+      syncEventUI();
+      var boxes = ["f-emb", "f-syn", "f-paid"];
       for (var i = 0; i < boxes.length; i++) $("#" + boxes[i]).checked = false;
       enrichBox.checked = false;
       maxSel.value = "25";
       channelTypeSel.value = "any";
-      dimSel.value = "any";
       catSel.value = "";
       var texts = [scopeInput, plScopeInput, afterInput, beforeInput, exInput, locInput, locRadInput,
         topicInput];
       for (var j = 0; j < texts.length; j++) texts[j].value = "";
+      if (window.syncInputClear) window.syncInputClear();
     }
 
     /* Resultbar, pager, and results stay hidden until a search displays. The
@@ -1180,5 +1213,6 @@
     if (hasKeyword() || hasPlaylistScope()) runSearch(null);
     })();
   </script>
+  <script src="/input-clear.js"></script>
 </body>
 </html>
