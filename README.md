@@ -2,28 +2,23 @@
 
 <picture>![GitHub repo size](https://img.shields.io/github/repo-size/sekedus/yt-adv-search?label=Size)</picture>
 [![GitHub License](https://img.shields.io/github/license/sekedus/yt-adv-search?label=License)](./LICENSE)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sekedus/yt-adv-search)
+[![Badge DeepWiki]](https://deepwiki.com/sekedus/yt-adv-search)
 
 <details>
 <summary><strong>Preview</strong></summary>
 
+<br>
+
 <picture>![yt-adv-search screenshot](./assets/yt-adv-search.png)</picture>
 </details>
 
-<br>
-
-A fast, simple YouTube search page with filters that YouTube itself removed, like
-**Last Hour** and **sort by Rating/Date**. It also has shortcuts for searching inside
-one channel or playlist.
-
-No login. No build step. Just open it in your browser and search.
+A fast, simple YouTube search page with filters that YouTube itself removed, like**Last Hour** and **sort by Rating/Date**. It also has shortcuts for searching inside one channel or playlist.
 
 ## What can you do with it?
 
 ### Search page (`/`)
 
-Type a keyword, and optionally some words to exclude. Every text field has a small ✕
-that clears it.
+Type a keyword, and optionally some words to exclude. Every text field has a small `x` that clears it.
 
 Open **Filters** to narrow results by:
 
@@ -34,8 +29,7 @@ Open **Filters** to narrow results by:
 
 Filters are kept in the page URL, so you can bookmark or share a search.
 
-Inside a channel or playlist, videos that YouTube treats as Shorts get a **Shorts**
-badge.
+Inside a channel or playlist, videos that YouTube treats as Shorts get a **Shorts** badge.
 
 ### Search shortcuts
 
@@ -57,22 +51,19 @@ finds the channel ID and gives you:
 - an **Invidious** button;
 - a button to use the channel in search.
 
-A bare name checks `@name`, `/user/name`, and `/c/name`, then shows every distinct
-channel it finds, with the matching forms on each card. An explicit URL or the input
-kind menu resolves one exact form only. `/c/` names are read from the fixed YouTube
-channel page.
+A bare name checks `@name`, `/user/name`, and `/c/name`, then shows every distinct channel it finds, with the matching forms on each card.
 
-The status line shows the channel (or how many channels were found) and adds `(cached)`
-when the answer came from cache. The **Refresh** button next to it skips the 7-day
-resolver cache.
+An explicit URL or the input kind menu resolves one exact form only. `/c/` names are read from the fixed YouTube channel page.
+
+The status line shows the channel (or how many channels were found) and adds `(cached)` when the answer came from cache.
+
+The **Refresh** button next to it skips the 7-day resolver cache.
 
 ### Settings page (`/settings`)
 
-Pick a theme (Auto, Dark, or Light), page size, SafeSearch, region, language, and how
-long search results may be cached (30 minutes by default).
+Pick a theme (Auto, Dark, or Light), page size, SafeSearch, region, language, and how long search results may be cached (30 minutes by default).
 
-Channel lookups use a fixed 7-day cache and categories a fixed 1-month cache. Settings
-are stored only in your browser.
+Channel lookups use a fixed 7-day cache and categories a fixed 1-month cache. Settings are stored only in your browser.
 
 ## How it works
 
@@ -90,18 +81,13 @@ The Worker:
 - caches channel lookups for 7 days and the category list for 1 month;
 - fetches fresh categories when the Region setting changes.
 
-It refuses `/api/*` requests from other websites, so other sites cannot use your quota.
-Localhost is allowed for development.
+It refuses `/api/*` requests from other websites, so other sites cannot use your quota. Localhost is allowed for development.
 
-Shorts badges try a lightweight HEAD check first and fall back to the API only when that
-is unclear. A repeat search is cheap because each result is cached for a day.
+Shorts badges try a lightweight HEAD check first and fall back to the API only when that is unclear. A repeat search is cheap because each result is cached for a day.
 
-Resolver `/c/` lookups read the fixed YouTube channel page (no cookies, no API key). All
-other resolver calls go to the Google API. A bare name may take a moment on its first
-lookup.
+Resolver `/c/` lookups read the fixed YouTube channel page (no cookies, no API key). All other resolver calls go to the Google API. A bare name may take a moment on its first lookup.
 
-Search links write a space in `q` as `%20`. A literal `+` stays a plus, so use `%20`
-for spaces.
+Search links write a space in `q` as `%20`. A literal `+` stays a plus, so use `%20` for spaces.
 
 ## Getting started
 
@@ -123,13 +109,11 @@ for spaces.
    then click **Create**.
 6. Copy the key (it looks like `AIzaSy...`).
 
-Need more quota later? Add more keys separated by commas. The app rotates through them
-automatically.
+Need more quota later? Add more keys separated by commas. The app rotates through them automatically.
 
 ## Get running
 
-Pick the option that suits you. All three give you the same result: search, tools, and
-settings in one Worker.
+Pick the option that suits you. All three give you the same result: search, tools, and settings in one Worker.
 
 ### Option A: Deploy button
 
@@ -187,8 +171,7 @@ npx wrangler secret put YOUTUBE_API_KEYS
 npx wrangler deploy
 ```
 
-The second command stores your key safely on Cloudflare. The third publishes the app.
-Search, tools, settings, and the API all come from the one Worker.
+The second command stores your key safely on Cloudflare. The third publishes the app. Search, tools, settings, and the API all come from the one Worker.
 
 ### Add your API key
 
@@ -222,15 +205,11 @@ Put the key in `.env` as shown above.
 
 ## About quotas (why searches sometimes stop)
 
-YouTube gives each API key about **10,000 units per day**, reset at 00:00 UTC. One
-normal search costs about **100 units**, so one key covers roughly **100 searches a day**.
+YouTube gives each API key about **10,000 units per day**, reset at 00:00 UTC. One normal search costs about **100 units**, so one key covers roughly **100 searches a day**.
 
-The app stretches this by caching repeat searches and rotating keys. If every key is
-used up, it shows a clear message instead of leaking anything.
+The app stretches this by caching repeat searches and rotating keys. If every key is used up, it shows a clear message instead of leaking anything.
 
-Shorts detection starts with free HEAD checks. Only unclear results fall back to the
-Data API (usually a few per search, up to 40 if YouTube blocks the HEAD check), and
-each result is cached for a day.
+Shorts detection starts with free HEAD checks. Only unclear results fall back to the Data API (usually a few per search, up to 40 if YouTube blocks the HEAD check), and each result is cached for a day.
 
 More details:
 [YouTube Data API quota usage](https://developers.google.com/youtube/data/getting-started?hl=en#quota).
@@ -283,10 +262,12 @@ wrangler.toml    Worker config: serves ./public as static assets
 
 ## Disclaimer
 
-This project is not affiliated with, endorsed by, or sponsored by Google or YouTube. It
-uses the official YouTube Data API v3 under the
-[YouTube API Terms of Service](https://developers.google.com/youtube/terms/api-services-terms-of-service).
+This project is not affiliated with, endorsed by, or sponsored by Google or YouTube. It uses the official YouTube Data API v3 under the [YouTube API Terms of Service](https://developers.google.com/youtube/terms/api-services-terms-of-service).
 
 ## License
 
 [GNU General Public License v3.0](./LICENSE)
+
+
+<!-- Badges -->
+[Badge DeepWiki]: https://img.shields.io/badge/Ask%20DeepWiki-blue.svg?labelColor=000000&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAPoAAAD6AG1e1JrAAACIUlEQVRYw+2XP2gUQRTGv7d3JhYWQawkIBaCVWzETos0gmAnVoKNTSoLK0E7EQQrC20sBVFBtLPQRgTBtBaKjYgIQUSxiJq7fT+LvCGPJZdNLt4dQj5Y3u7sznzfzLw/s9IO/icANiniCujEfWdsQgBLxAbsbraPZcmBfcAt4DNwKQsZNfEUsAB8YRV12LfA6ZHuedg7AO7ed/c+UBcbQhbiu+6wXIM6EnZWkszMJe2Ke0n6I2la0v51hFeSMLN6OwIK6jJwEBdUYb2MAxRSz6sY4geiahFgLe1Hwq6YWe3us8AN4FQQU4QM64SPY69Xyr43fADgNjAPXHb3peSsD4FDQ0VLEjAHvIhBPS6AHvA1bBO9JPAXcHFbIRtJ5yzwIQZ9CZwAusDJENIkLqsG8DpNyIZJwSUk9wLHgakcesC1JCCjiHm1kYDNOEjptCxpSVK/8f73OFLxPLAYM3oCzEX7MXf/lJbc/8kWpA4HgQdpYI9IWAbeh83whi84cHXL+58EPBoQhnmm94EzwE3gZ2p/Dhzdbhg+TaRr01x7ftb4/jBwFzjXrCvDpmLW9crVLNeR9CaapoGemb2TdCERW1tNaBNQ8jktwmozqwtpqRNtdWAjARYk39IS12ZWRX7vmJmA71nQZgi36gN7gCvAj5xc3P0jcH7kx7Ik5IC73wsh14GZsZySow5002l4Jr0b6+m4eSyvpAn8lEzsx2QHo8RfUrlN+uPq4ksAAAAASUVORK5CYII=
