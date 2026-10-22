@@ -1,6 +1,6 @@
 ---
 id: M-0003
-status: IN_PROGRESS
+status: COMPLETE
 created: "2026-10-15"
 updated: "2026-10-22"
 ---
@@ -60,4 +60,5 @@ M-0003 REOPENED 2026-10-16 for T-0009 follow-up; milestone completes only on exp
 T-0009 COMPLETE (HDT PASS 2026-10-16) — committed; milestone left open per user instruction.
 T-0012 created 2026-10-19 from user filter-panel list; user confirmed (2026-10-19) removing the six superseded Advanced → More rows and starting implementation immediately. Implementation + automated evidence done 2026-10-19 (rev 6 after review: exclude words in the search bar, Advanced full width; rev 7 after review: clear ✕ on every text input via `public/input-clear.js`, input type stays `text`; results-card meta RTL bug fixed as B-0001; rev 8 after review with a before/after sketch: flexible Advanced → More rows at ≤720px — compact controls inline, wide fields full-width below the label); rev 9 (doc audit vs YouTube search.list/videos.list/videoCategories.list): param chain verified conformant, hardening ideas parked as PL-0001..PL-0004.
 T-0012 COMPLETE (HDT PASS 2026-10-19, user report "all pass"); B-0001 COMPLETE (HDT PASS 2026-10-19).
-T-0013 COMPLETE (HDT PASS 2026-10-22, user report "all test pass"); committed. Every task and exit criterion in M-0003 is satisfied. The milestone stays IN_PROGRESS until the user explicitly confirms closing it.
+T-0013 COMPLETE (HDT PASS 2026-10-22, user report "all test pass"); committed. Every task and exit criterion in M-0003 is satisfied.
+M-0003 CLOSED (COMPLETE) 2026-10-22 by explicit user instruction: "m3 complete, commit all".

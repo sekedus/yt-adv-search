@@ -59,7 +59,7 @@ Next Advanced-panel pass, or a user hits an invalidLocation error.
 Date: 2026-10-19
 
 Idea:
-Pass `hl` (from the Language setting) to the worker's `videoCategories.list` call so Category dropdown titles are localized; the endpoint defaults to en_US today. Would add a lang dimension to the server + client cache keys.
+Pass `hl` (from the Language setting) to the worker's `videoCategories.list` call so Category dropdown titles are localized; the endpoint defaults to en_US today. Would add a lang dimension to the server cache key (the browser category list cache is gone; sessionStorage stores only the last region).
 
 Triggered By:
 Doc audit during T-0012 closeout (videoCategories.list optional `hl`).

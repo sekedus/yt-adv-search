@@ -4,13 +4,13 @@
 
 ## Current Milestone
 
-M-0003 - Filter/topbar/settings neat pass (IN_PROGRESS - all tasks COMPLETE with HDT PASS; awaits explicit user close)
+None — M-0003 COMPLETE (closed 2026-10-22 by explicit user instruction).
 
 ## Milestones
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 - M-0002 — Improve UI/UX — COMPLETE — Layout + filters + cards + settings polish.
-- M-0003 - Filter/topbar/settings neat pass (IN_PROGRESS - T-0008/T-0009/T-0010/T-0011/T-0012/T-0013 COMPLETE with HDT PASS; closes only on explicit user confirmation).
+- M-0003 - Filter/topbar/settings neat pass (COMPLETE - T-0008/T-0009/T-0010/T-0011/T-0012/T-0013 COMPLETE with HDT PASS; closed by explicit user instruction 2026-10-22).
 
 ## Task Index
 

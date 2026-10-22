@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-HANDOFF (T-0014 COMPLETE docs-only and COMMITTED; M-0003 all tasks/exit criteria satisfied and awaits explicit user close)
+IDLE (M-0003 COMPLETE 2026-10-22; T-0014 COMMITTED; no active task)
 
 ## State Integrity
 
@@ -13,27 +13,27 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0013 COMPLETE + HDT PASS 2026-10-22; all tasks/exit criteria satisfied; awaits explicit user confirmation to close). See `dev/milestones/M-0003-filter-topbar-settings.md`.
+None — M-0003 COMPLETE (closed 2026-10-22 by explicit user instruction). See `dev/milestones/M-0003-filter-topbar-settings.md`.
 
 ## Current Task
 
-None — T-0014 (README rewrite, docs-only) is COMPLETE and moved to `dev/tasks/done/`. M-0003 is ready for an explicit close decision. Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`.
+None — no active task. Last task: T-0014 (README rewrite, docs-only, COMPLETE + COMMITTED). Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`.
 
 ## Current Step
 
-T-0014 is complete, verified, and committed. The task file is in `dev/tasks/done/`. Separately, M-0003 still needs the explicit user decision to close.
+M-0003 is closed and all remaining working-tree changes are committed. Nothing is in progress.
 
 ## Objective
 
-Keep the shipped app behavior stable. T-0014 rewrote the root README for beginners with short paragraphs and a narrow reading measure. Await the user's commit decision and the explicit M-0003 close decision; do not start new product work.
+Keep the shipped app stable. No milestone or task is active; start new work only on the user's next request.
 
 ## Next Action
 
-Await the user's explicit decision on closing M-0003. Do not start a new product task while that decision is pending.
+Await the user's next request. Do not start new product work unprompted.
 
 ## Current Blocker
 
-No technical blocker. T-0014 is committed; M-0003 awaits only the explicit user decision to close.
+None. M-0003 is closed and the working tree is committed.
 
 ## Relevant Files
 
@@ -57,7 +57,7 @@ No technical blocker. T-0014 is committed; M-0003 awaits only the explicit user 
 
 ## Verification Snapshot
 
-Status: T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED; M-0003 IN_PROGRESS with all tasks/exit criteria satisfied, awaiting explicit user close.
+Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. No active task.
 
 Evidence:
 
@@ -88,7 +88,7 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-docs: simplify README into short beginner-friendly paragraphs
+chore: close M-0003; add GitHub nav links, license, assets and docs
 
 ## README Status
 
@@ -98,14 +98,14 @@ README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapp
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
-- M-0003 IN_PROGRESS held open per user (T-0008..T-0013 + B-0001 COMPLETE and HDT PASS; all milestone tasks/exit criteria satisfied; closes only on explicit user close).
+- M-0003 COMPLETE (closed 2026-10-22; T-0008..T-0013 + B-0001 COMPLETE and HDT PASS).
 - T-0014 COMPLETE (standalone docs; README beginner rewrite; no milestone).
 - B-0001 COMPLETE in `dev/bug-fixes/done/` (results-card meta RTL order; fixed in the same review as T-0012 rev 7; HDT PASS 2026-10-19).
-- Working tree retains pre-existing uncommitted user changes (`.gitignore`, `dev/project.md`, `dev/parking-lot.md`, `LICENSE`, `assets/`, `public/index.html`/`settings.html`/`tools.html` GitHub ↗ nav links). T-0014 is committed. Preserve those changes and inspect the diff before any future commit.
+- No uncommitted project changes remain after the closure commit (only ignored local `.env`, `data/`, and `.wrangler/` state).
 
 ## Do Not Change
 
-- M-0003 stays open until the user explicitly says complete — do not flip it on task completion.
+- M-0003 is COMPLETE (closed 2026-10-22); do not reopen it without explicit user instruction.
 
 ## Resume Instruction
 

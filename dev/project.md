@@ -11,17 +11,17 @@ YouTube.com removed useful search filters (Last Hour, Sort by Rating/Date) and I
 ## Scope
 
 - Routes on one Worker: `/` search, `/tools` channel-ID resolver, `/settings` preferences. Shared vanilla CSS.
-- Search page: Invidious-like search bar (keyword + exclude words; clear ✕ on text fields) + Filters (Upload date / Dates / Type / Duration / Broadcasts / Definitions / Captions / Licenses / Dimensions / Sort By + Advanced (always full width) + Apply) + results grid (bidi-safe card meta) + pagination + theme toggle + enrichment opt-in.
+- Search page: Invidious-like search bar (keyword + exclude words; clear ✕ on text fields) + Filters (Upload date / Dates / Type / Duration / Broadcasts / Definitions / Captions / Licenses / Dimensions / Sort By + Advanced (always full width) + Apply) + results grid (bidi-safe card meta, Shorts badge for scoped detection) + pagination + theme toggle + enrichment opt-in.
 - All `search.list` parameters implemented; re-added Last Hour, Sort Rating/Date, Movie/Episode (Show) via API mappings; unmappable features shown disabled with tooltip.
 - Operators resolved server-side: `channel:UC...`, `handle:@x`/`handle:x` via `channels.list forHandle`, `before:`/`after:` to `publishedBefore/After`.
-- Tools page: paste URL / `@handle` / `UC...` / username → `channels.list` → ID + title + `Use in search`.
+- Tools page: paste URL / `@handle` / `UC...` / username → `channels.list` → ID + title + channel/Invidious links + `Use in search`.
 - Settings page (gear): theme, max results, safeSearch, region, language, enrichment opt-in, key-index status. `localStorage` persisted.
 - Key rotation server-side: `YOUTUBE_API_KEYS=k1,k2` in `.env` local / Worker secrets prod, rotate on non-200.
 
 ## Out of Scope
 
 - No login/accounts, no search history, no infinite scroll (Next/Prev cursors only).
-- No Shorts-as-type filter in v1 (no API equivalent).
+- No Shorts-as-type filter in v1; Shorts are only detected and badged for channel/playlist-scoped searches (T-0013).
 - No backend database.
 
 ## Tech Stack
@@ -43,6 +43,7 @@ YouTube.com removed useful search filters (Last Hour, Sort by Rating/Date) and I
 - Search with filters returns correct `search.list` results through the proxy with no key leak.
 - `handle:@fireship` resolves to `UCsBjURrPoezykLs9EqgamOA` and scopes results.
 - Re-added filters (Last Hour, Rating/Date sort) produce ordered/filtered results via API.
+- Channel/playlist-scoped searches label detected Shorts with a badge.
 - Pages load as single static assets with auto-dark theme.
 
 ## Discovery Status
