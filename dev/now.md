@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-HANDOFF (T-0013 COMPLETE + HDT PASS and COMMITTED; M-0003 all tasks/exit criteria satisfied; awaits explicit user close)
+HANDOFF (T-0014 COMPLETE docs-only and COMMITTED; M-0003 all tasks/exit criteria satisfied and awaits explicit user close)
 
 ## State Integrity
 
@@ -17,15 +17,15 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0013 COMPLETE + H
 
 ## Current Task
 
-None — T-0013 is COMPLETE + HDT PASS (2026-10-22) and moved to `dev/tasks/done/`. M-0003 is ready for an explicit close decision. Last task: resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, category region freshness/no `ytas.catList`, clear-button aria fix, q `%20`/literal-space vs literal-plus parsing. See `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`.
+None — T-0014 (README rewrite, docs-only) is COMPLETE and moved to `dev/tasks/done/`. M-0003 is ready for an explicit close decision. Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`.
 
 ## Current Step
 
-T-0013 is complete, verified, and committed. All implementation and automated checks are recorded in the task; the task file is in `dev/tasks/done/`. The only open item is the explicit user decision on closing M-0003.
+T-0014 is complete, verified, and committed. The task file is in `dev/tasks/done/`. Separately, M-0003 still needs the explicit user decision to close.
 
 ## Objective
 
-Ship M-0003: all seven T-0013 items are implemented, tested, and HDT-passed. Review and checkpoint the completed work; do not start new product work until the user chooses a commit checkpoint or confirms closing M-0003.
+Keep the shipped app behavior stable. T-0014 rewrote the root README for beginners with short paragraphs and a narrow reading measure. Await the user's commit decision and the explicit M-0003 close decision; do not start new product work.
 
 ## Next Action
 
@@ -33,12 +33,14 @@ Await the user's explicit decision on closing M-0003. Do not start a new product
 
 ## Current Blocker
 
-No technical blocker. T-0013 is committed; awaiting only the explicit user decision on closing M-0003.
+No technical blocker. T-0014 is committed; M-0003 awaits only the explicit user decision to close.
 
 ## Relevant Files
 
+- `dev/tasks/done/T-0014-readme-shorter-paragraphs.md`
 - `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`
 - `dev/milestones/M-0003-filter-topbar-settings.md`
+- `README.md`
 - `worker.js`
 - `public/tools.html`
 - `public/index.html`
@@ -55,9 +57,11 @@ No technical blocker. T-0013 is committed; awaiting only the explicit user decis
 
 ## Verification Snapshot
 
-Status: T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED; M-0003 IN_PROGRESS with all tasks/exit criteria satisfied, awaiting explicit user close.
+Status: T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED; M-0003 IN_PROGRESS with all tasks/exit criteria satisfied, awaiting explicit user close.
 
 Evidence:
+
+- T-0014 automated PASS (2026-10-22): README structure check 0 prose lines >100 chars, 12 fences balanced, `<details>` 1/1, `<picture>` 2/2, 26 headings, 16 links / 0 broken anchors or relative targets, 27/27 required topic keywords; Chromium line-width probe (GitHub-like 16px) 138 lines measured, widest 665.9px (< ~900px target); diff vs `HEAD:README.md` 0 URLs added/removed, no numeric facts lost, commands unchanged (only Project layout descriptions shortened); GitHub-API render + 4 Chromium screenshots at 1280px reviewed. Fixed stale `#add-your-api-key-all-methods` anchor to `#add-your-api-key`.
 
 - T-0013 automated PASS (2026-10-20): `node --check worker.js`; 6/6 inline scripts compile; Node harness with mocked upstream 16/16 (origin helper 8/8, cross-origin 403 without upstream call, same-origin/headerless 200, `Sec-Fetch-Site` 403, HEAD 200 = Short, HEAD 303 `/watch` = video, 1-day positive/negative cache + cache hit skips HEAD/API, HEAD canary failure → API fallback, single ambiguous HEAD → one API fallback, missing-playlist 404 caches false, non-scoped no checks, UUSH playlist direct, normal playlist HEAD, 40-video cap + `shortsDetectionLimited`, probe failure non-fatal/uncached, static not gated); real workerd HEAD smoke (`GAH8Je1kZ-A` → short, `82CX6WULNA0` → video; actual `shortCacheGet`/`shortCachePut` first request miss→true, second request hit); wrangler smoke (live cross-origin 403, static 200); Playwright/Chromium (mocked `/api/*`, no quota) tools channel image/title links + Invidious at 360px with no overflow, nav backdrop/outside close on all three pages, hamburger toggle, resize >700px close, desktop nav unchanged, exactly one Shorts badge with duration/playlist badges intact, 0 console errors. Found/fixed: missing `id="result"` on the Tools result section had disabled the existing ≤640px card row; mobile image now 140px and linked.
 - T-0013 follow-up automated PASS (2026-10-22): `node --check worker.js` + 6/6 inline scripts; cache harness 7/7 (channel 7-day TTL + fresh rewrite; categories 1-month TTL + assignable filter + region key + fresh rewrite; search TTL key/read-only fresh; search default `max-age=1800`; q `%20` whitespace/space, literal plus, and empty-q rejection); T-0013 harness 16/16 regression; t0015 channel multi harness 15/15 (bare android/tensorflow 2, chrome/firebase 1; `/c/`, `/user/`, `/@`, `/channel/` exact forms; dedupe; cache/refresh); Playwright/Chromium 9/9 (mocked `/api/*`, no quota) includes bare-name multi cards/status/Refresh; live resolver checks confirm the same counts and `/c/chrome` 200, `/user/chrome` + `/@chrome` 404, `/@GoogleChrome` 200. Tools actions `Use in search` + `Invidious ↗`; status/cache/Refresh behavior; Shorts links; categories; 30-minute default; q encoding; clear-button aria/focus; 0 console/page errors.
@@ -84,19 +88,20 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-feat: resolver links/multi-check (incl. /c/), scoped shorts + /shorts/ links, API gate, nav backdrop, cache tuning + refresh, q space/plus parsing
+docs: simplify README into short beginner-friendly paragraphs
 
 ## README Status
 
-README updated in T-0013 (Shorts badge + `/shorts/` links for scoped searches; HEAD-first detection + 1-day cache; Tools channel links + Invidious + found/cached status + Refresh next to status + bare-name multi-check and `/c/`; channel 7-day/category 1-month cache notes; Settings search-only max cache (default 30 min); q `%20` spaces/literal plus; API own-origin note; troubleshooting `Forbidden origin`); earlier beginner rewrite + T-0012 filter copy unchanged.
+README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapped at ≤100 chars (widest rendered line 665.9px), troubleshooting converted from a wide table to a scannable list, same topics/facts/links preserved (features, shortcuts, tools, settings, how it works, setup A/B/C, key setup, everyday use, quotas, troubleshooting, layout, contributors, notes, disclaimer, license); stale `#add-your-api-key-all-methods` anchor fixed. Earlier T-0013 details remain accurate.
 
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
 - M-0003 IN_PROGRESS held open per user (T-0008..T-0013 + B-0001 COMPLETE and HDT PASS; all milestone tasks/exit criteria satisfied; closes only on explicit user close).
+- T-0014 COMPLETE (standalone docs; README beginner rewrite; no milestone).
 - B-0001 COMPLETE in `dev/bug-fixes/done/` (results-card meta RTL order; fixed in the same review as T-0012 rev 7; HDT PASS 2026-10-19).
-- Working tree retains pre-existing uncommitted user edits (`.gitignore`, `dev/project.md`, `dev/parking-lot.md`, `LICENSE`, `assets/`, `data/`); T-0013 is committed. Preserve those edits and inspect the diff before any future commit.
+- Working tree retains pre-existing uncommitted user changes (`.gitignore`, `dev/project.md`, `dev/parking-lot.md`, `LICENSE`, `assets/`, `public/index.html`/`settings.html`/`tools.html` GitHub ↗ nav links). T-0014 is committed. Preserve those changes and inspect the diff before any future commit.
 
 ## Do Not Change
 
