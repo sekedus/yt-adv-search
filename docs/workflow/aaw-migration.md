@@ -1,241 +1,149 @@
 # AAW Migration
 
-**Applies to Adaptive Agent Workflow 0.7.1 and later.**
+**Applies to Adaptive Agent Workflow 0.7.1 and later.** This version includes the structural migration from 0.7.x to 0.8.0.
 
-This is an agent-facing procedure for upgrading, downgrading, repairing, or migrating AAW in an existing project. It is not a product-development task.
+This is an agent-facing procedure for upgrading, downgrading, repairing, or migrating AAW in an existing project. It is not product-development work.
 
 ## Principle
 
-An AAW migration changes the **workflow control plane** while preserving the **product state**.
+An AAW migration changes the workflow control plane and workflow-state layout while preserving product state and unrelated user changes.
 
 ```text
-product state  = protected
-AAW control    = migratable
+product source and project knowledge = protected
+AAW-owned workflow state             = relocatable, not disposable
 ```
 
-The user should be able to use natural language:
-
-```text
-update adaptive-agent-workflow to 0.7.4
-update AAW to v0.7.4
-upgrade aaw
-migrate this project to AAW 0.7.4
-```
-
-Legacy release labels normalize as `v6 -> 0.6.0` and `v7 -> 0.7.0`.
+The user can express intent naturally, for example `update AAW to 0.8.0` or `migrate this project to AAW v0.8.0`.
 
 ## Version source of truth
 
-For releases that support the manifest, read:
-
-```text
-.aaw/manifest.yml
-```
-
-Example:
+Read `.aaw/manifest.yml` when present. `AAW_VERSION` is authoritative. For 0.8.0, the manifest schema is `2` because the workflow-state layout changes.
 
 ```yaml
 AAW_ID: adaptive-agent-workflow
 AAW_SOURCE: https://github.com/sekedus/adaptive-agent-workflow
-AAW_VERSION: 0.7.4
-AAW_SCHEMA: 1
+AAW_VERSION: 0.8.0
+AAW_SCHEMA: 2
 ```
 
-`AAW_VERSION` is authoritative. Version strings in README or prose documentation are informational only.
+For older installations without a manifest, use concrete repository evidence. If the exact installed version cannot be established safely, stop before modifying workflow files; do not guess.
 
-## Legacy version detection
+## Migration lock and freeze
 
-AAW 0.6.0 and 0.7.0 predate the manifest. Use repository evidence instead of guessing. The workflow specification's release marker should be checked when present.
-
-For 0.6.0, the project normally has the v6 state/workflow files but not the 0.7.0 additions:
-
-```text
-ARCHITECTURE-MAP.md
-dev/verification.md
-```
-
-For 0.7.0, those two additions are present. These are evidence, not permission to infer a version when the evidence conflicts. If the version remains uncertain, stop.
-
-## Migration lock
-
-Before changing workflow files, create:
-
-```text
-.aaw/migration.yml
-```
-
-Minimum contract:
+Before changing workflow files, write `.aaw/migration.yml`:
 
 ```yaml
 mode: MIGRATION
 status: ACTIVE
-from: 0.7.3
-to: 0.7.4
+from: 0.7.4
+to: 0.8.0
 ```
 
-Optional fields such as a timestamp or migration identifier may be added.
+If a new session finds an active lock, reconcile actual files and continue that migration before any product work. While the lock is active, do not create, modify, complete, or reprioritize product tasks; do not execute application work; preserve product code, decisions, active task meaning, and unrelated changes.
 
-If a new session finds an active lock, it must reconcile actual files and continue that migration before any product work.
+## 0.8.0 layout
 
-## Product freeze
-
-While migration is active:
-
-- do not create, modify, complete, or reprioritize product tasks;
-- do not advance or rewrite the product roadmap;
-- do not execute application bugs, features, refactors, or design work;
-- preserve the existing `dev/now.md` product state;
-- preserve unrelated user changes in the Git worktree.
-
-Migration is not a `T-*` task.
-
-## File ownership
-
-Protect project state unless a target release explicitly requires a workflow-only change:
+In 0.8.0, `.aaw/` is the home for AAW-managed workflow state and policy. `docs/` remains for human-facing project documentation and project-specific ADR/design material. Root `AGENTS.md` remains the canonical workflow instruction source; `ARCHITECTURE-MAP.md` remains a compact codebase navigation map; `CONTEXT.md` remains durable domain vocabulary.
 
 ```text
-README.md
-CONTEXT.md
-dev/project.md
-dev/constraints.md
-dev/roadmap.md
-dev/now.md
-dev/tasks/
-dev/tasks/done/
-dev/tasks/cancelled/
-dev/bug-fixes/
-dev/bug-fixes/done/
-dev/bug-fixes/cancelled/
-dev/milestones/
-dev/security.md
-dev/quality.md
-dev/commit-policy.md
-docs/adr/
-existing Git changes
+.aaw/
+├── manifest.yml
+├── project.md
+├── constraints.md
+├── roadmap.md
+├── now.md
+├── parking-lot.md
+├── quality.md
+├── security.md
+├── verification.md
+├── hdt.md
+├── state-integrity.md
+├── commit-policy.md
+├── changelog-policy.md
+├── readme-policy.md
+├── skill-dependencies.md
+├── milestones/
+├── tasks/{done,cancelled}/
+└── bug-fixes/{done,cancelled}/
 ```
 
-AAW control-plane files may change:
+No `features/` work-record folder is part of the 0.8.0 workflow. Do not delete legacy feature records automatically; preserve them as historical project data, or move them only through an explicit, safe reconciliation with the user/project.
 
-```text
-.aaw/manifest.yml
-.aaw/migration.yml
-AGENTS.md
-.github/copilot-instructions.md
-docs/workflow/adaptive-agent-workflow.md
-AAW-specific wiki/docs
-ARCHITECTURE-MAP.md          when required by the target release
-dev/verification.md           when required by the target release
-```
+## Migration procedure
 
-Do not replace project-specific files wholesale with template copies. Merge workflow changes while preserving actual project facts and decisions. `ARCHITECTURE-MAP.md` and `dev/verification.md` must describe the real project.
+### 1. Inspect
 
-## Migration sequence
+Check `git status`, relevant diffs, `.aaw/manifest.yml`, the current state files, and the contents of the legacy `dev/` directory. Preserve unrelated user changes. Do not assume the worktree is clean.
 
-### 1. Detect intent
+### 2. Create the lock and freeze product work
 
-Recognize AAW maintenance before normal product intent routing.
+Create `.aaw/migration.yml` with `status: ACTIVE`. No product task or milestone is created or executed for the migration itself.
 
-### 2. Determine installed and target versions
+### 3. Relocate workflow-owned files
 
-Read the manifest when present; otherwise establish the legacy version from repository evidence. Normalize the requested target release.
+For a 0.7.x project, AAW-managed files historically live under `dev/`. Move each workflow-owned item to the corresponding path under `.aaw/`, preserving relative paths and file contents. Examples:
 
-### 3. Inspect before modifying
+| Legacy 0.7.x path | Target 0.8.0 path |
+|---|---|
+| `dev/project.md` | `.aaw/project.md` |
+| `dev/now.md` | `.aaw/now.md` |
+| `dev/roadmap.md` | `.aaw/roadmap.md` |
+| `dev/tasks/` | `.aaw/tasks/` |
+| `dev/tasks/done/` | `.aaw/tasks/done/` |
+| `dev/tasks/cancelled/` | `.aaw/tasks/cancelled/` |
+| `dev/milestones/` | `.aaw/milestones/` |
+| `dev/bug-fixes/` | `.aaw/bug-fixes/` |
+| `dev/verification.md` | `.aaw/verification.md` |
+| other AAW-owned `dev/*.md` policy/state files | `.aaw/<same-basename>` |
 
-Inspect `git status`, relevant `git diff`, current AAW files, and durable project state. Do not assume the worktree is clean.
+Use `git mv` for tracked files when possible, or an equivalent file move that preserves the content. If the source and target both exist, compare and reconcile the two; never overwrite one automatically. Move only known AAW-owned files/folders. If `dev/` also contains application code or unrelated user files, leave those items in place and do not remove the directory unless it is empty after migration.
 
-### 4. Create the migration lock
+Do not create a new empty task, milestone, or bug record merely to populate the new structure. Preserve IDs, frontmatter, task status, cancellation reasons, HDT evidence, milestone strikethroughs, and active-task meaning.
 
-Write `.aaw/migration.yml` with `mode: MIGRATION` and `status: ACTIVE`.
+### 4. Update AAW path references
 
-### 5. Freeze product work
+Update references to relocated AAW-managed files in `AGENTS.md`, harness adapters, README/template guidance, task/milestone templates, workflow documentation, and other AAW-owned docs. Only change `dev/...` references when they refer to AAW's old state layout. Do not perform a blind repository-wide replacement that could alter application paths or unrelated project documentation.
 
-No product task is created or executed. Product roadmap and `now.md` remain preserved.
+Keep project README and product documents intact apart from necessary, project-approved links to moved AAW state. Preserve `docs/adr/` and other project documentation in `docs/`.
 
-### 6. Stage the target workflow
+### 5. Apply 0.8.0 workflow semantics
 
-Obtain the requested AAW release from the configured template/source and merge workflow-owned files carefully. Do not blindly copy the template root README into an existing project.
+- Replace the legacy `dev/` state layout with `.aaw/` as the canonical state location.
+- Use manifest `AAW_VERSION: 0.8.0` and `AAW_SCHEMA: 2`.
+- Keep active tasks under `.aaw/tasks/`, complete tasks under `.aaw/tasks/done/`, and cancelled tasks under `.aaw/tasks/cancelled/`.
+- Keep standalone bug records under `.aaw/bug-fixes/` with separate `done/` and `cancelled/` archives.
+- Keep milestone summaries under `.aaw/milestones/`.
+- Triage requests before creating records: related small items with one coherent acceptance/verification boundary use one task and no milestone. A milestone is for a genuinely large/broad coordinated outcome requiring multiple independently trackable tasks (usually three or more; two only when real dependencies/phases/shared exit criteria warrant it).
+- Preserve the 0.7.4 rules for YAML frontmatter, cancellation reasons, milestone strikethroughs, HDT completion gates, planning checkpoints, and verification-evidence reuse.
+- Do not auto-create milestones for existing single tasks, and do not mark a milestone complete merely because its sole task is complete. Resolve existing one-task milestones by preserving project history and either keep as legacy/history or reconcile with the user; do not destructively rewrite historical state just for normalization.
 
-### 7. Reconcile target artifacts
+### 6. Update control instructions last
 
-For 0.7.0+ targets, build or reconcile `ARCHITECTURE-MAP.md` and `dev/verification.md` from the actual project.
+Only after state files are relocated and references have been reconciled, update `AGENTS.md` and `.github/copilot-instructions.md`. These must point to `.aaw/` and contain the no-single-task-milestone rule.
 
-### 8. Verify before flipping the control plane
+### 7. Verify
 
-Verify at minimum:
+At minimum, confirm:
 
-- target workflow files exist;
-- project README/state remain preserved;
-- active task and roadmap were not changed by migration;
-- unrelated Git changes remain untouched;
-- architecture map and verification contract are project-specific when required;
-- no product task was created or executed because of the migration request.
+- target workflow files exist under `.aaw/`;
+- no required AAW state was lost or overwritten;
+- task IDs, statuses, HDT evidence, cancellation reasons, and milestone records remain intact;
+- current task pointer, roadmap, linked milestone, and Git state are consistent;
+- relevant AAW references no longer point to old `dev/` paths, except explicit historical/migration source-path documentation;
+- no unrelated product file was moved or rewritten;
+- no product task was created or executed because of the migration request;
+- manifest values and release metadata agree.
 
-### 9. Update control instructions last
+### 8. Finalize and stop
 
-Update `AGENTS.md` and `.github/copilot-instructions.md` only after the target workflow is staged and the preceding checks pass.
-
-### 10. Write the target manifest
-
-For a 0.7.4 target:
-
-```yaml
-AAW_ID: adaptive-agent-workflow
-AAW_SOURCE: https://github.com/sekedus/adaptive-agent-workflow
-AAW_VERSION: 0.7.4
-AAW_SCHEMA: 1
-```
-
-There must be one authoritative manifest value.
-
-### 11. Remove the migration lock
-
-Only after verification succeeds, delete `.aaw/migration.yml`. The absence of the lock plus the verified manifest means normal workflow may resume.
-
-### 12. Stop
-
-The migration request ends here. Do not continue into application work from the same request.
+Update the manifest to the target version/schema only after successful reconciliation. Remove `.aaw/migration.yml` only after verification passes. Report the migration summary, relevant caveats, and Git diff. Stop; do not continue into product work from the same request.
 
 ## Recovery
 
-Never trust chat history as proof that a step completed. If a session ends unexpectedly:
+Never trust chat history as proof that a migration step completed. If interrupted, read `.aaw/migration.yml`, inspect actual files and Git diffs, classify the migration as `COMPLETE`, `PARTIAL`, `UNCHANGED`, or `INCONSISTENT`, and continue only migration work. If it cannot be made safe, keep the lock active and report the exact blocker.
 
-```text
-read .aaw/migration.yml
-    -> inspect actual files
-    -> inspect git status/diff
-    -> compare target workflow
-    -> classify COMPLETE / PARTIAL / UNCHANGED / INCONSISTENT
-    -> reconcile
-    -> continue only migration
-```
+## Compatibility notes
 
-If migration cannot be completed safely, leave the lock active, preserve the repository, and report the exact blocker. Do not fall through into product work.
-
-## Future releases
-
-Every workflow release that changes semantics should document its `AAW_VERSION`, any `AAW_SCHEMA` change, migration steps, protected/migratable files, verification requirements, and supported source versions. Never invent an undocumented migration path.
-
-## 0.7.4 migration notes
-
-When migrating to 0.7.4:
-
-- create `dev/tasks/cancelled/` and `dev/bug-fixes/cancelled/`;
-- preserve existing project records and do not bulk-rewrite history merely to add frontmatter;
-- add canonical YAML frontmatter to new or materially updated task, milestone, and bug records;
-- reconcile milestone tasks, exit criteria, and status when a linked task changes state;
-- preserve explicit cancellation reasons; never infer missing reasons. If a legacy task is already `CANCELLED` but stored under `dev/tasks/done/`, move it to `dev/tasks/cancelled/` and strike through its milestone entry. If the reason is missing, ask the user and do not fabricate one;
-- add `planning` to the existing `initial`/`task` commit-policy settings, defaulting it to `ask`;
-- reuse prior automated/HDT evidence when relevant implementation and test inputs have not changed.
-
-## 0.7.2 migration notes
-
-When upgrading an existing AAW 0.7.x project:
-
-- preserve `dev/now.md` as a snapshot and remove stale historical appendices instead of copying the template snapshot over project state;
-- remove promoted, rejected, or resolved entries from `dev/parking-lot.md`;
-- stop creating new `dev/features/` records; if an existing project already has meaningful legacy feature records, preserve them as historical data rather than deleting them automatically;
-- keep active work in `dev/tasks/`; move completed task files to `dev/tasks/done/`;
-- use stable `B-*` IDs for standalone bug-fix records;
-- create `dev/milestones/` only for broad bounded work that genuinely needs grouping;
-- reconcile `dev/verification.md` to the compact verification contract;
-- preserve existing project-specific content rather than replacing it with template placeholders.
+- **0.7.4 → 0.8.0:** relocate AAW-owned state files from legacy `dev/` paths to `.aaw/`, update only AAW-owned path references, change `AAW_SCHEMA` from `1` to `2`, apply no-single-task-milestone triage, preserve task/milestone/bug history, verify, then update control instructions last.
+- **0.7.3 and earlier → 0.8.0:** first establish the exact source version and reconcile its known lifecycle differences before applying the 0.8.0 layout. Do not pretend missing 0.7.4 metadata or cancellation fields already exist.
+- **Existing project files:** never replace project-specific `README.md`, `CONTEXT.md`, `ARCHITECTURE-MAP.md`, `.aaw/project.md`, `.aaw/verification.md`, or task records wholesale with template placeholders. Merge workflow semantics while preserving actual project facts.

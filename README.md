@@ -264,10 +264,10 @@ wrangler.toml    Worker config: serves ./public as static assets
 
 ## For contributors
 
-- `dev/project.md` covers scope and stack.
 - `ARCHITECTURE-MAP.md` shows where code lives.
-- `dev/verification.md` explains how changes are proven.
-- `dev/roadmap.md` lists milestones and tasks.
+- `.aaw/project.md` covers scope and stack.
+- `.aaw/verification.md` explains how changes are proven.
+- `.aaw/roadmap.md` lists milestones and tasks.
 
 ## Notes
 

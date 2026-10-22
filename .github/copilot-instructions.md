@@ -1,6 +1,6 @@
 # Project Copilot Adapter
 
-> AAW_VERSION: 0.7.4
+> AAW_VERSION: 0.8.0
 
 This file is an optional VS Code Copilot adapter. The portable workflow source of truth is the root `AGENTS.md`.
 
@@ -9,14 +9,14 @@ Do not duplicate, override, or fork the workflow rules here. Read and follow `AG
 Before working on a task:
 
 1. Read `AGENTS.md`.
-2. Read `dev/now.md`.
-3. If a current task exists, verify it against `dev/roadmap.md` and read its task file.
+2. Read `.aaw/now.md`.
+3. If a current task exists, verify it against `.aaw/roadmap.md` and read its task file.
 4. Inspect `git status` and relevant diffs when resuming or when commit state matters.
 5. Read only project documents relevant to the task.
 
 Do not require the user to provide workflow labels such as `MODE: BUILD`.
 
-Before normal intent routing, detect AAW maintenance requests. Requests such as `update AAW to v0.7.4` or `migrate this project to AAW 0.7.4` must enter `MIGRATION` mode. If `.aaw/migration.yml` exists with `status: ACTIVE`, resume and reconcile that migration first. Product tasks are frozen during migration. Do not create or execute product work, and do not continue into application work after migration completes. See `docs/workflow/aaw-migration.md`.
+Before normal intent routing, detect AAW maintenance requests. Requests such as `update AAW to v0.8.0` or `migrate this project to AAW 0.8.0` must enter `MIGRATION` mode. If `.aaw/migration.yml` exists with `status: ACTIVE`, resume and reconcile that migration first. Product tasks are frozen during migration. Do not create or execute product work, and do not continue into application work after migration completes. See `docs/workflow/aaw-migration.md`.
 
 Installation/bootstrap is not product development. Do not invent product tasks during workflow installation. For an empty/new project, create a concise project README, initialize project state, and offer an `Initial commit` checkpoint.
 
@@ -31,13 +31,13 @@ Do not modify production code for questions, explanations, or review requests un
 Before calling a task complete:
 
 - run applicable automated checks yourself and report the results; do not ask the user to repeat checks that already passed;
-- resolve HDT as `REQUIRED` or `NOT_REQUIRED` using `dev/verification.md`;
+- resolve HDT as `REQUIRED` or `NOT_REQUIRED` using `.aaw/verification.md`;
 - when HDT is required, keep the task active as `AWAITING_HDT` until the user's report passes; do not move it to `done/` or offer the normal completion commit early;
-- only after all required gates pass, mark the task complete, move it to `done/`, synchronize affected state artifacts, check README impact, verify state integrity, and apply `dev/commit-policy.md`.
+- only after all required gates pass, mark the task complete, move it to `done/`, synchronize affected state artifacts, check README impact, verify state integrity, and apply `.aaw/commit-policy.md`.
 
-When the user asks only to create a milestone for multiple items, create the milestone and planned task records, update roadmap/now, run state-integrity checks, apply the `planning` commit checkpoint, and stop without starting implementation.
+Triage work before creating records. Several related small changes that share one acceptance/verification boundary belong in one task file and do not need a milestone. Create a milestone only for a broad outcome requiring at least two independently trackable tasks. If one task is enough, do not create a one-task milestone. For a genuine milestone-planning-only request, create the planned milestone and child tasks, update roadmap/now, run state-integrity checks, apply the `planning` checkpoint, then stop without implementation.
 
-When a task changes state, reconcile its linked milestone as well as roadmap/now. For cancellation, ask for a reason if missing, never guess, mark `CANCELLED`, record the reason, move it to `dev/tasks/cancelled/`, and strike through its milestone entry (and a solely dependent exit criterion). A milestone whose tasks are all cancelled is `CANCELLED`, not `COMPLETE`. Reuse successful automated verification evidence if relevant implementation/test inputs have not changed; metadata and Markdown moves alone do not require rerunning application tests.
+When a task changes state, reconcile its linked milestone as well as roadmap/now. For cancellation, ask for a reason if missing, never guess, mark `CANCELLED`, record the reason, move it to `.aaw/tasks/cancelled/`, and strike through its milestone entry (and a solely dependent exit criterion). A milestone whose tasks are all cancelled is `CANCELLED`, not `COMPLETE`. Reuse successful automated verification evidence if relevant implementation/test inputs have not changed; metadata and Markdown moves alone do not require rerunning application tests.
 
 The default commit policy is `ask`. The user may set `initial`, `planning`, and/or `task` to `auto`. Planning commit never authorizes implementation. Auto-commit is allowed only after verification, state-integrity checks, and confirmation that unrelated user changes will not be included. Auto-commit never implies `git push`.
 
@@ -47,4 +47,4 @@ Three-pillar product quality:
 - Unique Design — Desirable & Distinctive
 - Secure by Design
 
-Use `dev/quality.md` and `dev/security.md` to select only the relevant quality and security skills for the current change. Do not require the user to name the correct security skill manually.
+Use `.aaw/quality.md` and `.aaw/security.md` to select only the relevant quality and security skills for the current change. Do not require the user to name the correct security skill manually.

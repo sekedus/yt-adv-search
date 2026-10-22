@@ -1,6 +1,6 @@
 # Adaptive Agent Workflow
 
-**Workflow version: 0.7.4**
+**Workflow version: 0.8.0**
 
 ## 0. AAW Maintenance and Migration
 
@@ -9,10 +9,10 @@ AAW installation, upgrade, downgrade, repair, and migration are control-plane op
 Examples:
 
 ```text
-update adaptive-agent-workflow to 0.7.4
-update AAW to v0.7.4
+update adaptive-agent-workflow to 0.8.0
+update AAW to v0.8.0
 upgrade aaw
-migrate this project to AAW 0.7.4
+migrate this project to AAW 0.8.0
 ```
 
 Legacy labels normalize as `v6 -> 0.6.0` and `v7 -> 0.7.0`. The installed version is read from `.aaw/manifest.yml`, where `AAW_VERSION` is authoritative. Older projects without the manifest must be identified from concrete repository evidence; uncertain versions are a reason to stop rather than guess.
@@ -32,13 +32,13 @@ Migration is not represented as a product `T-*` task. It must not create or exec
 See [`aaw-migration.md`](aaw-migration.md) for the full procedure.
 
 
-## Milestone Creation Is Planning-Only
+## Task-First Planning and Milestone Boundary
 
-When the user provides multiple work items and asks to create/group them into a milestone, create the milestone plus bounded child task records, update `dev/roadmap.md` and the bounded `dev/now.md` snapshot, list related parking-lot candidates for user selection, and stop. Leave unselected parking-lot items untouched. All child tasks remain `PLANNED`; do not start the first or easiest task. Start implementation only if the user explicitly asks to begin a named task or explicitly combines milestone creation with implementation authorization.
+First triage multiple requested items into the smallest coherent deliverables. Several related, low-complexity changes with shared acceptance and verification boundaries should be grouped into one task file, not a one-task milestone. Create a milestone only when the bounded outcome is genuinely large/broad and needs coordinated work across multiple independently trackable task files (usually three or more; two only when real dependencies, phases, or shared exit criteria require coordination). If one task is sufficient, create/update only that task and do not create or later complete a milestone. For a genuine milestone-planning-only request, create the milestone and planned child tasks, update `.aaw/roadmap.md` and the bounded `.aaw/now.md` snapshot, inspect related parking-lot candidates for user selection, run state-integrity checks, apply the `planning` checkpoint, and stop. Do not start the first/easiest task unless implementation is explicitly authorized.
 
 ## Completion and HDT Gate
 
-The agent runs applicable automated checks and reports their actual results. Do not ask the user to rerun an automated command that the agent already executed successfully. Use `dev/verification.md` to set each task's effective HDT requirement to `REQUIRED` or `NOT_REQUIRED`. If required, the task remains active as `AWAITING_HDT` until a sufficient user-reported PASS is recorded. Only then may the task be marked `COMPLETE`, moved to `dev/tasks/done/`, and enter the normal commit policy. Failed, unclear, or declined required HDT leaves the task active and the evidence gap explicit. If HDT is not required and automated evidence is sufficient, complete/move/commit without an unnecessary human verification round.
+The agent runs applicable automated checks and reports their actual results. Do not ask the user to rerun an automated command that the agent already executed successfully. Use `.aaw/verification.md` to set each task's effective HDT requirement to `REQUIRED` or `NOT_REQUIRED`. If required, the task remains active as `AWAITING_HDT` until a sufficient user-reported PASS is recorded. Only then may the task be marked `COMPLETE`, moved to `.aaw/tasks/done/`, and enter the normal commit policy. Failed, unclear, or declined required HDT leaves the task active and the evidence gap explicit. If HDT is not required and automated evidence is sufficient, complete/move/commit without an unnecessary human verification round.
 
 ## Harness Portability
 
@@ -225,7 +225,7 @@ parent invocation
 child skill invocation as specified upstream
 ```
 
-If a required dependency is unavailable, stop the specialized workflow rather than recreating it from memory. Report the missing skill and provide the installation command. See `dev/skill-dependencies.md`.
+If a required dependency is unavailable, stop the specialized workflow rather than recreating it from memory. Report the missing skill and provide the installation command. See `.aaw/skill-dependencies.md`.
 
 ---
 
@@ -273,7 +273,7 @@ Update `ARCHITECTURE-MAP.md` in the same state transaction when code changes mat
 
 ### Verification contract
 
-`dev/verification.md` defines the concrete project checks and evidence needed to move from `IMPLEMENTED` to `TESTED` or `VERIFIED`.
+`.aaw/verification.md` defines the concrete project checks and evidence needed to move from `IMPLEMENTED` to `TESTED` or `VERIFIED`.
 
 ## 8. Build Policy
 
@@ -307,7 +307,7 @@ Meaningful product work is evaluated through three primary pillars:
 
 The pillars are not a fixed checklist. Apply each at the depth justified by the change.
 
-Use `dev/quality.md` for quality-gate selection and `dev/security.md` for security-skill routing.
+Use `.aaw/quality.md` for quality-gate selection and `.aaw/security.md` for security-skill routing.
 
 Examples:
 
@@ -367,7 +367,7 @@ project type
   -> evidence
 ```
 
-`dev/security.md` is the project-specific routing layer.
+`.aaw/security.md` is the project-specific routing layer.
 
 The security library is intentionally large. Select the smallest set of skills that covers the changed attack surface.
 
@@ -391,15 +391,15 @@ If implementation depends on a meaningful user decision, record a `Pending Decis
 
 ### Human Development Test
 
-Resolve HDT as `REQUIRED` or `NOT_REQUIRED` using the project's verification contract. If required, the task remains active as `AWAITING_HDT` until a sufficient user report passes; do not mark it `COMPLETE`, move it to `done/`, advance the current task, or offer the normal completion commit checkpoint before then. On FAIL/unclear evidence, investigate/fix or ask a targeted follow-up. See `dev/hdt.md`.
+Resolve HDT as `REQUIRED` or `NOT_REQUIRED` using the project's verification contract. If required, the task remains active as `AWAITING_HDT` until a sufficient user report passes; do not mark it `COMPLETE`, move it to `done/`, advance the current task, or offer the normal completion commit checkpoint before then. On FAIL/unclear evidence, investigate/fix or ask a targeted follow-up. See `.aaw/hdt.md`.
 
 ### Canonical record metadata and cancellation
 
 New task, milestone, and standalone bug-fix records use YAML frontmatter as canonical metadata; do not duplicate status in the Markdown body. Add frontmatter to legacy active records when they are created or materially updated, without bulk-rewriting historical records only for formatting.
 
-When the user requests task cancellation and gives no reason, ask for the reason before making the state change. Never guess. After the reason is provided, set `status: CANCELLED`, record `cancellation_reason`, move the task to `dev/tasks/cancelled/`, and strike through its entry in the linked milestone rather than deleting it. Strike through an exit criterion only when that cancelled task was the sole work needed to satisfy it; preserve criteria still required or achievable by other tasks. Do not automatically revert code merely because a task was cancelled.
+When the user requests task cancellation and gives no reason, ask for the reason before making the state change. Never guess. After the reason is provided, set `status: CANCELLED`, record `cancellation_reason`, move the task to `.aaw/tasks/cancelled/`, and strike through its entry in the linked milestone rather than deleting it. Strike through an exit criterion only when that cancelled task was the sole work needed to satisfy it; preserve criteria still required or achievable by other tasks. Do not automatically revert code merely because a task was cancelled.
 
-Reconcile the linked milestone, `dev/roadmap.md`, and `dev/now.md` whenever a task changes status. A milestone is `COMPLETE` only when all non-cancelled tasks are `COMPLETE` and all non-struck exit criteria are satisfied. If every task in a non-empty milestone is cancelled, its status is `CANCELLED`, not `COMPLETE`. Preserve crossed-out tasks and criteria as decision history.
+Reconcile the linked milestone, `.aaw/roadmap.md`, and `.aaw/now.md` whenever a task changes status. A milestone is `COMPLETE` only when all non-cancelled tasks are `COMPLETE` and all non-struck exit criteria are satisfied. If every task in a non-empty milestone is cancelled, its status is `CANCELLED`, not `COMPLETE`. Preserve crossed-out tasks and criteria as decision history.
 
 ### Verification evidence reuse
 
@@ -496,7 +496,7 @@ current work
   -> switch project
 ```
 
-New ideas belong in `dev/parking-lot.md` until intentionally promoted.
+New ideas belong in `.aaw/parking-lot.md` until intentionally promoted.
 
 This allows the user to explore project B without losing the exact resume point in project A.
 
@@ -526,29 +526,31 @@ Avoid claims such as "secure" or "fully compatible" unless the evidence supports
 
 ## 16. Task, Milestone, and Bug Records
 
-Active work belongs in `dev/tasks/`. Use `dev/milestones/` when a bounded outcome is too broad for one task. Use `dev/bug-fixes/` only for standalone meaningful bugs after verification.
+Active work belongs in `.aaw/tasks/`. Standalone meaningful bug-fix records belong in `.aaw/bug-fixes/`. A milestone is optional and reserved for broad outcomes that require multiple independently trackable task files.
 
 ### Tasks
 
-A task is a bounded work unit, not one user message. A new small request may join an active task when scope, domain, acceptance criteria, and verification boundary genuinely align. Otherwise, create a separate task or park it.
+A task is a bounded work unit, not one user message or one bullet point. Before creating records, group related small changes when they share an outcome, acceptance criteria, and verification boundary. Do not split work just to mirror the user's bullet list, and do not create a milestone when the final decomposition is one task. A single task completes/cancels on its own without any milestone status.
 
-Small task files should stay small. Do not fill a tiny task with large planning/history sections merely because a template contains them.
+A new small request may join an active task when scope, domain, acceptance criteria, and verification boundary genuinely align. Otherwise, create a separate task or park it. Small task files should stay small; do not fill a tiny task with large planning/history sections merely because a template contains them.
 
 ### Milestones
 
-A milestone is a compact grouping and navigation layer for related tasks. It is not a second source of truth for execution details. When creating a milestone, inspect `dev/parking-lot.md` for related ideas and ask the user before promoting any candidate. After each linked task status transition, update the milestone task entry, affected exit criteria, status, `dev/roadmap.md`, and `dev/now.md` as needed. Do not leave milestone exit criteria stale.
+Create a milestone only when the outcome is genuinely large/broad and needs coordinated work across multiple independently trackable task records (usually three or more; two may suffice when dependencies, phases, or shared exit criteria make coordination valuable). Do not create one-task milestones or wrap a few small unrelated tasks in a milestone merely because there is more than one task file. A milestone is a compact grouping/navigation layer, not a second source of truth for execution details.
+
+When a genuine milestone is created, inspect `.aaw/parking-lot.md` for related ideas and ask the user before promoting candidates. After each linked task status transition, update the milestone task entry, affected exit criteria, status, `.aaw/roadmap.md`, and `.aaw/now.md` as needed. Do not leave milestone exit criteria stale. A milestone can become `COMPLETE` only when all non-cancelled child tasks are complete and all remaining exit criteria pass; if all child tasks are cancelled, its status is `CANCELLED`. If no milestone was created, never invent one just to record completion.
 
 Use YAML frontmatter as the canonical metadata source for newly created/materially updated milestone records. Cancelled task entries and solely dependent cancelled exit criteria remain visible with strikethrough; never delete them from the milestone. A milestone is `COMPLETE` when all non-cancelled tasks are complete and remaining exit criteria pass; if all tasks are cancelled, status is `CANCELLED`.
 
 ### Bug fixes
 
-A bug discovered inside the active task remains inside that task when it is within scope. For standalone meaningful bugs, use stable IDs such as `B-0001-<slug>.md`. Move completed task files to `dev/tasks/done/` and completed bug-fix records to `dev/bug-fixes/done/`.
+A bug discovered inside the active task remains inside that task when it is within scope. For standalone meaningful bugs, use stable IDs such as `B-0001-<slug>.md`. Move completed task files to `.aaw/tasks/done/` and completed bug-fix records to `.aaw/bug-fixes/done/`.
 
 Do not use active folders as archives. Git history preserves historical movement.
 
 ## 17. Final Checkpoint
 
-Before ending a meaningful session, `dev/now.md` should answer:
+Before ending a meaningful session, `.aaw/now.md` should answer:
 
 1. What are we building?
 2. What task is active?
@@ -571,13 +573,13 @@ The first real product requirement creates `T-0001`. Task creation is a state tr
 
 Task completion is also a state transaction: verify the task, synchronize affected artifacts, review README impact, run a state-integrity check, then apply the persistent `task` commit policy (`ask` by default or `auto` when configured).
 
-At AAW 0.5.0, commit policy had only `initial` and `task` settings. Current releases use three independent settings—`initial`, `planning`, and `task`—as defined in `dev/commit-policy.md`. Auto-commit requires checkpoint-appropriate checks, state-integrity checks, and a commit scope containing only attributable checkpoint changes.
+At AAW 0.5.0, commit policy had only `initial` and `task` settings. Current releases use three independent settings—`initial`, `planning`, and `task`—as defined in `.aaw/commit-policy.md`. Auto-commit requires checkpoint-appropriate checks, state-integrity checks, and a commit scope containing only attributable checkpoint changes.
 
 The template repository's own root README is agent-facing documentation and is not copied verbatim into target projects. For an empty/new project, the agent generates a user-facing README from the actual project state. Existing project READMEs are preserved and updated only when project understanding materially changes.
 
 ## Historical: 0.7.0 Engineering Discipline Summary
 
-The 0.7.0 layer adds codebase memory and engineering discipline to the recovery-first workflow. Project state remains centered on `now.md`, tasks, roadmap, and Git, while `ARCHITECTURE-MAP.md` explains the shape of the codebase and `dev/verification.md` defines concrete evidence for completion.
+The 0.7.0 layer added codebase memory and engineering discipline to the recovery-first workflow. At that release, project state was centered on `dev/now.md`, tasks, roadmap, and Git, while `ARCHITECTURE-MAP.md` explained the shape of the codebase and `dev/verification.md` defined concrete evidence for completion. In 0.8.0, these AAW-managed state files move under `.aaw/`.
 
 
 ## 0.7.1 Migration Foundation
@@ -629,4 +631,4 @@ The 0.7.3 layer clarifies two lifecycle boundaries:
 
 ## 0.7.4 Lifecycle Integrity
 
-The 0.7.4 layer adds explicit task/milestone/bug-record frontmatter, `CANCELLED` task handling, reason-preserving milestone strikethroughs, linked-milestone reconciliation on each task transition, a `planning` commit checkpoint, and evidence reuse for metadata/documentation-only state transactions. A milestone whose non-empty task list is entirely cancelled is `CANCELLED`; it is not reported as successfully completed.
+The 0.7.4 layer adds explicit task/milestone/bug-record frontmatter, `CANCELLED` task handling, reason-preserving milestone strikethroughs, linked-milestone reconciliation on each task transition, a `planning` commit checkpoint, and evidence reuse for metadata/documentation-only state transactions. A milestone whose non-empty task list is entirely cancelled is `CANCELLED`; it is not reported as successfully completed. Version 0.8.0 moves workflow-managed state under `.aaw/` and requires task-first triage: no milestone when one task file is enough.
