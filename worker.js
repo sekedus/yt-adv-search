@@ -10,14 +10,19 @@
  *
  * Secrets: env.YOUTUBE_API_KEYS = "k1,k2" (comma-separated, trimmed).
  * Keys never leave the worker: never reflected in responses, and the worker
- * emits no logs containing key material. Egress is fixed to
- * www.googleapis.com only.
+ * emits no logs containing key material. API egress is fixed to
+ * www.googleapis.com; Shorts detection adds a fixed HEAD-only probe to
+ * www.youtube.com/shorts/<videoId>, and /c/ channel resolution adds a fixed GET
+ * to www.youtube.com/c/<encodedName> (canonical-ID only; no cookies, no API key).
  */
 
 "use strict";
 
 const YT_HOST = "www.googleapis.com";
 const YT_BASE = `https://${YT_HOST}/youtube/v3`;
+const YT_WEB_HOST = "www.youtube.com";
+const YT_WEB_SHORTS_BASE = `https://${YT_WEB_HOST}/shorts/`;
+const YT_WEB_CUSTOM_BASE = `https://${YT_WEB_HOST}/c/`;
 const YT_PATHS = new Set(["/search", "/channels", "/videos", "/playlistItems", "/videoCategories"]);
 
 const MAX_Q_LEN = 500;
@@ -96,6 +101,46 @@ function cleanFail(upstreamStatus, quotaSeen) {
   );
 }
 
+/* ---------- API origin gate (T-0013) ----------
+ * The API is a quota-backed proxy with no login. Browsers always identify
+ * the calling page through Origin/Referer/Sec-Fetch-Site, so refuse pages
+ * that are not this Worker's own origin (or localhost during development).
+ * Requests with no browser origin headers (curl, scripts, server-side
+ * clients) still pass: this is abuse deterrence, not authentication, and a
+ * malicious non-browser client can spoof headers anyway. */
+function parseOrigin(value) {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isLocalDevOrigin(origin) {
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    return u.hostname === "localhost" || u.hostname === "127.0.0.1" || u.hostname === "[::1]";
+  } catch {
+    return false;
+  }
+}
+
+function apiOriginAllowed(request, requestUrl) {
+  const origin = parseOrigin(request.headers.get("Origin"));
+  const referer = parseOrigin(request.headers.get("Referer"));
+  const source = origin || referer;
+  if (source) {
+    return source === requestUrl.origin || isLocalDevOrigin(source);
+  }
+  // A browser that suppressed Origin/Referer still sends Sec-Fetch-Site.
+  // `none` covers address-bar/direct navigation; `same-origin` is this app.
+  const site = request.headers.get("Sec-Fetch-Site");
+  if (site && site !== "same-origin" && site !== "none") return false;
+  return true;
+}
+
 function buildYTUrl(path, params) {
   if (!YT_PATHS.has(path)) throw new Error("blocked egress path");
   const url = new URL(YT_BASE + path);
@@ -114,6 +159,9 @@ function buildYTUrl(path, params) {
 // per isolate (no KV binding in v1), keyed by key index, so one isolate may
 // retry an exhausted key while another already skips it — bounded extra
 // quota burn, no correctness issue.
+//
+// T-0013: `opts.stopOn404` lets optional probes (the UUSH Shorts playlist)
+// stop immediately on a deterministic 404 instead of rotating every key.
 const quotaExhaustedUntil = new Map(); // keyIndex -> epoch ms
 
 function nextMidnightUtcMs(nowMs) {
@@ -143,7 +191,7 @@ function isQuotaErrorPayload(status, bodyText) {
   }
 }
 
-async function fetchYT(env, path, params, fetchImpl) {
+async function fetchYT(env, path, params, fetchImpl, opts) {
   const keys = getKeys(env);
   if (keys.length === 0) {
     return { ok: false, error: json({ error: "Server misconfigured: no API keys" }, 500) };
@@ -173,6 +221,11 @@ async function fetchYT(env, path, params, fetchImpl) {
       } catch {
         bodyText = "";
       }
+      // Optional probes treat a missing resource as "not found", not as a
+      // key failure: retrying with another key cannot change a 404.
+      if (lastStatus === 404 && opts && opts.stopOn404) {
+        return { ok: false, notFound: true, upstreamStatus: 404 };
+      }
       if (isQuotaErrorPayload(lastStatus, bodyText)) {
         quotaSeen = true;
         quotaExhaustedUntil.set(i, nextMidnightUtcMs(now));
@@ -194,15 +247,21 @@ async function fetchYT(env, path, params, fetchImpl) {
 }
 
 /* ---------- GET result cache (T-0010) ----------
- * Successful /api/search + /api/channel responses are cached in
- * caches.default for CACHE_TTL_S. Bypass with ?fresh=1 or
- * Cache-Control: no-cache/no-store. The cache key is the request URL minus
- * `fresh` — API keys never appear in the URL (server-side only), so the key
- * carries no secret material. Served responses carry x-cache-status
- * HIT/MISS. Caching is best-effort: any cache failure falls through to
- * upstream, and runtimes without caches.default simply skip the layer. */
-const CACHE_TTL_S = 300;
-const CAT_TTL_S = 604800; // video categories change rarely: cache 1 week.
+ * Successful /api/search, /api/channel, and /api/categories responses are
+ * cached in caches.default. Search TTL is client-controlled (60-3600 s,
+ * default 30 min); channel lookups are cached 7 days, categories 1 month. Bypass with
+ * ?fresh=1 or Cache-Control: no-cache/no-store. Channel/category bypass
+ * requests rewrite the entry (manual refresh updates the cache); search
+ * bypass remains read-only. The cache key is the request URL minus
+ * `fresh`/`cacheTtl` — API keys never appear in the URL (server-side only),
+ * so the key carries no secret material. Served responses carry
+ * x-cache-status HIT/MISS. Caching is best-effort: any cache failure falls
+ * through to upstream, and runtimes without caches.default simply skip the
+ * layer. */
+const CACHE_TTL_S = 1800; // search default: 30 minutes.
+const CACHE_TTL_MAX_S = 30 * 24 * 3600; // categories may be cached 1 month.
+const CHANNEL_TTL_S = 7 * 24 * 3600; // resolver lookups change rarely.
+const CAT_TTL_S = 30 * 24 * 3600; // video categories change rarely: 1 month.
 
 // Clamp a client-supplied TTL (seconds) into [min, max]; fallback on garbage.
 function clampTtl(v, fb, min, max) {
@@ -249,6 +308,11 @@ function cacheKeyRequest(requestUrl) {
   const u = new URL(requestUrl.toString());
   u.searchParams.delete("fresh");
   u.searchParams.delete("cacheTtl"); // affects stored max-age only, not content
+  // URL-form resolver requests now use multi-check semantics. Version their
+  // cache key so a pre-upgrade single-result entry cannot serve for 7 days.
+  if (u.pathname === "/api/channel" || u.pathname === "/api/channel/") {
+    if (u.searchParams.has("url")) u.searchParams.set("v", "2");
+  }
   return new Request(u.toString(), { method: "GET" });
 }
 
@@ -258,12 +322,12 @@ function withCacheStatus(res, hit) {
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
 }
 
-async function cachedApi(request, requestUrl, handler, ttlS) {
-  const ttl = clampTtl(ttlS, CACHE_TTL_S, 60, 604800);
+async function cachedApi(request, requestUrl, handler, ttlS, opts) {
+  const ttl = clampTtl(ttlS, CACHE_TTL_S, 60, CACHE_TTL_MAX_S);
   const store = cacheStore();
   const bypass = isFreshBypass(requestUrl, request);
-  const keyReq = store && !bypass ? cacheKeyRequest(requestUrl) : null;
-  if (keyReq) {
+  const keyReq = store ? cacheKeyRequest(requestUrl) : null;
+  if (keyReq && !bypass) {
     try {
       const hit = await store.match(keyReq);
       if (hit) return withCacheStatus(hit, true);
@@ -272,8 +336,9 @@ async function cachedApi(request, requestUrl, handler, ttlS) {
     }
   }
   const res = await handler();
-  if (res && (bypass || keyReq)) {
-    if (store && keyReq && res.status === 200) {
+  const writeOnBypass = !!(opts && opts.writeOnBypass);
+  if (res && keyReq) {
+    if (res.status === 200 && (!bypass || writeOnBypass)) {
       try {
         const h = new Headers(res.headers);
         h.set("cache-control", "public, max-age=" + ttl);
@@ -298,9 +363,30 @@ function normalizeDateValue(value) {
   return new Date(t).toISOString();
 }
 
+/* q is special: URLSearchParams decodes "+" as a space, but q must keep a
+ * literal plus. Decode percent escapes only and treat a raw "+" as "+"
+ * (a real space must arrive as "%20" or a literal space). */
+function queryParamLiteral(requestUrl, name) {
+  const raw = (requestUrl.search || "").replace(/^\?/, "");
+  for (const part of raw.split("&")) {
+    if (!part) continue;
+    const eq = part.indexOf("=");
+    const rawKey = eq < 0 ? part : part.slice(0, eq);
+    let key;
+    try { key = decodeURIComponent(rawKey.replace(/\+/g, "%2B")); }
+    catch { key = rawKey; }
+    if (key !== name) continue;
+    const rawVal = eq < 0 ? "" : part.slice(eq + 1);
+    try { return decodeURIComponent(rawVal.replace(/\+/g, "%2B")); }
+    catch { return rawVal; }
+  }
+  return null;
+}
+
 // Split operator tokens out of q. Unknown `a:b` stays literal.
 function parseQueryOperators(rawQ) {
-  const tokens = String(rawQ || "")
+  const raw = String(rawQ || "");
+  const tokens = raw
     .split(/\s+/)
     .filter(Boolean);
   const kept = [];
@@ -365,8 +451,9 @@ function parseQueryOperators(rawQ) {
     }
     kept.push(tok);
   }
+  const onlyWhitespace = raw.length > 0 && raw.trim() === "";
   return {
-    cleanQ: kept.join(" "),
+    cleanQ: onlyWhitespace ? raw : kept.join(" "),
     channel,
     handle,
     username,
@@ -391,18 +478,27 @@ async function resolveHandleToChannelId(env, handle, username, fetchImpl) {
   return { channelId: items[0].id };
 }
 
+function decodeRefPart(v) {
+  try { return decodeURIComponent(v); } catch { return v; }
+}
+
 // Parse tools input (full URL, @handle, UC id, username) into a typed ref.
+// `explicit` means the input named one URL form; a bare word is ambiguous and
+// may be checked as handle + legacy username + custom URL.
 function parseChannelRef(input) {
   const s = String(input || "").trim();
   if (!s) return null;
-  if (/^UC[\w-]{10,}$/.test(s)) return { kind: "id", value: s };
-  if (/^@[\w][\w.-]*$/.test(s)) return { kind: "handle", value: s.slice(1) };
+  if (/^UC[\w-]{10,}$/.test(s)) return { kind: "id", value: s, explicit: true };
+  if (/^@[\w][\w.-]*$/.test(s)) return { kind: "handle", value: s.slice(1), explicit: true };
   let url = null;
   try {
     if (/^[\w-]+(\.[\w-]+)+[/?#]/.test(s) || s.includes("://")) {
       url = new URL(s.includes("://") ? s : `https://${s}`);
     } else if (s.startsWith("youtube.com") || s.startsWith("www.youtube.com") || s.startsWith("youtu.be")) {
       url = new URL(`https://${s}`);
+    } else if (/^\/(?:@|channel\/|user\/|c\/)/.test(s)) {
+      // Path-only forms copied from the address bar: /@handle, /c/name, etc.
+      url = new URL(`https://www.youtube.com${s}`);
     }
   } catch {
     url = null;
@@ -410,25 +506,34 @@ function parseChannelRef(input) {
   if (url) {
     const host = url.hostname.toLowerCase();
     if (host.includes("youtube.com") || host.includes("youtu.be")) {
+      // ref: https://support.google.com/youtube/answer/6180214?hl=en
+
+      // youtube.com/channel/channel_id
       const mCh = url.pathname.match(/\/channel\/(UC[\w-]+)/);
-      if (mCh) return { kind: "id", value: mCh[1] };
+      if (mCh) return { kind: "id", value: mCh[1], explicit: true };
+
+      // youtube.com/@handle
       const mAt = url.pathname.match(/\/@([^\s/?#]+)/);
-      if (mAt) return { kind: "handle", value: mAt[1] };
+      if (mAt) return { kind: "handle", value: decodeRefPart(mAt[1]), explicit: true };
+
+      // youtube.com/user/legacy_username
       const mUser = url.pathname.match(/\/user\/([^\s/?#]+)/);
-      if (mUser) return { kind: "username", value: mUser[1] };
+      if (mUser) return { kind: "username", value: decodeRefPart(mUser[1]), explicit: true };
+
+      // youtube.com/c/custom (no Data API lookup; resolved from the page)
       const mC = url.pathname.match(/\/c\/([^\s/?#]+)/);
-      if (mC) return { kind: "handle", value: mC[1] };
+      if (mC) return { kind: "custom", value: decodeRefPart(mC[1]), explicit: true };
+
       return null;
     }
     return null;
   }
   if (s.includes("/@")) {
     const m = s.match(/@([^\s/?#]+)/);
-    if (m) return { kind: "handle", value: m[1] };
+    if (m) return { kind: "handle", value: decodeRefPart(m[1]), explicit: true };
   }
-  // Bare word: treat as handle (forHandle covers modern handles; legacy
-  // usernames go through ?username= explicitly).
-  if (/^[\w][\w.-]*$/.test(s)) return { kind: "handle", value: s.replace(/^@/, "") };
+  // Bare word: ambiguous between a handle and a legacy username/custom URL.
+  if (/^[\w][\w.-]*$/.test(s)) return { kind: "handle", value: s.replace(/^@/, ""), explicit: false };
   return null;
 }
 
@@ -560,6 +665,250 @@ function filterPlaylistItems(items, keyword) {
   });
 }
 
+/* ---------- Shorts detection (T-0013) ----------
+ * Two-stage check, cached for one day:
+ *  1. HEAD https://www.youtube.com/shorts/<videoId>
+ *       - 200            -> Short
+ *       - 3xx to /watch  -> regular video
+ *       - anything else  -> ambiguous; fall through to the API
+ *  2. API fallback: a channel's auto-generated Shorts playlist is
+ *     UUSH + channelId.slice(2); playlistItems.list with videoId returns an
+ *     item only for Shorts. A 404 means the channel has no Shorts playlist.
+ * Ref: https://stackoverflow.com/a/78703474 (user note %TEMP%/yt-shorts.md).
+ *
+ * Best-effort and scoped: failed checks never fail the search. HEAD checks
+ * cover at most 40 videos/response. If HEAD is unavailable (first canary
+ * fails), up to 40 API probes replace it; when HEAD works but a few videos
+ * are ambiguous, at most 6 API fallbacks run, keeping search + probes inside
+ * the free-plan subrequest budget. Positive and negative results are cached
+ * for one day.
+ */
+const SHORTS_MAX_VIDEOS = 40;
+const SHORTS_MAX_API_FALLBACK = 6;
+const SHORTS_MAX_API_ONLY = 40;
+const SHORTS_MAX_CHANNELS = 6;
+const SHORTS_CACHE_TTL_S = 86400;
+const SHORTS_CACHE_PATH = "/__shorts/";
+const SHORTS_PLAYLIST_RE = /^UU(?:SH|PS|MS)/;
+
+function shortsPlaylistId(channelId) {
+  const id = String(channelId || "").trim();
+  if (!/^UC[\w-]{10,}$/.test(id)) return null;
+  return "UUSH" + id.slice(2);
+}
+
+function isShortsPlaylistId(playlistId) {
+  return SHORTS_PLAYLIST_RE.test(String(playlistId || ""));
+}
+
+// A known Shorts playlist (UUSH/UUPS/UUMS) is already entirely Shorts.
+function markShortsPlaylist(items) {
+  for (const it of items || []) {
+    if (it && it.id && it.id.kind === "youtube#video" && it.id.videoId) {
+      it.shorts = true;
+    }
+  }
+}
+
+function shortsHeadUrl(videoId) {
+  return YT_WEB_SHORTS_BASE + encodeURIComponent(videoId);
+}
+
+// 200 = Short; redirect to /watch = regular video. A redirect anywhere else
+// (consent/canonical) or a non-200/3xx response is ambiguous -> API fallback.
+async function checkShortByHead(videoId, fetchImpl) {
+  const impl = fetchImpl || fetch;
+  const init = { method: "HEAD", redirect: "manual" };
+  try {
+    if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+      init.signal = AbortSignal.timeout(4000);
+    }
+  } catch {
+    /* older runtime: no timeout signal */
+  }
+  try {
+    const res = await impl(shortsHeadUrl(videoId), init);
+    if (res.status === 200) return { known: true, short: true };
+    if (res.status >= 300 && res.status < 400) {
+      const loc = String(res.headers.get("location") || "");
+      if (/\/watch(?:\?|$)/.test(loc)) return { known: true, short: false };
+    }
+    return { known: false, short: false };
+  } catch {
+    return { known: false, short: false };
+  }
+}
+
+function shortCacheKey(cacheBase, videoId) {
+  if (!cacheBase) return null;
+  try {
+    return new Request(new URL(SHORTS_CACHE_PATH + encodeURIComponent(videoId), cacheBase).toString());
+  } catch {
+    return null;
+  }
+}
+
+async function shortCacheGet(cacheBase, videoId) {
+  const store = cacheStore();
+  const key = shortCacheKey(cacheBase, videoId);
+  if (!store || !key) return null;
+  try {
+    const hit = await store.match(key);
+    if (!hit) return null;
+    const body = await hit.json();
+    return body && typeof body.short === "boolean" ? body.short : null;
+  } catch {
+    return null;
+  }
+}
+
+async function shortCachePut(cacheBase, videoId, isShort) {
+  const store = cacheStore();
+  const key = shortCacheKey(cacheBase, videoId);
+  if (!store || !key) return;
+  try {
+    await store.put(
+      key,
+      new Response(JSON.stringify({ short: !!isShort }), {
+        headers: {
+          "content-type": "application/json",
+          "cache-control": "public, max-age=" + SHORTS_CACHE_TTL_S,
+        },
+      })
+    );
+  } catch {
+    /* best-effort cache */
+  }
+}
+
+async function markShorts(env, items, fetchImpl, data, cacheBase) {
+  const videos = (items || []).filter(
+    (it) => it && it.id && it.id.kind === "youtube#video" && it.id.videoId
+  );
+  if (videos.length === 0) return;
+
+  // De-duplicate while keeping response order; cap at 40 videos.
+  const targets = [];
+  const seen = new Set();
+  for (const it of videos) {
+    const vid = it.id.videoId;
+    if (seen.has(vid)) continue;
+    if (targets.length >= SHORTS_MAX_VIDEOS) break;
+    seen.add(vid);
+    targets.push(it);
+  }
+  let limited = new Set(videos.map((it) => it.id.videoId)).size > targets.length;
+
+  // videoId -> boolean; false/unknown stays unset in the JSON.
+  const resolved = new Map();
+
+  // 1. One-day result cache (HEAD and API results share it).
+  await Promise.all(
+    targets.map(async (it) => {
+      const hit = await shortCacheGet(cacheBase, it.id.videoId);
+      if (hit !== null) resolved.set(it.id.videoId, hit);
+    })
+  );
+
+  // 2. HEAD checks. The first unresolved video is a canary: if HEAD is
+  // blocked/unavailable, skip the rest and use the API for this response.
+  let unresolved = targets.filter((it) => !resolved.has(it.id.videoId));
+  let headUsable = true;
+  if (unresolved.length > 0) {
+    const first = unresolved[0];
+    const firstRes = await checkShortByHead(first.id.videoId, fetchImpl);
+    if (!firstRes.known) {
+      headUsable = false;
+    } else {
+      resolved.set(first.id.videoId, firstRes.short);
+      await shortCachePut(cacheBase, first.id.videoId, firstRes.short);
+      const rest = unresolved.slice(1);
+      const results = await Promise.all(
+        rest.map(async (it) => ({ it, res: await checkShortByHead(it.id.videoId, fetchImpl) }))
+      );
+      await Promise.all(
+        results.map(async ({ it, res }) => {
+          if (!res.known) return;
+          resolved.set(it.id.videoId, res.short);
+          await shortCachePut(cacheBase, it.id.videoId, res.short);
+        })
+      );
+      unresolved = unresolved.filter((it) => !resolved.has(it.id.videoId));
+    }
+  }
+
+  // 3. API fallback for unresolved videos (bounded subrequest budget).
+  const maxFallback = headUsable ? SHORTS_MAX_API_FALLBACK : SHORTS_MAX_API_ONLY;
+  let apiTargets = unresolved;
+  if (apiTargets.length > maxFallback) {
+    apiTargets = apiTargets.slice(0, maxFallback);
+    limited = true;
+  }
+
+  // Group by owner channel so one 404 (no Shorts playlist) skips the rest.
+  const groups = new Map();
+  for (const it of apiTargets) {
+    const pl = shortsPlaylistId(it.snippet && it.snippet.channelId);
+    if (!pl) continue;
+    if (!groups.has(pl)) {
+      if (groups.size >= SHORTS_MAX_CHANNELS) {
+        limited = true;
+        continue;
+      }
+      groups.set(pl, []);
+    }
+    groups.get(pl).push(it);
+  }
+
+  const probe = async (it, pl) => {
+    const r = await fetchYT(
+      env,
+      "/playlistItems",
+      {
+        part: "id",
+        playlistId: pl,
+        videoId: it.id.videoId,
+        maxResults: 1,
+        fields: "items/id",
+      },
+      fetchImpl,
+      { stopOn404: true }
+    );
+    if (r.notFound) return "missing";
+    if (r.ok) {
+      const isShort = !!(r.data && Array.isArray(r.data.items) && r.data.items.length > 0);
+      resolved.set(it.id.videoId, isShort);
+      await shortCachePut(cacheBase, it.id.videoId, isShort);
+      return "ok";
+    }
+    return "error";
+  };
+
+  await Promise.all(
+    [...groups.entries()].map(async ([pl, vids]) => {
+      const first = await probe(vids[0], pl);
+      if (first === "missing") {
+        // No Shorts playlist: this channel's videos are not Shorts.
+        await Promise.all(
+          vids.map((it) => {
+            resolved.set(it.id.videoId, false);
+            return shortCachePut(cacheBase, it.id.videoId, false);
+          })
+        );
+        return;
+      }
+      await Promise.all(vids.slice(1).map((it) => probe(it, pl)));
+    })
+  );
+
+  // Apply positives to every item (including duplicates beyond the target cap).
+  for (const it of videos) {
+    if (resolved.get(it.id.videoId) === true) it.shorts = true;
+  }
+
+  if (limited && data) data.shortsDetectionLimited = true;
+}
+
 // Attach duration/viewCount via videos.list. Sets data.enrichmentError on
 // failure instead of failing the whole response.
 async function enrichItems(env, items, fetchImpl, data) {
@@ -600,15 +949,17 @@ async function enrichItems(env, items, fetchImpl, data) {
 
 /* ---------- API handlers ---------- */
 
-// Client cache preference for search/channel (?cacheTtl= seconds,
-// clamped 60s..1h). The categories endpoint uses the fixed 1-week TTL.
+// Client cache preference for search results (?cacheTtl= seconds,
+// clamped 60s..1h, default 30 min). Channel lookups use a fixed 7-day TTL and
+// categories a fixed 1-month TTL.
 function requestCacheTtl(requestUrl) {
   return clampTtl(requestUrl.searchParams.get("cacheTtl"), CACHE_TTL_S, 60, 3600);
 }
 
 async function handleSearch(requestUrl, env, fetchImpl) {
   const sp = requestUrl.searchParams;
-  const rawQ = sp.get("q") || "";
+  // q preserves literal "+"; only a real space/%20 separates words.
+  const rawQ = queryParamLiteral(requestUrl, "q") || "";
   if (rawQ.length > MAX_Q_LEN) {
     return json({ error: "Query too long (max 500 chars)" }, 400);
   }
@@ -636,6 +987,10 @@ async function handleSearch(requestUrl, env, fetchImpl) {
     if (pr.prevPageToken) data.prevPageToken = pr.prevPageToken;
     if (pr.nextPageToken) data.nextPageToken = pr.nextPageToken;
     if (enrich) await enrichItems(env, data.items, fetchImpl, data);
+    // T-0013: a Shorts playlist is entirely Shorts; any other scoped
+    // playlist is checked per video (HEAD first, UUSH API fallback).
+    if (isShortsPlaylistId(ops.playlist)) markShortsPlaylist(data.items);
+    else await markShorts(env, data.items, fetchImpl, data, requestUrl.origin);
     return json(data);
   }
 
@@ -683,12 +1038,14 @@ async function handleSearch(requestUrl, env, fetchImpl) {
   const data = r.data;
 
   if (enrich) await enrichItems(env, data.items, fetchImpl, data);
+  // T-0013: Shorts detection only for channel-scoped searches.
+  if (channelId) await markShorts(env, data.items, fetchImpl, data, requestUrl.origin);
   return json(data);
 }
 
 // Live video-category list for the Category filter.
 // Ref: https://developers.google.com/youtube/v3/docs/videoCategories/list
-// Slimmed to [{id, title}] (assignable only); cached server-side 1 week.
+// Slimmed to [{id, title}] (assignable only); cached server-side 1 month.
 async function handleCategories(requestUrl, env, fetchImpl) {
   const sp = requestUrl.searchParams;
   let region = (sp.get("regionCode") || "US").trim().toUpperCase();
@@ -703,6 +1060,119 @@ async function handleCategories(requestUrl, env, fetchImpl) {
     items.push({ id: String(it.id), title: String(sn.title) });
   }
   return json({ regionCode: region, items });
+}
+
+// Resolve one typed ref through channels.list. Returns the full response data
+// plus its first item (some callers only need the item).
+async function fetchChannelByRef(env, ref, fetchImpl) {
+  const ytParams = { part: "snippet,statistics" };
+  if (ref.kind === "id") ytParams.id = ref.value;
+  else if (ref.kind === "handle") ytParams.forHandle = String(ref.value).replace(/^@/, "");
+  else if (ref.kind === "username") ytParams.forUsername = ref.value;
+  else return { error: json({ error: "Unsupported channel reference" }, 400) };
+
+  const r = await fetchYT(env, "/channels", ytParams, fetchImpl);
+  if (!r.ok) return { error: r.error };
+  const data = r.data || {};
+  const item = (data.items || [])[0] || null;
+  return item ? { item, data } : { notFound: true };
+}
+
+// /c/<custom> has no Data API lookup. Fetch the public channel page (fixed
+// host, encoded path, no cookies/API key) and read its canonical channel id.
+async function resolveCustomChannelId(custom, fetchImpl) {
+  const slug = String(custom || "").trim().replace(/^@/, "");
+  if (!/^[A-Za-z0-9._-]{1,100}$/.test(slug)) return { notFound: true };
+  const impl = fetchImpl || fetch;
+  const headers = {
+    accept: "text/html,application/xhtml+xml",
+    "user-agent": "Mozilla/5.0 (compatible; yt-adv-search/1.0)",
+  };
+  let current = YT_WEB_CUSTOM_BASE + encodeURIComponent(slug);
+  let html = "";
+  for (let hop = 0; hop < 3; hop++) {
+    let res = null;
+    try {
+      res = await impl(current, { method: "GET", headers, redirect: "manual" });
+    } catch {
+      return { notFound: true };
+    }
+    if (!res) return { notFound: true };
+    if (res.status >= 300 && res.status < 400) {
+      let next = null;
+      try {
+        next = new URL(String(res.headers.get("location") || ""), current);
+      } catch {
+        return { notFound: true };
+      }
+      // YouTube may redirect /c/<name> to /@handle; never follow off-host.
+      if (next.hostname !== YT_WEB_HOST) return { notFound: true };
+      current = next.toString();
+      continue;
+    }
+    if (!res.ok) return { notFound: true };
+    try {
+      html = await res.text();
+    } catch {
+      return { notFound: true };
+    }
+    break;
+  }
+  if (!html) return { notFound: true };
+  if (html.length > 3000000) html = html.slice(0, 3000000);
+  const m =
+    html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.youtube\.com\/channel\/(UC[\w-]+)["']/i) ||
+    html.match(/<link[^>]+href=["']https:\/\/www\.youtube\.com\/channel\/(UC[\w-]+)["'][^>]+rel=["']canonical["']/i) ||
+    html.match(/"externalId":"(UC[\w-]+)"/);
+  if (!m) return { notFound: true };
+  return { channelId: m[1] };
+}
+
+// Bare names are ambiguous: check handle + legacy username + custom URL and
+// return every distinct channel, with the matching forms attached to each
+// item. Explicit URLs/kinds stay single-form lookups.
+async function handleChannelMulti(env, base, fetchImpl) {
+  const [h, u, c] = await Promise.all([
+    fetchChannelByRef(env, { kind: "handle", value: base }, fetchImpl),
+    fetchChannelByRef(env, { kind: "username", value: base }, fetchImpl),
+    resolveCustomChannelId(base, fetchImpl),
+  ]);
+
+  const items = [];
+  const byId = new Map();
+  const add = (type, item) => {
+    if (!item || !item.id) return;
+    if (!byId.has(item.id)) {
+      const copy = { ...item, matchedBy: [] };
+      byId.set(item.id, copy);
+      items.push(copy);
+    }
+    byId.get(item.id).matchedBy.push({ type, value: base });
+  };
+
+  if (h.item) add("handle", h.item);
+  if (u.item) add("username", u.item);
+  let detailError = null;
+  if (c.channelId) {
+    const known = byId.get(c.channelId);
+    if (known) {
+      add("custom", known);
+    } else {
+      const d = await fetchChannelByRef(env, { kind: "id", value: c.channelId }, fetchImpl);
+      if (d.item) add("custom", d.item);
+      else if (d.error) detailError = d.error;
+    }
+  }
+
+  if (items.length === 0) {
+    return h.error || u.error || detailError || json({ error: "Channel not found" }, 404);
+  }
+  return json({
+    kind: "youtube#channelListResponse",
+    items,
+    lookup: { mode: "multi", checked: ["handle", "username", "custom"] },
+    pageInfo: { totalResults: items.length, resultsPerPage: items.length },
+  });
 }
 
 async function handleChannel(requestUrl, env, fetchImpl) {
@@ -731,18 +1201,29 @@ async function handleChannel(requestUrl, env, fetchImpl) {
     return json({ error: "Channel reference too long" }, 400);
   }
 
-  const ytParams = { part: "snippet,statistics" };
-  if (ref.kind === "id") ytParams.id = ref.value;
-  else if (ref.kind === "handle") ytParams.forHandle = ref.value.replace(/^@/, "");
-  else ytParams.forUsername = ref.value;
-
-  const r = await fetchYT(env, "/channels", ytParams, fetchImpl);
-  if (!r.ok) return r.error;
-  const items = (r.data && r.data.items) || [];
-  if (items.length === 0) {
-    return json({ error: "Channel not found" }, 404);
+  // A bare name/URL is ambiguous: the Tools auto mode checks every form.
+  // An explicit /@handle, /user/..., /c/..., or /channel/... stays exact.
+  if (urlInput && !ref.explicit && ref.kind !== "id") {
+    return handleChannelMulti(env, ref.value, fetchImpl);
   }
-  return json(r.data);
+
+  const matchType = ref.kind;
+  const matchValue = ref.value;
+  if (ref.kind === "custom") {
+    const custom = await resolveCustomChannelId(ref.value, fetchImpl);
+    if (!custom.channelId) return json({ error: "Channel not found" }, 404);
+    ref = { kind: "id", value: custom.channelId, explicit: true };
+  }
+
+  const r = await fetchChannelByRef(env, ref, fetchImpl);
+  if (r.error) return r.error;
+  if (!r.item) return json({ error: "Channel not found" }, 404);
+  const data = r.data || { items: [r.item] };
+  if (data.items && data.items[0]) {
+    data.items[0].matchedBy = [{ type: matchType, value: matchValue }];
+  }
+  data.lookup = { mode: "single" };
+  return json(data);
 }
 
 /* ---------- entry ---------- */
@@ -751,6 +1232,12 @@ async function handleFetch(request, env, fetchImpl) {
   const url = new URL(request.url);
   const pathname = url.pathname;
   const method = request.method.toUpperCase();
+
+  // T-0013: API requests must come from this Worker's own pages (or
+  // localhost during development). Static pages stay public.
+  if (pathname.startsWith("/api/") && !apiOriginAllowed(request, url)) {
+    return json({ error: "Forbidden origin" }, 403);
+  }
 
   if (pathname === "/api/search" || pathname === "/api/search/") {
     if (method !== "GET" && method !== "HEAD") {
@@ -766,9 +1253,12 @@ async function handleFetch(request, env, fetchImpl) {
     if (method !== "GET" && method !== "HEAD") {
       return json({ error: "Method not allowed" }, 405);
     }
-    // T-0010: GET channel lookups are cached; ?fresh=1 bypasses.
+    // GET channel lookups are cached 7 days; the Tools Refresh button sends
+    // ?fresh=1, which bypasses the read and rewrites the entry with new data.
     if (method === "GET") {
-      return cachedApi(request, url, () => handleChannel(url, env, fetchImpl), requestCacheTtl(url));
+      return cachedApi(request, url, () => handleChannel(url, env, fetchImpl), CHANNEL_TTL_S, {
+        writeOnBypass: true,
+      });
     }
     return handleChannel(url, env, fetchImpl);
   }
@@ -777,7 +1267,9 @@ async function handleFetch(request, env, fetchImpl) {
       return json({ error: "Method not allowed" }, 405);
     }
     if (method === "GET") {
-      return cachedApi(request, url, () => handleCategories(url, env, fetchImpl), CAT_TTL_S);
+      return cachedApi(request, url, () => handleCategories(url, env, fetchImpl), CAT_TTL_S, {
+        writeOnBypass: true,
+      });
     }
     return handleCategories(url, env, fetchImpl);
   }
@@ -811,6 +1303,13 @@ export {
   filterPlaylistItems,
   fetchPlaylistItems,
   enrichItems,
+  apiOriginAllowed,
+  shortsPlaylistId,
+  isShortsPlaylistId,
+  markShorts,
+  checkShortByHead,
+  shortCacheGet,
+  shortCachePut,
   resetQuotaExclusions,
   quotaExclusionCount,
   isKeyQuotaExcluded,

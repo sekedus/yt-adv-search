@@ -29,6 +29,7 @@
         <a href="/tools" aria-current="page">Tools</a>
         <a href="/settings">Settings</a>
       </nav>
+      <div class="nav-backdrop" hidden aria-hidden="true"></div>
       <div class="topbar-actions">
         <button class="theme-btn iconbtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
@@ -37,9 +38,9 @@
 
   <main class="container">
     <h1>Channel resolver</h1>
-    <p class="hint">Paste a channel URL, handle, or legacy username – e.g.
-      <code>https://www.youtube.com/c/madebygoogle</code>, <code>@fireship</code>,
-      <code>fireship</code>, <code>CNN</code>.</p>
+    <p class="hint">Paste a channel URL, handle, ID, legacy username, or bare name – e.g.
+      <code>https://youtube.com/c/madebygoogle</code>, <code>https://youtube.com/user/firebase</code>, <code>@android</code>, <code>youtube</code>.
+      A bare name checks <code>/@name</code>, <code>/user/name</code>, and <code>/c/name</code>; explicit URLs and selected kinds resolve that one form.</p>
 
     <form class="panel" id="resolveForm" action="/tools" method="get">
       <div class="resolve-row">
@@ -58,8 +59,11 @@
       </div>
     </form>
 
-    <div class="status" role="status" aria-live="polite"></div>
-    <section class="result" aria-label="Channel result"></section>
+    <div class="resultbar tools-resultbar">
+      <div class="status" role="status" aria-live="polite"></div>
+      <button class="btn" type="button" id="refreshBtn" title="Force a fresh channel lookup (bypass the cache)" hidden>Refresh &#8635;</button>
+    </div>
+    <section class="result" id="result" aria-label="Channel result"></section>
   </main>
 
   <script>
@@ -114,22 +118,48 @@
     });
 
     var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
+    var navBackdrop = $(".nav-backdrop");
     if (menuBtn && primaryNav) {
-      menuBtn.addEventListener("click", function () {
-        var open = primaryNav.classList.toggle("open");
+      var setNavOpen = function (open) {
+        primaryNav.classList.toggle("open", open);
         menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        if (navBackdrop) navBackdrop.hidden = !open;
+      };
+      menuBtn.addEventListener("click", function () {
+        setNavOpen(!primaryNav.classList.contains("open"));
       });
+      if (navBackdrop) {
+        navBackdrop.addEventListener("click", function () { setNavOpen(false); });
+      }
+      document.addEventListener("click", function (ev) {
+        if (!primaryNav.classList.contains("open")) return;
+        if (primaryNav.contains(ev.target) || menuBtn.contains(ev.target)) return;
+        setNavOpen(false);
+      });
+      var navQuery = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
+      if (navQuery) {
+        var onNavViewport = function () { if (!navQuery.matches) setNavOpen(false); };
+        if (navQuery.addEventListener) navQuery.addEventListener("change", onNavViewport);
+        else if (navQuery.addListener) navQuery.addListener(onNavViewport);
+      }
     }
 
     var form = $("#resolveForm"), input = $("#input"), kindSel = $("#kind");
-    var statusEl = $(".status"), resultEl = $(".result");
+    var statusEl = $(".status"), resultEl = $(".result"), refreshBtn = $("#refreshBtn"), lastResolve = null;
 
-    function setStatus(msg, isError) {
+    function setStatus(msg, isError, isOk) {
       statusEl.textContent = msg;
       statusEl.classList.toggle("error", !!isError);
+      statusEl.classList.toggle("ok", !isError && !!isOk);
     }
 
-    function resolve(inputVal, kind) {
+    function setRefreshAvailable(available) {
+      if (refreshBtn) refreshBtn.hidden = !available;
+    }
+
+    function resolve(inputVal, kind, opts) {
+      var fresh = !!(opts && opts.fresh);
+      lastResolve = { input: inputVal, kind: kind };
       var p = new URLSearchParams();
       // Server-side parseChannelRef handles URLs, @handles, bare words and UC
       // ids through ?url=; explicit kinds map 1:1 to /api/channel params.
@@ -137,26 +167,49 @@
       else if (kind === "handle") p.set("handle", inputVal);
       else if (kind === "username") p.set("username", inputVal);
       else p.set("url", inputVal);
-      setStatus("Resolving…", false);
+      // The 7-day channel cache is bypassed (and rewritten) by fresh=1.
+      if (fresh) p.set("fresh", "1");
+      setStatus(fresh ? "Refreshing…" : "Resolving…", false);
+      setRefreshAvailable(false);
       resultEl.innerHTML = "";
       fetch("/api/channel?" + p.toString(), { headers: { "accept": "application/json" } })
-        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+        .then(function (res) {
+          var cache = res.headers.get("x-cache-status");
+          return res.json().then(function (d) { return { ok: res.ok, data: d, cache: cache }; });
+        })
         .then(function (out) {
           if (!out.ok) {
             setStatus((out.data && out.data.error) || "Resolve failed.", true);
             return;
           }
-          var item = (out.data.items || [])[0];
-          if (!item || !item.id) {
+          var items = (out.data.items || []).filter(function (it) { return it && it.id; });
+          if (!items.length) {
             setStatus("Channel not found.", true);
             return;
           }
-          setStatus("", false);
-          render(item);
+          var cached = String(out.cache || "").toUpperCase() === "HIT";
+          if (items.length === 1) {
+            var found = decodeEntities((items[0].snippet || {}).title) || items[0].id;
+            setStatus("Found: " + found + (cached ? " (cached)" : ""), false, true);
+          } else {
+            setStatus("Found " + items.length + " channels" + (cached ? " (cached)" : ""), false, true);
+          }
+          resultEl.innerHTML = "";
+          items.forEach(function (item) { render(item); });
+          setRefreshAvailable(true);
         })
         .catch(function () {
           setStatus("Network error talking to the proxy.", true);
         });
+    }
+
+    function matchLabel(m) {
+      if (!m || !m.type) return "";
+      if (m.type === "handle") return "@" + m.value;
+      if (m.type === "username") return "/user/" + m.value;
+      if (m.type === "custom") return "/c/" + m.value;
+      if (m.type === "id") return "/channel/" + m.value;
+      return m.type + ":" + m.value;
     }
 
     function render(item) {
@@ -164,22 +217,36 @@
       var thumbs = sn.thumbnails || {};
       var turl = (thumbs.medium && thumbs.medium.url) || (thumbs.default && thumbs.default.url) || "";
       var stats = item.statistics || {};
+      var channelUrl = "https://youtube.com/channel/" + encodeURIComponent(item.id);
       var card = document.createElement("article");
       card.className = "card";
       var thumb = document.createElement("div");
       thumb.className = "thumb";
       if (turl) {
+        /* T-0013: image links to the channel, like the title below. */
+        var imgLink = document.createElement("a");
+        imgLink.className = "thumb-link";
+        imgLink.href = channelUrl;
+        imgLink.target = "_blank";
+        imgLink.rel = "noopener";
         var img = document.createElement("img");
         img.src = turl;
         img.alt = "";
         img.loading = "lazy";
-        thumb.appendChild(img);
+        imgLink.appendChild(img);
+        thumb.appendChild(imgLink);
       }
       var body = document.createElement("div");
       body.className = "card-body";
       var title = document.createElement("h3");
       title.className = "card-title";
-      title.textContent = decodeEntities(sn.title) || "(untitled)";
+      var titleLink = document.createElement("a");
+      titleLink.href = channelUrl;
+      titleLink.target = "_blank";
+      titleLink.rel = "noopener";
+      titleLink.textContent = decodeEntities(sn.title) || "(untitled)";
+      titleLink.title = decodeEntities(sn.title) || "(untitled)";
+      title.appendChild(titleLink);
       var idLine = document.createElement("p");
       idLine.className = "card-meta mono";
       idLine.textContent = item.id;
@@ -188,15 +255,39 @@
       if (stats.subscriberCount) {
         sub.textContent = Number(stats.subscriberCount).toLocaleString("en-US") + " subscribers";
       }
+      var actions = document.createElement("p");
+      actions.className = "resolve-actions";
       var use = document.createElement("a");
       use.className = "btn primary";
       use.href = "/?scope=" + encodeURIComponent(item.id);
       use.textContent = "Use in search";
+      /* T-0013: same Invidious host used by the search result cards. */
+      var inv = document.createElement("a");
+      inv.className = "btn";
+      inv.href = "https://redirect.invidious.io/channel/" + encodeURIComponent(item.id);
+      inv.target = "_blank";
+      inv.rel = "noopener";
+      inv.title = "Open this channel in Invidious";
+      inv.textContent = "Invidious ↗";
+      actions.append(use, inv);
       body.append(title, idLine);
       if (sub.textContent) body.appendChild(sub);
-      body.appendChild(use);
+      var matched = (item.matchedBy || []).map(matchLabel).filter(Boolean);
+      if (matched.length) {
+        var via = document.createElement("p");
+        via.className = "card-meta";
+        via.textContent = "Matched by " + matched.join(" + ");
+        body.appendChild(via);
+      }
+      body.appendChild(actions);
       card.append(thumb, body);
       resultEl.appendChild(card);
+    }
+
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", function () {
+        if (lastResolve) resolve(lastResolve.input, lastResolve.kind, { fresh: true });
+      });
     }
 
     form.addEventListener("submit", function (ev) {

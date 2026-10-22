@@ -31,6 +31,7 @@
         <a href="/tools">Tools</a>
         <a href="/settings">Settings</a>
       </nav>
+      <div class="nav-backdrop" hidden aria-hidden="true"></div>
       <div class="topbar-actions">
         <button class="iconbtn theme-btn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
@@ -43,7 +44,7 @@
         <label class="visually-hidden" for="ytas-q">Search YouTube</label>
         <input type="search" id="ytas-q" name="q" maxlength="500" placeholder="search" required>
         <label class="visually-hidden" for="f-ex">Exclude words</label>
-        <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="exclude words" title="Drop results containing these words (sent as -word in the query). Separate with spaces or commas.">
+        <input type="text" id="f-ex" maxlength="200" autocomplete="off" placeholder="exclude words, separate with commas" title="Drop results containing these words (sent as -word in the query). Separate with spaces or commas.">
         <button class="primary" type="submit">Search</button>
       </form>
     </section>
@@ -380,13 +381,36 @@
       paintTheme(theme);
     });
 
-    /* Mobile hamburger: toggles the primary nav. */
+    /* Mobile hamburger: toggles the primary nav. T-0013: a transparent
+     * full-screen backdrop closes the nav on an outside click; the
+     * hamburger stays above the backdrop so it can still toggle. */
     var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
+    var navBackdrop = $(".nav-backdrop");
     if (menuBtn && primaryNav) {
-      menuBtn.addEventListener("click", function () {
-        var open = primaryNav.classList.toggle("open");
+      var setNavOpen = function (open) {
+        primaryNav.classList.toggle("open", open);
         menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        if (navBackdrop) navBackdrop.hidden = !open;
+      };
+      menuBtn.addEventListener("click", function () {
+        setNavOpen(!primaryNav.classList.contains("open"));
       });
+      if (navBackdrop) {
+        navBackdrop.addEventListener("click", function () { setNavOpen(false); });
+      }
+      /* Fallback for clicks on elements painted above the backdrop
+       * (e.g. the floating jump buttons): any outside click closes. */
+      document.addEventListener("click", function (ev) {
+        if (!primaryNav.classList.contains("open")) return;
+        if (primaryNav.contains(ev.target) || menuBtn.contains(ev.target)) return;
+        setNavOpen(false);
+      });
+      var navQuery = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
+      if (navQuery) {
+        var onNavViewport = function () { if (!navQuery.matches) setNavOpen(false); };
+        if (navQuery.addEventListener) navQuery.addEventListener("change", onNavViewport);
+        else if (navQuery.addListener) navQuery.addListener(onNavViewport);
+      }
     }
 
     /* Defaults shared with /settings (T-0004 reads/writes the same keys). */
@@ -434,15 +458,41 @@
 
     /* Filter state <-> URL sync (T-0005): shareable/bookmarkable; back/forward restores. */
     var qInput = $("#ytas-q");
+    /* Normal keywords are trimmed; a whitespace-only q is kept as-is so a
+     * real space search can reach the Worker. */
+    function keywordValue() {
+      var raw = qInput.value;
+      return raw.trim() || raw;
+    }
     var scopedChannel = "";
     var resultBar = $(".resultbar");
     var viewBar = $(".view"), pagerEl = $(".pager");
+    /* Read q the same way as the Worker: only %20/literal spaces are spaces;
+     * a raw "+" is a literal plus. Other params keep URLSearchParams. */
+    function queryParamLiteral(search, name) {
+      var raw = String(search || "").replace(/^\?/, "");
+      var parts = raw.split("&");
+      for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+        if (!part) continue;
+        var eq = part.indexOf("=");
+        var rawKey = eq < 0 ? part : part.slice(0, eq);
+        var key;
+        try { key = decodeURIComponent(rawKey.replace(/\+/g, "%2B")); } catch (e) { key = rawKey; }
+        if (key !== name) continue;
+        var rawVal = eq < 0 ? "" : part.slice(eq + 1);
+        try { return decodeURIComponent(rawVal.replace(/\+/g, "%2B")); }
+        catch (e) { return rawVal; }
+      }
+      return null;
+    }
     function readStateFromURL() {
       var qs = new URLSearchParams(location.search);
       // Missing AND empty q both clear the input: otherwise history
       // navigation back to /?q= would keep a stale keyword and re-search.
-      if (qs.get("q")) {
-        qInput.value = qs.get("q").slice(0, 500);
+      var qParam = queryParamLiteral(location.search, "q");
+      if (qParam) {
+        qInput.value = qParam.slice(0, 500);
       } else {
         qInput.value = "";
       }
@@ -522,7 +572,7 @@
     }
     function currentStateToURL() {
       var u = new URLSearchParams();
-      var q = qInput.value.trim();
+      var q = keywordValue();
       if (q) u.set("q", q);
       if (scopedChannel) u.set("channel", scopedChannel);
       var dateV = checkedRadio("date"), typeV = checkedRadio("type");
@@ -561,9 +611,21 @@
       if (beforeInput.value) u.set("before", beforeInput.value);
       return u;
     }
+    /* Encode q with %20 for spaces and %2B for a literal plus. The Worker
+     * treats "+" in q as a literal plus, so the API/page URL must not use
+     * URLSearchParams' form encoding for this one parameter. */
+    function urlQueryString(params) {
+      var q = params.get("q");
+      if (q === null) return params.toString();
+      var rest = new URLSearchParams(params);
+      rest.delete("q");
+      var restStr = rest.toString();
+      return "q=" + encodeURIComponent(q) + (restStr ? "&" + restStr : "");
+    }
+
     function syncURL(mode) {
       var u = currentStateToURL();
-      var s = u.toString();
+      var s = urlQueryString(u);
       var next = s ? ("/?" + s) : "/";
       try {
         if (mode === "push") history.pushState(null, "", next);
@@ -572,11 +634,11 @@
     }
     readStateFromURL();
 
-    /* Live video categories (T-0010): the Category filter is populated from
-     * /api/categories (region-aware, server-cached 1 week) with the
-     * hardcoded options as fallback. A localStorage copy avoids even the
-     * cache-HIT request for 7 days. */
-    var CAT_CACHE_MS = 7 * 24 * 3600 * 1000;
+    /* Live video categories: always fetched from the region-aware server
+     * cache (1 month). sessionStorage remembers only the last loaded region
+     * so a Region change makes the next request fresh=1; no category list is
+     * stored in the browser. The hardcoded options remain the fallback if
+     * the request fails. */
     function fillCats(items) {
       var cur = catSel.value;
       catSel.innerHTML = "";
@@ -597,21 +659,24 @@
     }
     function loadCategories() {
       var region = (storeGet("ytas.region", "") || "US").toUpperCase();
-      var cached = null;
-      try { cached = JSON.parse(storeGet("ytas.catList", "null")); } catch (e) { cached = null; }
-      if (cached && cached.region === region && cached.items &&
-        (Date.now() - (cached.ts || 0)) < CAT_CACHE_MS) {
-        fillCats(cached.items);
-        return;
+      var lastRegion = "";
+      try { lastRegion = (sessionStorage.getItem("ytas.catRegion") || "").toUpperCase(); } catch (e) { /* ignore */ }
+      try { localStorage.removeItem("ytas.catList"); } catch (e) { /* ignore */ }
+      var url = "/api/categories?regionCode=" + encodeURIComponent(region);
+      var forceFresh = !!(lastRegion && lastRegion !== region);
+      var catOpts = { headers: { "accept": "application/json" } };
+      if (forceFresh) {
+        url += "&fresh=1";
+        catOpts.cache = "no-store"; // ignore any browser-cached response too
       }
-      fetch("/api/categories?regionCode=" + encodeURIComponent(region), { headers: { "accept": "application/json" } })
+      fetch(url, catOpts)
         .then(function (res) {
           return res.json().then(function (d) { return { ok: res.ok, data: d }; });
         })
         .then(function (out) {
           if (!out.ok || !out.data || !out.data.items || !out.data.items.length) return;
           fillCats(out.data.items);
-          storeSet("ytas.catList", JSON.stringify({ ts: Date.now(), region: region, items: out.data.items }));
+          try { sessionStorage.setItem("ytas.catRegion", out.data.regionCode || region); } catch (e) { /* ignore */ }
         })
         .catch(function () { /* hardcoded fallback stays */ });
     }
@@ -779,7 +844,7 @@
 
     function buildParams(pageToken) {
       var p = new URLSearchParams();
-      var q = qInput.value.trim();
+      var q = keywordValue();
       if (q) p.set("q", q);
       if (scopedChannel) p.set("channelId", scopedChannel);
       var scopeUsed = false;
@@ -888,7 +953,7 @@
       p.set("maxResults", maxSel.value);
       p.set("safeSearch", storeGet("ytas.safeSearch", "moderate"));
       // Custom max cache time (local pref, not part of the shareable URL).
-      var ttl = parseInt(storeGet("ytas.cacheTtl", "300"), 10);
+      var ttl = parseInt(storeGet("ytas.cacheTtl", "1800"), 10);
       if (!isNaN(ttl) && ttl >= 60 && ttl <= 3600) p.set("cacheTtl", String(ttl));
       var region = storeGet("ytas.region", ""), lang = storeGet("ytas.lang", "");
       if (region) p.set("regionCode", region);
@@ -914,7 +979,9 @@
     function itemLink(it) {
       if (!it || !it.id) return "https://youtube.com/";
       if (it.id.kind === "youtube#video" && it.id.videoId) {
-        return "https://youtube.com/watch?v=" + encodeURIComponent(it.id.videoId);
+        var vid = encodeURIComponent(it.id.videoId);
+        /* Detected Shorts open the /shorts/ URL; other videos use /watch. */
+        return it.shorts ? "https://youtube.com/shorts/" + vid : "https://youtube.com/watch?v=" + vid;
       }
       if (it.id.kind === "youtube#channel" && it.id.channelId) {
         return "https://youtube.com/channel/" + encodeURIComponent(it.id.channelId);
@@ -941,7 +1008,8 @@
           '<a class="thumb-link" target="_blank" rel="noopener">' +
           (turl ? '<img loading="lazy" alt="">' : "") +
           (kind === "playlist" ? '<span class="badge">☰ Playlist</span>' :
-            (it.enrichment && it.enrichment.duration ? '<span class="badge"></span>' : "")) +
+            ((kind === "video" && it.shorts ? '<span class="badge shorts">Shorts</span>' : "") +
+              (it.enrichment && it.enrichment.duration ? '<span class="badge duration"></span>' : ""))) +
           "</a>" +
           "</div>" +
           '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener"></a></h3>' +
@@ -959,7 +1027,7 @@
         titleLink.textContent = decodeEntities(sn.title) || "(untitled)";
         titleLink.title = decodeEntities(sn.title) || "(untitled)";
         if (turl) card.querySelector("img").src = turl;
-        var badge = card.querySelector(".badge");
+        var badge = card.querySelector(".badge.duration");
         if (badge && kind !== "playlist" && it.enrichment) badge.textContent = fmtDuration(it.enrichment.duration);
         if (act.embed || act.invidious) {
           var acts = card.querySelectorAll('.card-actions a[data-act]');
@@ -1017,7 +1085,7 @@
     /* A keyword is required: filters alone never trigger a search.
      * T-0010: a playlist scope alone is enough (browse all playlist items). */
     function hasKeyword() {
-      return !!qInput.value.trim();
+      return keywordValue() !== "";
     }
     function hasPlaylistScope() {
       if (plScopeInput && plScopeInput.value.trim()) return true;
@@ -1069,6 +1137,13 @@
       pagerEl.hidden = true;
     }
 
+    /* The Worker treats "+" in q as a literal plus, not a space. Encode q
+     * with encodeURIComponent (space -> %20); leave the other params to
+     * URLSearchParams. */
+    function searchApiUrl(params) {
+      return "/api/search?" + urlQueryString(params);
+    }
+
     function runSearch(pageToken, opts) {
       var built = buildParams(pageToken);
       var fresh = !!(opts && opts.fresh);
@@ -1086,7 +1161,7 @@
       resultsEl.innerHTML = "";
       prevBtn.disabled = true;
       nextBtn.disabled = true;
-      fetch("/api/search?" + built.params.toString(), { headers: { "accept": "application/json" } })
+      fetch(searchApiUrl(built.params), { headers: { "accept": "application/json" } })
         .then(function (res) {
           var cacheStatus = null;
           try { cacheStatus = res.headers.get("x-cache-status"); } catch (e) { /* ignore */ }

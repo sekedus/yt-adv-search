@@ -4,13 +4,13 @@
 
 ## Current Milestone
 
-M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — all tasks COMPLETE with HDT PASS; awaits explicit user close)
+M-0003 - Filter/topbar/settings neat pass (IN_PROGRESS - all tasks COMPLETE with HDT PASS; awaits explicit user close)
 
 ## Milestones
 
 - M-0001 — yt-adv-search v1 — COMPLETE — Worker proxy + search + tools + settings.
 - M-0002 — Improve UI/UX — COMPLETE — Layout + filters + cards + settings polish.
-- M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0008/T-0009/T-0010/T-0011/T-0012 COMPLETE with HDT PASS; closes only on explicit user confirmation).
+- M-0003 - Filter/topbar/settings neat pass (IN_PROGRESS - T-0008/T-0009/T-0010/T-0011/T-0012/T-0013 COMPLETE with HDT PASS; closes only on explicit user confirmation).
 
 ## Task Index
 
@@ -26,6 +26,7 @@ M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — all tasks COMPLETE 
 - T-0010 — Quota-aware keys + result cache + playlist scope + keyboard/scroll UX — COMPLETE (M-0003; HDT PASS)
 - T-0011 — Favicon wiring + beginner README — COMPLETE (M-0003; HDT PASS)
 - T-0012 — Broadcast, Dates + four video-quality filter panels (Episode (Show) value `episode`, Features removed, exclude words in the search bar, Advanced full width, clear ✕ on text inputs, flexible Advanced → More layout on narrow screens) — COMPLETE (M-0003; HDT PASS 2026-10-19)
+- T-0013 — Resolver image/title channel links + Invidious + bare-name multi-check (`/@`, `/user`, `/c`; explicit forms exact) + found/cached status + Refresh next to status, scoped Shorts badge + `/shorts/` links (HEAD-first + 1-day cache, UUSH API fallback), `/api/*` own-origin gate, mobile nav transparent backdrop + outside close, channel 7-day/category 1-month caches + search default 30 min, no browser category list + region-fresh refetch, clear × focus/aria-hidden fix, q `%20`/literal-space vs literal-plus parsing (whitespace-only q accepted; app q encoded `%20`/`%2B`) - COMPLETE (M-0003; HDT PASS 2026-10-22)
 
 ## Roadmap Rules
 

@@ -27,7 +27,7 @@ Use this file for constraints that materially affect technical decisions.
 ## Security Constraints
 
 - `YOUTUBE_API_KEYS` server-only (`.env` local, Worker secrets prod); never embed in HTML/JS responses.
-- Proxy only to fixed `https://www.googleapis.com/youtube/v3/*`; no open-fetch proxy.
+- Proxy to fixed upstreams only: `https://www.googleapis.com/youtube/v3/*` (API), a fixed `HEAD https://www.youtube.com/shorts/<videoId>` probe, and a fixed `GET https://www.youtube.com/c/<encodedName>` resolver page (3 same-host redirects max, no cookies, no API key); no open-fetch proxy.
 - No auth/session in v1; no user data stored server-side.
 
 ## Deployment Constraints

@@ -126,6 +126,15 @@ a {
   gap: 4px;
 }
 
+/* T-0013: invisible click-catcher behind the open mobile nav. */
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .nav a {
   padding: 6px 10px;
   border-radius: 8px;
@@ -750,6 +759,12 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
     align-items: center;
     justify-content: center;
     min-width: 40px;
+    /* Stay above the transparent backdrop so it can still toggle. */
+    position: relative;
+    z-index: 21;
+  }
+  .nav-backdrop:not([hidden]) {
+    display: block;
   }
   .nav {
     display: none;
@@ -828,8 +843,7 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
   .results.list .card-actions {
     margin: 8px 0 0;
   }
-  /* Tools channel-result card: same compact row (its image is banner-wide,
-   * and the img has no link wrapper so height resolves directly). */
+  /* Tools channel-result card: same compact row (its image is banner-wide). */
   #result .card {
     flex-direction: row;
     gap: 12px;
@@ -838,6 +852,11 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
     flex: 0 0 140px;
     width: 140px;
     align-self: stretch;
+  }
+  /* T-0013: the image is wrapped in a channel link; keep the row fill. */
+  #result .thumb-link {
+    display: block;
+    height: 100%;
   }
   #result .thumb img {
     height: 100%;
@@ -881,6 +900,12 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
   min-width: 0;
 }
 
+/* Tools has no view control; keep the status and Refresh on one line and let
+ * the status text wrap inside its share of the row. */
+.resultbar.tools-resultbar {
+  flex-wrap: nowrap;
+}
+
 #refreshBtn {
   flex: none;
 }
@@ -889,6 +914,11 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
   /* Status takes row 1; Refresh (left) + View (right) share row 2. */
   .resultbar .status {
     flex-basis: 100%;
+  }
+  /* Tools has no View control; keep Refresh beside the status. */
+  .resultbar.tools-resultbar .status {
+    flex-basis: auto;
+    min-width: 0;
   }
 }
 
@@ -1013,6 +1043,18 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* T-0013: Shorts marker in the opposite corner from the duration badge. */
+.badge.shorts {
+  top: 4px;
+  bottom: auto;
+  left: 4px;
+  right: auto;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+  font-weight: 600;
+}
+
 .card-actions {
   display: none;
   flex-wrap: wrap;
@@ -1105,6 +1147,12 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
   margin: 20px 0 8px;
 }
 
+/* Tools multi-check results: one card per distinct channel. */
+.result {
+  display: grid;
+  gap: 14px;
+}
+
 /* Generic result block (tools/settings reuse) */
 .panel {
   background: var(--bg-raised);
@@ -1137,6 +1185,14 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
 
 .resolve-input {
   flex: 1 1 280px;
+}
+
+/* T-0013: Use in search + Invidious actions on the resolver card. */
+.resolve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
 }
 
 .mono {

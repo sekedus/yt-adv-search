@@ -12,7 +12,14 @@
   "use strict";
 
   function syncOne(inp, btn) {
-    btn.hidden = inp.value === "" || inp.disabled || inp.readOnly;
+    var hide = inp.value === "" || inp.disabled || inp.readOnly;
+    /* Hiding a focused control can trigger Chrome's blocked aria-hidden
+     * warning (and drop focus). Keep the × exposed while visible and move
+     * focus to the input before hiding it. */
+    if (hide && document.activeElement === btn) {
+      try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
+    }
+    btn.hidden = hide;
   }
 
   function makeClearable(inp) {
@@ -25,7 +32,7 @@
     btn.type = "button";
     btn.className = "clrbtn";
     btn.tabIndex = -1;
-    btn.setAttribute("aria-hidden", "true");
+    btn.setAttribute("aria-label", "Clear");
     btn.title = "Clear";
     btn.textContent = "\u00d7";
     wrap.appendChild(btn);

@@ -15,7 +15,7 @@ node --check worker.js
 Purpose: worker syntax is valid without deploying.
 
 ```text
-npx wrangler dev --test-scheduled=false (smoke: GET /, /tools, /settings, /api/search?q=test, /api/channel?handle=fireship)
+npx wrangler dev --test-scheduled=false (smoke: GET /, /tools, /settings, /api/search?q=test, /api/channel?handle=fireship, /api/channel?url=android)
 ```
 
 Purpose: routes serve, proxy forwards, rotation path executes (with test key or mocked upstream).
@@ -48,7 +48,7 @@ Purpose: static pages parse and run.
 ## Manual / Runtime Verification
 
 - Search `handle:fireship adobe` with filters → results scoped to Fireship, thumbnails/titles render.
-- Tools: paste `https://www.youtube.com/@Fireship/videos` → shows `UCsBjURrPoezykLs9EqgamOA`.
+- Tools: paste `https://www.youtube.com/@Fireship/videos` → shows `UCsBjURrPoezykLs9EqgamOA`. Bare `android` → two distinct channels (`Android` + legacy `android`); bare `chrome` → Google Chrome via `/c/chrome`; explicit `/@chrome` stays not found.
 - Settings: change theme/max/enrichment → persists after reload.
 - All-keys-bad → clean error, no key values leaked.
 

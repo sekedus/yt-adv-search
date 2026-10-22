@@ -29,6 +29,7 @@
         <a href="/tools">Tools</a>
         <a href="/settings" aria-current="page">Settings</a>
       </nav>
+      <div class="nav-backdrop" hidden aria-hidden="true"></div>
       <div class="topbar-actions">
         <button class="theme-btn iconbtn" type="button"><span class="theme-icon" aria-hidden="true">🌓</span></button>
       </div>
@@ -99,10 +100,11 @@
                 <option value="60">1 minute</option>
                 <option value="300">5 minutes</option>
                 <option value="900">15 minutes</option>
+                <option value="1800">30 minutes</option>
                 <option value="3600">1 hour</option>
               </select>
             </div>
-            <p class="hint">How long the proxy may serve cached results before fetching fresh data. Longer saves quota.</p>
+            <p class="hint">How long the proxy may cache search results before fetching fresh data. Default: 30 minutes. Channel lookups (7 days) and categories (1 month) use fixed cache times. Longer saves quota.</p>
           </div>
         </div>
       </fieldset>
@@ -146,7 +148,7 @@
       "ytas.region": "",
       "ytas.lang": "",
       "ytas.enrich": "0",
-      "ytas.cacheTtl": "300"
+      "ytas.cacheTtl": "1800"
     };
 
     /* Theme toggle (same contract as / and /tools). Emoji-only button. */
@@ -176,11 +178,30 @@
       paintTheme(t);
     }
     var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
+    var navBackdrop = $(".nav-backdrop");
     if (menuBtn && primaryNav) {
-      menuBtn.addEventListener("click", function () {
-        var open = primaryNav.classList.toggle("open");
+      var setNavOpen = function (open) {
+        primaryNav.classList.toggle("open", open);
         menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        if (navBackdrop) navBackdrop.hidden = !open;
+      };
+      menuBtn.addEventListener("click", function () {
+        setNavOpen(!primaryNav.classList.contains("open"));
       });
+      if (navBackdrop) {
+        navBackdrop.addEventListener("click", function () { setNavOpen(false); });
+      }
+      document.addEventListener("click", function (ev) {
+        if (!primaryNav.classList.contains("open")) return;
+        if (primaryNav.contains(ev.target) || menuBtn.contains(ev.target)) return;
+        setNavOpen(false);
+      });
+      var navQuery = window.matchMedia ? window.matchMedia("(max-width: 700px)") : null;
+      if (navQuery) {
+        var onNavViewport = function () { if (!navQuery.matches) setNavOpen(false); };
+        if (navQuery.addEventListener) navQuery.addEventListener("change", onNavViewport);
+        else if (navQuery.addListener) navQuery.addListener(onNavViewport);
+      }
     }
     // Theme radios stay pending until Save; the header toggle applies immediately
     // (and re-syncs the radios via paintTheme).
@@ -219,8 +240,8 @@
 
     maxSel.value = storeGet("ytas.maxResults", "25");
     if (maxSel.selectedIndex < 0) maxSel.value = "25";
-    cacheTtlSel.value = storeGet("ytas.cacheTtl", "300");
-    if (cacheTtlSel.selectedIndex < 0) cacheTtlSel.value = "300";
+    cacheTtlSel.value = storeGet("ytas.cacheTtl", "1800");
+    if (cacheTtlSel.selectedIndex < 0) cacheTtlSel.value = "1800";
     setSafe(storeGet("ytas.safeSearch", "moderate"));
     regionInput.value = storeGet("ytas.region", "");
     langInput.value = storeGet("ytas.lang", "");
@@ -265,7 +286,7 @@
       storeSet("ytas.lang", lang);
       storeSet("ytas.enrich", enrichBox.checked ? "1" : "0");
       var ttl = cacheTtlSel.value;
-      if (["60", "300", "900", "3600"].indexOf(ttl) < 0) ttl = "300";
+      if (["60", "300", "900", "1800", "3600"].indexOf(ttl) < 0) ttl = "1800";
       cacheTtlSel.value = ttl;
       storeSet("ytas.cacheTtl", ttl);
       clearDirty();
@@ -281,7 +302,7 @@
       regionInput.value = "";
       langInput.value = "";
       enrichBox.checked = false;
-      cacheTtlSel.value = "300";
+      cacheTtlSel.value = "1800";
       if (window.syncInputClear) window.syncInputClear();
       clearDirty();
       note("Defaults restored.");

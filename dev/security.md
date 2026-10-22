@@ -19,7 +19,7 @@ Mark only what applies:
 - [ ] Sensitive or regulated data
 - [x] Secrets / API keys (`YOUTUBE_API_KEYS` server-only)
 - [ ] Database exposed to untrusted input
-- [x] Server-side network access / SSRF-sensitive features (proxy to googleapis — fixed host only)
+- [x] Server-side network access / SSRF-sensitive features (proxy to googleapis — fixed host only; fixed YouTube `/c/` page GET for resolver custom URLs)
 - [x] Cloud infrastructure (Cloudflare Worker)
 - [ ] Containers
 - [ ] Kubernetes
@@ -36,13 +36,13 @@ Mark only what applies:
 ## 2. Primary Attack Surface
 
 - Untrusted users: search query text, operator prefixes, tools input (URL/handle/username), settings values.
-- Public endpoints: `GET /`, `/tools`, `/settings` (static); `GET /api/search?...`, `GET /api/channel?...` (proxy).
+- Public endpoints: `GET /`, `/tools`, `/settings` (static); `GET /api/search?...`, `GET /api/channel?...` (proxy). `/api/*` is gated to the Worker's own origin + localhost; headerless CLI/script requests still pass (abuse deterrence, not authentication).
 - Authentication boundary: none in v1 (no login).
-- Authorization boundary: none in v1; quota abuse limited by rate/error handling, not per-user auth.
+- Authorization boundary: none per user; the API origin gate blocks cross-site browser use of the proxy but is not an auth boundary.
 - Sensitive data: `YOUTUBE_API_KEYS` — must never appear in responses, logs, or client JS.
-- External services: `https://www.googleapis.com/youtube/v3/search`, `/channels`, `/videos` only.
-- Files / parsing: query/operator parsing (`channel:`, `handle:`, `before:`/`after:`); URL parsing for resolver.
-- Network egress: Worker → googleapis only; no open proxy.
+- External services: `https://www.googleapis.com/youtube/v3/search`, `/channels`, `/videos`, `/playlistItems`, `/videoCategories`; `https://www.youtube.com/shorts/<videoId>` HEAD only for Shorts detection; `https://www.youtube.com/c/<encodedName>` GET only for resolver custom-URL canonical-ID lookup.
+- Files / parsing: query/operator parsing (`channel:`, `handle:`, `before:`/`after:`, `playlist:`); URL parsing for resolver; `UC…` → `UUSH…` channel-ID derivation for the API Shorts fallback; `/c/` HTML parsed only for canonical/externalId.
+- Network egress: Worker → googleapis API + fixed `www.youtube.com/shorts` HEAD + fixed `www.youtube.com/c/<name>` GET (encoded slug, no cookies/API key, same-host redirects only, 3 MB parse cap); no open proxy.
 - Deployment/infrastructure: Cloudflare Worker secrets (prod) + local `.env` (never committed).
 
 ## 3. Security Skill Routing
@@ -51,7 +51,7 @@ Selected for this surface only:
 
 - Web/API: input validation + output encoding (XSS via video titles/descriptions), query allow-listing for `search.list` params, fixed-host egress.
 - Secrets: server-only handling, no key reflection in errors, key-index status only (no values).
-- Abuse: basic per-IP throttling consideration at Worker edge; quota-exhaustion messaging without oracle details.
+- Abuse: basic per-IP throttling consideration at Worker edge; quota-exhaustion messaging without oracle details; API origin gate for browser cross-site calls (same-origin + localhost; headerless clients still allowed by design).
 
 Do not invoke full pen-test, OAuth/JWT, mobile, container, or AI-security workflows for v1.
 

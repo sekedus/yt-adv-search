@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-BUILD (M-0003 IN_PROGRESS — T-0012 + B-0001 COMPLETE (HDT PASS 2026-10-19), committed; T-0008/T-0009/T-0010/T-0011 COMPLETE; all criteria met — closes only on explicit user confirmation)
+HANDOFF (T-0013 COMPLETE + HDT PASS and COMMITTED; M-0003 all tasks/exit criteria satisfied; awaits explicit user close)
 
 ## State Integrity
 
@@ -13,43 +13,38 @@ CONSISTENT
 
 ## Current Milestone
 
-M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — all tasks (T-0008..T-0012 + B-0001) COMPLETE with HDT PASS; awaits explicit user confirmation to close). See `dev/milestones/M-0003-filter-topbar-settings.md`.
+M-0003 — Filter/topbar/settings neat pass (IN_PROGRESS — T-0013 COMPLETE + HDT PASS 2026-10-22; all tasks/exit criteria satisfied; awaits explicit user confirmation to close). See `dev/milestones/M-0003-filter-topbar-settings.md`.
 
 ## Current Task
 
-No active task. T-0012 (filter panel rework: Episode (Show), Dates, broadcast + four quality panels, exclude words in the search bar, clear ✕ with input type kept `text`, flexible Advanced → More rows ≤720px) and B-0001 (results-card meta RTL order) are COMPLETE + HDT PASS (2026-10-19) and committed — records in `dev/tasks/done/` and `dev/bug-fixes/done/`. Awaiting only the explicit M-0003 close.
+None — T-0013 is COMPLETE + HDT PASS (2026-10-22) and moved to `dev/tasks/done/`. M-0003 is ready for an explicit close decision. Last task: resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, category region freshness/no `ytas.catList`, clear-button aria fix, q `%20`/literal-space vs literal-plus parsing. See `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`.
 
 ## Current Step
 
-T-0012 + B-0001 finished and user-verified (HDT "all pass"), then committed (checkpoint `feat: broadcast, dates and video-quality filter panels replace Features`). Follow-up doc audit (user request): the search param chain matches the official search.list / videos.list / videoCategories.list references — params, enum values and `type=video` constraint handling are correct; four optional hardening ideas parked as PL-0001..PL-0004.
+T-0013 is complete, verified, and committed. All implementation and automated checks are recorded in the task; the task file is in `dev/tasks/done/`. The only open item is the explicit user decision on closing M-0003.
 
 ## Objective
 
-Ship T-0012: relabel Type `Show` → `Episode (Show)` and rename its value to `episode`; remove Features; add an exact-range Dates panel before Definitions (After/Before moved out of Advanced; `?` help in the legend with one combined info line at the bottom; `after`/`before` → `publishedAfter`/`publishedBefore`); add opt-in Broadcasts panel (`eventType` live/upcoming/completed, label Disabled/Enabled) and four separate quality panels (Definitions/Captions/Licenses/Dimensions → `videoDefinition`/`videoCaption`/`videoLicense`/`videoDimension`, default Any); remove the six superseded Advanced → More rows; move Exclude words from Advanced into the search bar (keyword + exclude words + Search; `-word` tokens, URL key `ex`); keep Advanced full-width at every viewport; URL keys `event`/`definition`/`caption`/`license`/`dimension` (+ `type=episode`, `after`/`before`, `ex`) (+ legacy read mapping (`type=show`, rev-2 abbreviations, old quality keys); rev 7: clear ✕ on every text input via shared `input-clear.js` — input type unchanged, resets re-sync; rev 8: flexible Advanced → More rows on narrow screens).
+Ship M-0003: all seven T-0013 items are implemented, tested, and HDT-passed. Review and checkpoint the completed work; do not start new product work until the user chooses a commit checkpoint or confirms closing M-0003.
 
 ## Next Action
 
-Await the user's explicit confirmation to close M-0003 (all tasks complete, all criteria satisfied; no implementation work remains).
+Await the user's explicit decision on closing M-0003. Do not start a new product task while that decision is pending.
 
 ## Current Blocker
 
-None — only the explicit M-0003 close is pending user action.
+No technical blocker. T-0013 is committed; awaiting only the explicit user decision on closing M-0003.
 
 ## Relevant Files
 
-- `dev/tasks/done/T-0012-filter-broadcast-quality-panels.md`
-- `dev/bug-fixes/done/B-0001-card-meta-rtl-bidi.md`
-- `public/input-clear.js`
+- `dev/tasks/done/T-0013-resolver-shorts-api-nav.md`
 - `dev/milestones/M-0003-filter-topbar-settings.md`
-- `dev/tasks/done/T-0011-favicon-beginner-readme.md`
-- `dev/tasks/done/T-0010-quota-cache-playlist-ux.md`
 - `worker.js`
-- `dev/tasks/done/T-0009-mobile-nav-focus-help.md`
-- `dev/tasks/done/T-0008-filter-topbar-settings.md`
+- `public/tools.html`
 - `public/index.html`
 - `public/settings.html`
-- `public/tools.html`
 - `public/styles.css`
+- `dev/security.md`
 - `dev/verification.md`
 
 ## Constraints
@@ -60,10 +55,13 @@ None — only the explicit M-0003 close is pending user action.
 
 ## Verification Snapshot
 
-Status: T-0012 COMPLETE + B-0001 COMPLETE (HDT PASS 2026-10-19; M-0003 held open per user instruction)
+Status: T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED; M-0003 IN_PROGRESS with all tasks/exit criteria satisfied, awaiting explicit user close.
 
 Evidence:
 
+- T-0013 automated PASS (2026-10-20): `node --check worker.js`; 6/6 inline scripts compile; Node harness with mocked upstream 16/16 (origin helper 8/8, cross-origin 403 without upstream call, same-origin/headerless 200, `Sec-Fetch-Site` 403, HEAD 200 = Short, HEAD 303 `/watch` = video, 1-day positive/negative cache + cache hit skips HEAD/API, HEAD canary failure → API fallback, single ambiguous HEAD → one API fallback, missing-playlist 404 caches false, non-scoped no checks, UUSH playlist direct, normal playlist HEAD, 40-video cap + `shortsDetectionLimited`, probe failure non-fatal/uncached, static not gated); real workerd HEAD smoke (`GAH8Je1kZ-A` → short, `82CX6WULNA0` → video; actual `shortCacheGet`/`shortCachePut` first request miss→true, second request hit); wrangler smoke (live cross-origin 403, static 200); Playwright/Chromium (mocked `/api/*`, no quota) tools channel image/title links + Invidious at 360px with no overflow, nav backdrop/outside close on all three pages, hamburger toggle, resize >700px close, desktop nav unchanged, exactly one Shorts badge with duration/playlist badges intact, 0 console errors. Found/fixed: missing `id="result"` on the Tools result section had disabled the existing ≤640px card row; mobile image now 140px and linked.
+- T-0013 follow-up automated PASS (2026-10-22): `node --check worker.js` + 6/6 inline scripts; cache harness 7/7 (channel 7-day TTL + fresh rewrite; categories 1-month TTL + assignable filter + region key + fresh rewrite; search TTL key/read-only fresh; search default `max-age=1800`; q `%20` whitespace/space, literal plus, and empty-q rejection); T-0013 harness 16/16 regression; t0015 channel multi harness 15/15 (bare android/tensorflow 2, chrome/firebase 1; `/c/`, `/user/`, `/@`, `/channel/` exact forms; dedupe; cache/refresh); Playwright/Chromium 9/9 (mocked `/api/*`, no quota) includes bare-name multi cards/status/Refresh; live resolver checks confirm the same counts and `/c/chrome` 200, `/user/chrome` + `/@chrome` 404, `/@GoogleChrome` 200. Tools actions `Use in search` + `Invidious ↗`; status/cache/Refresh behavior; Shorts links; categories; 30-minute default; q encoding; clear-button aria/focus; 0 console/page errors.
+- T-0013 HDT — PASS (user report 2026-10-22: "all test pass"; covers resolver links/Invidious, bare-name multi-check + exact URL forms, 403 gate, Shorts links/badges, nav, category/region, cache default, q encoding, clear ×). Task COMPLETE and committed.
 - Doc audit (2026-10-19, user request): search.list / videos.list / videoCategories.list conformance re-checked — params + enum values match the reference; video-only filters are sent only with `type=video` (auto-coerced); `location` is always paired with a valid `locationRadius`; Category ids come from live `videoCategories.list`; dates are RFC 3339; exclude words use the `-` NOT operator; videos.list `id` batches ≤50 and never combines with maxResults; categories call uses `part=snippet` + `regionCode` only. No violations found; hardening ideas PL-0001..PL-0004.
 - T-0012 automated (rev 8): static checks PASS (rev 8 section: More rows flex + wrap ≤720px, compact controls may stay next to the label, text-input + Category controls take the full row, qinfo/hint + clear wrapper span the row, flex rules scoped to ≤720px, desktop `.advrow` grid 200px/1fr/28px unchanged); Playwright/Chromium layout pass (360px: checkboxes + Channel type inline with label/?; Category label row + full-width select; Topic/Location/Radius label row + full-width input 252/280px; help info full width; ✕ still works in the More fields; 700px ≤720px flexible rows, no overlap/overflow; 900px + 1500px desktop grid restored; 0 console errors).
 - T-0012 automated (rev 7): static checks PASS (rev 6 checks unchanged + input-clear.js compiles and never sets type=search; all 9 text inputs stay type="text"; all pages load `/input-clear.js`; sync calls in index + settings; `.inputclear`/`.clrbtn` CSS incl. `[hidden]` display none, Advanced 300px cap, resolve-row 280px, settings 6em; zero inline styles); wrangler smoke 200; Playwright/Chromium functional pass (6/6 index inputs wrapped + type=text; ✕ hidden→shown→clears+refocuses+hides; Reset + URL restore re-sync the ✕; #f-scope wrapper 300px, #region 6em, tools resolver fills; tools/settings ✕ work; search form one row desktop / stacked 360px; 0 console errors; mocked /api/search, no quota).
@@ -86,19 +84,19 @@ See `dev/commit-policy.md`.
 
 ## Last Checkpoint
 
-feat: broadcast, dates and video-quality filter panels replace Features (T-0012 + B-0001 COMPLETE)
+feat: resolver links/multi-check (incl. /c/), scoped shorts + /shorts/ links, API gate, nav backdrop, cache tuning + refresh, q space/plus parsing
 
 ## README Status
 
-README updated in T-0012 (filter list line: "upload date or an exact date range, broadcast status, four video-quality panels"; search bar keyword + exclude words + clear ✕ on text fields); full beginner rewrite from T-0011 unchanged.
+README updated in T-0013 (Shorts badge + `/shorts/` links for scoped searches; HEAD-first detection + 1-day cache; Tools channel links + Invidious + found/cached status + Refresh next to status + bare-name multi-check and `/c/`; channel 7-day/category 1-month cache notes; Settings search-only max cache (default 30 min); q `%20` spaces/literal plus; API own-origin note; troubleshooting `Forbidden origin`); earlier beginner rewrite + T-0012 filter copy unchanged.
 
 ## Important Context
 
 - M-0001 COMPLETE (T-0001..T-0004 in `dev/tasks/done/`).
 - M-0002 COMPLETE (T-0005..T-0007 in `dev/tasks/done/`).
-- M-0003 IN_PROGRESS held open per user (all tasks T-0008..T-0012 COMPLETE in `dev/tasks/done/`; awaits explicit user close).
+- M-0003 IN_PROGRESS held open per user (T-0008..T-0013 + B-0001 COMPLETE and HDT PASS; all milestone tasks/exit criteria satisfied; closes only on explicit user close).
 - B-0001 COMPLETE in `dev/bug-fixes/done/` (results-card meta RTL order; fixed in the same review as T-0012 rev 7; HDT PASS 2026-10-19).
-- Working tree carries pre-existing uncommitted user edits outside T-0012/B-0001 (`worker.js`, `public/tools.html`, `.gitignore`, `README.md` similar-projects, `LICENSE`, `assets/`, `data/`, earlier index.html reorder/categories) — preserve; not part of this task's commit scope.
+- Working tree retains pre-existing uncommitted user edits (`.gitignore`, `dev/project.md`, `dev/parking-lot.md`, `LICENSE`, `assets/`, `data/`); T-0013 is committed. Preserve those edits and inspect the diff before any future commit.
 
 ## Do Not Change
 
