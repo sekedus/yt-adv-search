@@ -7,6 +7,13 @@ directory = "./public"
 binding = "ASSETS"
 not_found_handling = "none"
 
+# T-0015: search page tokens for ?page=N (7-day TTL, one key per page).
+# Namespace created 2026-11-09 with `npx wrangler kv namespace create PAGE_TOKENS`.
+# Local `wrangler dev` uses local (Miniflare) KV; this id is used for deploys.
+[[kv_namespaces]]
+binding = "PAGE_TOKENS"
+id = "62e70c2ab3234fdeb768e6bcc600a326"
+
 # Local dev: `npx wrangler dev` reads `.dev.vars` (and `.env` in recent
 # wrangler). Copy `.env.example` to `.dev.vars` for local runs:
 #   YOUTUBE_API_KEYS=k1,k2

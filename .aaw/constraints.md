@@ -28,9 +28,13 @@ Use this file for constraints that materially affect technical decisions.
 
 - `YOUTUBE_API_KEYS` server-only (`.env` local, Worker secrets prod); never embed in HTML/JS responses.
 - Proxy to fixed upstreams only: `https://www.googleapis.com/youtube/v3/*` (API), a fixed `HEAD https://www.youtube.com/shorts/<videoId>` probe, and a fixed `GET https://www.youtube.com/c/<encodedName>` resolver page (3 same-host redirects max, no cookies, no API key); no open-fetch proxy.
-- No auth/session in v1; no user data stored server-side.
+- No auth/session and no user accounts. T-0015 adds the only server-side
+  persistence: pseudonymous page-token entries in KV (`pt:v1:<sha256-16>:<n>`,
+  the digest of the search params + the opaque YouTube page token), 7-day TTL,
+  no raw query text, no IP, no identity. No other user data is stored.
 
 ## Deployment Constraints
 
 - Stored on Cloudflare Worker; `.env` for local only (`YOUTUBE_API_KEYS=k1,k2` comma-separated).
 - Static routes `/`, `/tools`, `/settings` + API `/api/search`, `/api/channel` from one Worker.
+- KV binding `PAGE_TOKENS`: create with `npx wrangler kv namespace create PAGE_TOKENS` and put the id in `wrangler.toml` before deploying; local `wrangler dev` uses local Miniflare KV.

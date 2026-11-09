@@ -2,7 +2,7 @@
 
 ## Status
 
-Product baseline complete through T-0012; T-0013 COMPLETE + HDT PASS (2026-10-22); M-0003 IN_PROGRESS with all tasks/exit criteria satisfied, awaiting explicit user close.
+Product baseline complete through T-0012; T-0013 COMPLETE + HDT PASS (2026-10-22); M-0003 COMPLETE (closed 2026-10-22); T-0014 COMPLETE; T-0015 COMPLETE (pagination in the URL + KV page-token store; automated PASS + HDT PASS 2026-11-09).
 
 ## Purpose
 
@@ -14,8 +14,8 @@ A compact navigation map for the codebase. Points to where capabilities will liv
 
 | Domain / Area | Primary Path(s) | Responsibility | Key Dependencies | Consumers | Tests |
 |---|---|---|---|---|---|
-| Search UI | `public/index.html` (route `/`) | Search panel bar (keyword + exclude words `-word`/`ex`; text fields get a clear ✕ via shared `input-clear.js`), Filters (main grid incl. opt-in Broadcasts `eventType`, a Dates panel with After/Before (`publishedAfter`/`publishedBefore`), and separate Definitions/Captions/Licenses/Dimensions panels using `videoDefinition`/`videoCaption`/`videoLicense`/`videoDimension`; full-width `.advgrid` advanced incl. playlist scope), results grid (bidi-safe card meta: channel + time isolated; `Shorts` badge for scoped detection; detected Shorts link to `/shorts/<id>`), pagination, enrichment toggle, refresh bypass, `/` shortcut, jump buttons (`.jumpbtns`); categories fetched from `/api/categories` with no browser list cache (sessionStorage stores only the last loaded region); whitespace-only q is a valid search; page/API q encoded as `%20`/`%2B` (not form `+`), and the page parser also keeps a raw `+` literal | `/api/search`, `/api/categories`, shared `public/styles.css` + `public/input-clear.js`, `localStorage` | Browser user | Browser HDT + Playwright |
-| Worker API | `worker.js` (`/api/search`, `/api/channel`, `/api/categories`) | Own-origin gate for `/api/*` (same origin + localhost; headerless CLI passes), key rotation + quota exclusion (403 quotaExceeded → skip till 00:00 UTC), GET cache (`caches.default`; search 60-3600 s, default 30 min; channel 7 days; categories 1 month; `?fresh=1` bypass; channel/category bypass rewrites), resolver bare-name multi-check (`forHandle` + `forUsername` + fixed `www.youtube.com/c/<slug>` GET; canonical-ID dedupe; URL-form cache key v=2), operator resolution (incl. `playlist:` via playlistItems), raw q parsing (`%20`/literal space = space; `+` = literal plus; whitespace-only q allowed; truly empty q requires scope), scoped Shorts detection (HEAD `www.youtube.com/shorts/<id>`: 200 = Short, 3xx `/watch` = video; UUSH API fallback; 1-day result cache; cap 40 HEAD + 6 API fallbacks), `search.list`/`videos.list`/`channels.list`/`playlistItems.list` forwarding | `YOUTUBE_API_KEYS`, googleapis v3, fixed YouTube web HEAD + `/c/` GET | Search UI, Tools page | `node --check`, mocked Node harness, multi harness, cache harness, workerd HEAD + `/c/` smoke, wrangler smoke |
+| Search UI | `public/index.html` (route `/`) | Search panel bar (keyword + exclude words `-word`/`ex`; text fields get a clear ✕ via shared `input-clear.js`), Filters (main grid incl. opt-in Broadcasts `eventType`, a Dates panel with After/Before (`publishedAfter`/`publishedBefore`), and separate Definitions/Captions/Licenses/Dimensions panels using `videoDefinition`/`videoCaption`/`videoLicense`/`videoDimension`; full-width `.advgrid` advanced incl. playlist scope), results grid (bidi-safe card meta: channel + time isolated; `Shorts` badge for scoped detection; detected Shorts link to `/shorts/<id>`), pagination by page number (`?page=N`, page 1 omitted; pages 2+ pushed to history; no tokens in the URL; `pageFallback` notice when a page token is missing/expired), enrichment toggle, refresh bypass, `/` shortcut, jump buttons (`.jumpbtns`); categories fetched from `/api/categories` with no browser list cache (sessionStorage stores only the last loaded region); whitespace-only q is a valid search; page/API q encoded as `%20`/`%2B` (not form `+`), and the page parser also keeps a raw `+` literal | `/api/search`, `/api/categories`, shared `public/styles.css` + `public/input-clear.js`, `localStorage` | Browser user | Browser HDT + Playwright |
+| Worker API | `worker.js` (`/api/search`, `/api/channel`, `/api/categories`) | Own-origin gate for `/api/*` (same origin + localhost; headerless CLI passes), key rotation + quota exclusion (403 quotaExceeded → skip till 00:00 UTC), GET cache (`caches.default`; search 60-3600 s, default 30 min; channel 7 days; categories 1 month; `?fresh=1` bypass; channel/category bypass rewrites), resolver bare-name multi-check (`forHandle` + `forUsername` + fixed `www.youtube.com/c/<slug>` GET; canonical-ID dedupe; URL-form cache key v=2), operator resolution (incl. `playlist:` via playlistItems), raw q parsing (`%20`/literal space = space; `+` = literal plus; whitespace-only q allowed; truly empty q requires scope), scoped Shorts detection (HEAD `www.youtube.com/shorts/<id>`: 200 = Short, 3xx `/watch` = video; UUSH API fallback; 1-day result cache; cap 40 HEAD + 6 API fallbacks), `search.list`/`videos.list`/`channels.list`/`playlistItems.list` forwarding, page-token store (`?page=N` 1..20: `pt:v1:<sha256-16>:<n>` in KV, 7-day TTL, one key per page, hash of the final upstream params minus `pageToken`; missing/expired/invalid token deletes the entry and serves page 1 with `pageFallback`; no rebuild because `search.list` costs 100 units/page; legacy `pageToken` passthrough stays stateless) | `YOUTUBE_API_KEYS`, `PAGE_TOKENS` KV, googleapis v3, fixed YouTube web HEAD + `/c/` GET | Search UI, Tools page | `node --check`, mocked Node harness, multi harness, cache harness, page-token harness, workerd HEAD + `/c/` smoke, wrangler smoke |
 | Channel resolver | `public/tools.html` (route `/tools`) | URL/handle/ID/username/bare name → ID + snippet + channel/Invidious links + `Use in search`; bare names check `@handle` + `/user` + `/c` and show every distinct channel (`Found <n> channels` + `Matched by ...`); explicit URL forms/kind selectors stay exact; status `Found: <title>` (+ ` (cached)` on `x-cache-status: HIT`) with **Refresh** next to it (`fresh=1`, rewrites the combined 7-day cache) | `/api/channel` | Browser user | Playwright + Browser HDT |
 | Settings | `public/settings.html` (route `/settings`) | Theme, neat defaults grid (Save/Reset merged), enrichment opt-in, max cache time (search only; default 30 min), key-index status | `localStorage`, `/api/search` status | Search UI, Tools page | Browser HDT |
 | Shared style | `public/styles.css` | Auto-dark theme, centered-brand hamburger topbar with transparent nav backdrop (outside click closes), Invidious-like filters/results | none | All pages | Visual check |
@@ -26,7 +26,7 @@ A compact navigation map for the codebase. Points to where capabilities will liv
 - `GET /` — search page.
 - `GET /tools` — resolver page.
 - `GET /settings` — preferences page.
-- `GET /api/search?...` — proxied `search.list` (+ optional `videos.list` enrichment).
+- `GET /api/search?...` — proxied `search.list` (+ optional `videos.list` enrichment); `page=N` resolves the stored page token, `pageToken=` is still accepted for direct API use.
 - `GET /api/channel?handle=|id=|username=|url=` - proxied `channels.list`; `url=` bare names run the multi-check, explicit URL forms resolve one form, and `/c/` reads the fixed YouTube page.
 - `GET /api/categories?regionCode=` — slimmed assignable `videoCategories.list`, cached 1 month; `fresh=1` bypasses and rewrites the region entry.
 
@@ -42,8 +42,14 @@ input bar + filters (+ playlist scope, ?fresh=1 bypass)
   -> worker parses channel:/handle:/playlist:/before:/after:
   -> playlist: via playlistItems.list (3 pages) + local keyword filter
   -> channels.list forHandle when needed
-  -> cached GET (search cache 60–3600s, default 1800s / 30 min) or search.list with mapped params
+  -> cached GET (search cache 60–3600s, default 1800s / 30 min); a HIT skips
+     KV reads and upstream entirely
+  -> on MISS, ?page=N (1..20): read pt:v1:<hash>:N from KV (hash = SHA-256 of
+     the final upstream params, pageToken excluded); missing/expired token ->
+     page 1 + pageFallback, no rebuild (100 quota units per skipped page)
+  -> search.list with mapped params
       + quota-aware key rotation (quotaExceeded keys skipped till 00:00 UTC)
+  -> store nextPageToken at pt:v1:<hash>:N+1 (7-day TTL, off-path write)
   -> optional videos.list enrichment (opt-in)
   -> scoped Shorts check: HEAD https://www.youtube.com/shorts/<videoId>
       (200 = Short; 3xx to /watch = regular video; 1-day result cache)
@@ -90,6 +96,7 @@ settings region or US
 | Resolver `/c/` page lookup | The Data API has no custom-channel-URL parameter; a page GET is outside the API quota but fetches a large HTML document | Bare names and explicit `/c/` only; fixed host, encoded slug, no cookies/API key, max 3 same-host redirects, 3 MB parse cap, canonical/externalId only, never returned; failure is a normal not-found; combined result cached 7 days | Multi harness + live `/c/chrome` smoke + HDT explicit forms |
 | Filter mapping | Some Invidious options have no API equivalent | Disabled with tooltip; Movie / Episode (Show) via `videoType` (`channelType=show` for show channels) | HDT per filter group |
 | Quota | `search.list` 100/day bucket | Enrichment OFF default; max 50, default 25; search cache 60–3600s (default 1800s / 30 min); channel 7 days; categories 1 month; quota keys skipped till midnight UTC | Smoke + cache harness + error-state HDT |
+| Page-token KV | Pseudonymous server-side storage (param digest + opaque token) with no user identity | Key `pt:v1:<sha256-16>:<n>`; value is the raw YouTube token; 7-day TTL; cap 20 pages; no raw query/IP stored; missing/expired token -> page 1 + `pageFallback`; KV failures degrade to page-1-only, never 5xx; cache HIT performs no KV I/O | Page-token harness + Playwright + HDT (deployed KV, cross-device link) |
 
 ### Reusable Capabilities
 
@@ -105,5 +112,6 @@ settings region or US
 - Worker harness: mocked upstream for origin gate + HEAD/API Shorts checks + 1-day cache (no quota)
 - Multi harness: bare-name `/@`/`/user`/`/c` checks, explicit URL/kind forms, `/c/` canonical lookup, dedupe + cache/refresh
 - Cache harness: channel 7-day TTL + refresh rewrite; categories 1-month TTL + region key + fresh rewrite; search TTL/bypass semantics; q `%20`/literal space/literal plus/empty
-- Playwright: q `%20`/`%2B` in page/API URLs, whitespace-only q, Tools multi cards/status/Refresh, Shorts links, categories, settings, clear-button focus
+- Page-token harness: page 1 writes `:2` with TTL 604800; page 2 reads/stores `:3`; unvisited page -> page 1 + `pageFallback` without walking; invalid token -> delete + page 1; hash determinism/clamp; legacy `pageToken`; no-KV and throwing-KV degradation; playlist scope; cache HIT = zero KV/upstream work
+- Playwright: q `%20`/`%2B` in page/API URLs, whitespace-only q, Tools multi cards/status/Refresh, Shorts links, categories, settings, clear-button focus, `?page=` flow (Next/Prev/reload/Back/Forward/fallback notice/mobile)
 - HDT: search/filters/operators, scoped Shorts badges + `/shorts/` links, resolver links/Invidious + bare-name multi-check + exact URL forms + found/cached status/Refresh next to status, clear-button focus/no `aria-hidden` warning, category region change + no `ytas.catList`, mobile nav outside close, settings persistence, all-keys-bad error, q space/plus behavior

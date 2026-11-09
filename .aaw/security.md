@@ -21,6 +21,7 @@ Mark only what applies:
 - [ ] Database exposed to untrusted input
 - [x] Server-side network access / SSRF-sensitive features (proxy to googleapis — fixed host only; fixed YouTube `/c/` page GET for resolver custom URLs)
 - [x] Cloud infrastructure (Cloudflare Worker)
+- [x] Server-side persistent state: KV page tokens (`pt:v1:<sha256-16>:<n>`, 7-day TTL, no identity)
 - [ ] Containers
 - [ ] Kubernetes
 - [ ] CI/CD or software supply chain
@@ -40,10 +41,11 @@ Mark only what applies:
 - Authentication boundary: none in v1 (no login).
 - Authorization boundary: none per user; the API origin gate blocks cross-site browser use of the proxy but is not an auth boundary.
 - Sensitive data: `YOUTUBE_API_KEYS` — must never appear in responses, logs, or client JS.
+- Server-side storage: `PAGE_TOKENS` KV entries for `?page=N`. Keys are a truncated SHA-256 of the effective upstream params; values are opaque YouTube page tokens; 7-day TTL; no raw query, IP, or user identity. Nothing is exposed back to clients beyond the existing `nextPageToken` fields.
 - External services: `https://www.googleapis.com/youtube/v3/search`, `/channels`, `/videos`, `/playlistItems`, `/videoCategories`; `https://www.youtube.com/shorts/<videoId>` HEAD only for Shorts detection; `https://www.youtube.com/c/<encodedName>` GET only for resolver custom-URL canonical-ID lookup.
 - Files / parsing: query/operator parsing (`channel:`, `handle:`, `before:`/`after:`, `playlist:`); URL parsing for resolver; `UC…` → `UUSH…` channel-ID derivation for the API Shorts fallback; `/c/` HTML parsed only for canonical/externalId.
 - Network egress: Worker → googleapis API + fixed `www.youtube.com/shorts` HEAD + fixed `www.youtube.com/c/<name>` GET (encoded slug, no cookies/API key, same-host redirects only, 3 MB parse cap); no open proxy.
-- Deployment/infrastructure: Cloudflare Worker secrets (prod) + local `.env` (never committed).
+- Deployment/infrastructure: Cloudflare Worker secrets (prod) + local `.env` (never committed); `PAGE_TOKENS` KV namespace (pseudonymous page-token store, 7-day TTL).
 
 ## 3. Security Skill Routing
 
@@ -52,6 +54,7 @@ Selected for this surface only:
 - Web/API: input validation + output encoding (XSS via video titles/descriptions), query allow-listing for `search.list` params, fixed-host egress.
 - Secrets: server-only handling, no key reflection in errors, key-index status only (no values).
 - Abuse: basic per-IP throttling consideration at Worker edge; quota-exhaustion messaging without oracle details; API origin gate for browser cross-site calls (same-origin + localhost; headerless clients still allowed by design).
+- Storage: hash-only page-token keys, 7-day TTL, no raw query/IP/identity; writes are bounded by upstream search traffic (a search is needed to mint a token); KV failure degrades to page 1, never a 5xx.
 
 Do not invoke full pen-test, OAuth/JWT, mobile, container, or AI-security workflows for v1.
 
@@ -70,6 +73,7 @@ Public web + Worker REST proxy + server secrets
 
 - T-0001 (proxy/rotation): Level 1 — Security-Relevant → targeted secrets/egress/validation review + abuse tests.
 - T-0002/T-0003/T-0004 (pages): Level 0/1 — normal verification + XSS/output-encoding check on rendered snippets.
+- T-0015 (page-token KV): Level 1 — targeted storage review (hash-only keys, TTL, no identity, no query/key leakage) + failure-path test (missing/invalid token, KV unavailable).
 
 ## 6. Evidence
 

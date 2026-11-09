@@ -11,12 +11,13 @@ YouTube.com removed useful search filters (Last Hour, Sort by Rating/Date) and I
 ## Scope
 
 - Routes on one Worker: `/` search, `/tools` channel-ID resolver, `/settings` preferences. Shared vanilla CSS.
-- Search page: Invidious-like search bar (keyword + exclude words; clear ✕ on text fields) + Filters (Upload date / Dates / Type / Duration / Broadcasts / Definitions / Captions / Licenses / Dimensions / Sort By + Advanced (always full width) + Apply) + results grid (bidi-safe card meta, Shorts badge for scoped detection) + pagination + theme toggle + enrichment opt-in.
+- Search page: Invidious-like search bar (keyword + exclude words; clear ✕ on text fields) + Filters (Upload date / Dates / Type / Duration / Broadcasts / Definitions / Captions / Licenses / Dimensions / Sort By + Advanced (always full width) + Apply) + results grid (bidi-safe card meta, Shorts badge for scoped detection) + pagination with the page number in the URL (`?page=N`, tokens stored server-side in KV for 7 days) + theme toggle + enrichment opt-in.
 - All `search.list` parameters implemented; re-added Last Hour, Sort Rating/Date, Movie/Episode (Show) via API mappings; unmappable features shown disabled with tooltip.
 - Operators resolved server-side: `channel:UC...`, `handle:@x`/`handle:x` via `channels.list forHandle`, `before:`/`after:` to `publishedBefore/After`.
 - Tools page: paste URL / `@handle` / `UC...` / username → `channels.list` → ID + title + channel/Invidious links + `Use in search`.
 - Settings page (gear): theme, max results, safeSearch, region, language, enrichment opt-in, key-index status. `localStorage` persisted.
 - Key rotation server-side: `YOUTUBE_API_KEYS=k1,k2` in `.env` local / Worker secrets prod, rotate on non-200.
+- Page tokens for `?page=N` live in the `PAGE_TOKENS` KV namespace (SHA-256 param hash, 7-day TTL, no identity); missing pages fall back to page 1.
 
 ## Out of Scope
 

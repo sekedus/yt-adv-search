@@ -226,6 +226,11 @@ async function fetchYT(env, path, params, fetchImpl, opts) {
       if (lastStatus === 404 && opts && opts.stopOn404) {
         return { ok: false, notFound: true, upstreamStatus: 404 };
       }
+      // T-0015: an expired/invalid page token is key-independent, so key
+      // rotation cannot help. Surface it so the caller can fall back to page 1.
+      if (lastStatus === 400 && /invalidPageToken|pageTokenExpired/i.test(bodyText)) {
+        return { ok: false, invalidPageToken: true, upstreamStatus: 400 };
+      }
       if (isQuotaErrorPayload(lastStatus, bodyText)) {
         quotaSeen = true;
         quotaExhaustedUntil.set(i, nextMidnightUtcMs(now));
@@ -610,7 +615,7 @@ async function fetchPlaylistItems(env, playlistId, pageToken, fetchImpl) {
     const ytParams = { part: "snippet", playlistId, maxResults: 50 };
     if (next) ytParams.pageToken = next;
     const r = await fetchYT(env, "/playlistItems", ytParams, fetchImpl);
-    if (!r.ok) return { error: r.error };
+    if (!r.ok) return { error: r.error, invalidPageToken: !!r.invalidPageToken };
     const data = r.data || {};
     if (first) {
       prev = data.prevPageToken || null;
@@ -947,6 +952,84 @@ async function enrichItems(env, items, fetchImpl, data) {
   }
 }
 
+/* ---------- page-token store (T-0015) ----------
+ * The URL carries only ?page=N; the opaque YouTube pageToken stays in KV.
+ * One key per page (`pt:v1:<hash>:<n>`), keyed by a SHA-256 hash of the
+ * final upstream params (minus pageToken). No query text, IP, or identity is
+ * stored: the key is a pseudonymous digest and the value is an opaque token.
+ * Entries expire after 7 days. A missing/expired token falls back to page 1
+ * because rebuilding it would cost 100 quota units per skipped page. */
+const PAGE_TOKEN_PREFIX = "pt:v1:";
+const PAGE_TOKEN_TTL_S = 7 * 24 * 3600;
+const MAX_PAGE = 20;
+
+function pageTokenKv(env) {
+  try {
+    return (env && env.PAGE_TOKENS) || null;
+  } catch {
+    return null;
+  }
+}
+
+// Hash the exact upstream params (order-independent, pageToken excluded).
+async function pageParamsHash(params) {
+  const keys = Object.keys(params)
+    .filter((k) => k !== "pageToken" && params[k] !== undefined && params[k] !== null && params[k] !== "")
+    .sort();
+  const canonical = JSON.stringify(keys.map((k) => [k, String(params[k])]));
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+  const bytes = new Uint8Array(digest).slice(0, 16);
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, "0");
+  return out;
+}
+
+function pageTokenKey(hash, page) {
+  return PAGE_TOKEN_PREFIX + hash + ":" + page;
+}
+
+function requestedPage(sp) {
+  const raw = sp.get("page");
+  if (raw === null) return { page: 1, explicit: false };
+  const n = parseInt(raw, 10);
+  if (Number.isNaN(n)) return { page: 1, explicit: true };
+  return { page: Math.min(MAX_PAGE, Math.max(1, n)), explicit: true };
+}
+
+async function pageTokenGet(env, key) {
+  const kv = pageTokenKv(env);
+  if (!kv) return null;
+  try {
+    return (await kv.get(key)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function pageTokenPut(env, ctx, key, token) {
+  const kv = pageTokenKv(env);
+  if (!kv || !token) return;
+  try {
+    const p = kv.put(key, token, { expirationTtl: PAGE_TOKEN_TTL_S });
+    const settle = p && typeof p.catch === "function" ? p.catch(() => {}) : p;
+    if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(settle);
+  } catch {
+    /* storage is best-effort: a missing token falls back to page 1 */
+  }
+}
+
+function pageTokenDelete(env, ctx, key) {
+  const kv = pageTokenKv(env);
+  if (!kv) return;
+  try {
+    const p = kv.delete(key);
+    const settle = p && typeof p.catch === "function" ? p.catch(() => {}) : p;
+    if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(settle);
+  } catch {
+    /* best-effort */
+  }
+}
+
 /* ---------- API handlers ---------- */
 
 // Client cache preference for search results (?cacheTtl= seconds,
@@ -956,7 +1039,7 @@ function requestCacheTtl(requestUrl) {
   return clampTtl(requestUrl.searchParams.get("cacheTtl"), CACHE_TTL_S, 60, 3600);
 }
 
-async function handleSearch(requestUrl, env, fetchImpl) {
+async function handleSearch(requestUrl, env, fetchImpl, ctx) {
   const sp = requestUrl.searchParams;
   // q preserves literal "+"; only a real space/%20 separates words.
   const rawQ = queryParamLiteral(requestUrl, "q") || "";
@@ -969,6 +1052,7 @@ async function handleSearch(requestUrl, env, fetchImpl) {
   const enrich = sp.get("enrich") === "true" || sp.get("enrich") === "1";
 
   const ops = parseQueryOperators(rawQ);
+  const pg = requestedPage(sp);
 
   // Playlist scoping (T-0010): search.list has no playlistId param, so the
   // playlistItems.list workaround runs here with local keyword filtering.
@@ -977,7 +1061,30 @@ async function handleSearch(requestUrl, env, fetchImpl) {
     if (!/^[A-Za-z0-9_-]{10,}$/.test(ops.playlist)) {
       return json({ error: "Invalid playlist id" }, 400);
     }
-    const pr = await fetchPlaylistItems(env, ops.playlist, sp.get("pageToken") || null, fetchImpl);
+    // T-0015: ?page=N maps onto stored playlistItems page tokens.
+    const kv = pageTokenKv(env);
+    const hash = kv && pg.explicit ? await pageParamsHash({ playlistId: ops.playlist, maxResults: 50 }) : null;
+    let page = pg.page;
+    let fallbackPage = null;
+    let token = null;
+    if (pg.explicit && page > 1) {
+      token = hash ? await pageTokenGet(env, pageTokenKey(hash, page)) : null;
+      if (!token) {
+        fallbackPage = page;
+        page = 1;
+      }
+    } else {
+      token = sp.get("pageToken") || null; // legacy direct-API pageToken
+    }
+    let pr = await fetchPlaylistItems(env, ops.playlist, token, fetchImpl);
+    if (pr.error && token && pr.invalidPageToken) {
+      pageTokenDelete(env, ctx, pageTokenKey(hash, page));
+      pr = await fetchPlaylistItems(env, ops.playlist, null, fetchImpl);
+      if (!pr.error) {
+        fallbackPage = pg.page;
+        page = 1;
+      }
+    }
     if (pr.error) return pr.error;
     const data = {
       items: filterPlaylistItems(pr.items, ops.cleanQ).slice(0, maxResults),
@@ -986,6 +1093,13 @@ async function handleSearch(requestUrl, env, fetchImpl) {
     };
     if (pr.prevPageToken) data.prevPageToken = pr.prevPageToken;
     if (pr.nextPageToken) data.nextPageToken = pr.nextPageToken;
+    if (hash && page < MAX_PAGE && pr.nextPageToken) {
+      pageTokenPut(env, ctx, pageTokenKey(hash, page + 1), pr.nextPageToken);
+    }
+    data.page = page;
+    data.hasPrev = page > 1;
+    data.hasNext = !!pr.nextPageToken && (pg.explicit ? !!kv : true);
+    if (fallbackPage) data.pageFallback = fallbackPage;
     if (enrich) await enrichItems(env, data.items, fetchImpl, data);
     // T-0013: a Shorts playlist is entirely Shorts; any other scoped
     // playlist is checked per video (HEAD first, UUSH API fallback).
@@ -1028,14 +1142,54 @@ async function handleSearch(requestUrl, env, fetchImpl) {
   if (publishedAfter) ytParams.publishedAfter = publishedAfter;
   if (publishedBefore) ytParams.publishedBefore = publishedBefore;
   for (const k of ALLOWED_SEARCH_PARAMS) {
-    if (k === "maxResults") continue;
+    // pageToken is handled by the page model below (legacy passthrough only
+    // when ?page= is absent).
+    if (k === "maxResults" || k === "pageToken") continue;
     const v = sp.get(k);
     if (v !== null && v !== "") ytParams[k] = v;
   }
 
-  const r = await fetchYT(env, "/search", ytParams, fetchImpl);
+  // T-0015: resolve ?page=N through the KV page-token map. Page 1 always
+  // stores the token for page 2 when YouTube returns one.
+  const kv = pageTokenKv(env);
+  // Only the page model touches KV; legacy pageToken calls stay stateless.
+  const hash = kv && pg.explicit ? await pageParamsHash(ytParams) : null;
+  let page = pg.page;
+  let fallbackPage = null;
+  if (pg.explicit && page > 1) {
+    const token = hash ? await pageTokenGet(env, pageTokenKey(hash, page)) : null;
+    if (token) ytParams.pageToken = token;
+    else {
+      // Not visited yet (or expired). Rebuilding costs 100 quota units per
+      // skipped page, so serve page 1 and tell the client.
+      fallbackPage = page;
+      page = 1;
+    }
+  } else {
+    const legacy = sp.get("pageToken");
+    if (legacy) ytParams.pageToken = legacy;
+  }
+
+  let r = await fetchYT(env, "/search", ytParams, fetchImpl);
+  if (!r.ok && ytParams.pageToken && r.invalidPageToken) {
+    pageTokenDelete(env, ctx, pageTokenKey(hash, page));
+    delete ytParams.pageToken;
+    r = await fetchYT(env, "/search", ytParams, fetchImpl);
+    if (r.ok) {
+      fallbackPage = pg.page;
+      page = 1;
+    }
+  }
   if (!r.ok) return r.error;
   const data = r.data;
+
+  if (hash && page < MAX_PAGE && data.nextPageToken) {
+    pageTokenPut(env, ctx, pageTokenKey(hash, page + 1), data.nextPageToken);
+  }
+  data.page = page;
+  data.hasPrev = page > 1 || (!pg.explicit && !!data.prevPageToken);
+  data.hasNext = !!data.nextPageToken && (pg.explicit ? !!kv : true);
+  if (fallbackPage) data.pageFallback = fallbackPage;
 
   if (enrich) await enrichItems(env, data.items, fetchImpl, data);
   // T-0013: Shorts detection only for channel-scoped searches.
@@ -1228,7 +1382,7 @@ async function handleChannel(requestUrl, env, fetchImpl) {
 
 /* ---------- entry ---------- */
 
-async function handleFetch(request, env, fetchImpl) {
+async function handleFetch(request, env, fetchImpl, ctx) {
   const url = new URL(request.url);
   const pathname = url.pathname;
   const method = request.method.toUpperCase();
@@ -1245,9 +1399,9 @@ async function handleFetch(request, env, fetchImpl) {
     }
     // T-0010: GET search results are cached; ?fresh=1 bypasses.
     if (method === "GET") {
-      return cachedApi(request, url, () => handleSearch(url, env, fetchImpl), requestCacheTtl(url));
+      return cachedApi(request, url, () => handleSearch(url, env, fetchImpl, ctx), requestCacheTtl(url));
     }
-    return handleSearch(url, env, fetchImpl);
+    return handleSearch(url, env, fetchImpl, ctx);
   }
   if (pathname === "/api/channel" || pathname === "/api/channel/") {
     if (method !== "GET" && method !== "HEAD") {
@@ -1283,8 +1437,8 @@ async function handleFetch(request, env, fetchImpl) {
 }
 
 const worker = {
-  async fetch(request, env) {
-    return handleFetch(request, env, undefined);
+  async fetch(request, env, ctx) {
+    return handleFetch(request, env, undefined, ctx);
   },
 };
 
@@ -1314,4 +1468,7 @@ export {
   quotaExclusionCount,
   isKeyQuotaExcluded,
   clampTtl,
+  pageParamsHash,
+  pageTokenKey,
+  requestedPage,
 };

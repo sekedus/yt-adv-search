@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-IDLE (AAW 0.8.2 upgrade applied 2026-11-09; M-0003 COMPLETE; T-0014 COMMITTED; no active task)
+IDLE (AAW 0.8.2 upgrade applied 2026-11-09; M-0003 COMPLETE; T-0015 COMPLETE + COMMITTED; no active task)
 
 ## State Integrity
 
@@ -17,11 +17,12 @@ None — M-0003 COMPLETE (closed 2026-10-22 by explicit user instruction). See `
 
 ## Current Task
 
-None — no active task. Last task: T-0014 (README rewrite, docs-only, COMPLETE + COMMITTED). Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `.aaw/tasks/done/T-0013-resolver-shorts-api-nav.md`.
+None — no active task. Last task: T-0015 (pagination in the URL + KV page-token store; COMPLETE + COMMITTED; record: `.aaw/tasks/done/T-0015-page-url-kv-tokens.md`).
+Earlier: T-0014 (README rewrite, docs-only, COMPLETE + COMMITTED). Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `.aaw/tasks/done/T-0013-resolver-shorts-api-nav.md`.
 
 ## Current Step
 
-M-0003 is closed and product work is committed. The AAW 0.8.2 control-plane upgrade is applied; no product task is in progress.
+T-0015 is complete and committed: `?page=N` pagination with the KV page-token store, docs, and the real `PAGE_TOKENS` namespace id in `wrangler.toml`. No product task is in progress.
 
 ## Objective
 
@@ -33,15 +34,20 @@ Await the user's next request. Do not start new product work unprompted.
 
 ## Current Blocker
 
-None. M-0003 is closed and the AAW 0.8.2 upgrade is applied.
+None. The `PAGE_TOKENS` namespace id is configured in `wrangler.toml`; deploy with `npx wrangler deploy` when ready. Local `wrangler dev` uses local Miniflare KV.
 
 ## Relevant Files
 
+- `.aaw/tasks/done/T-0015-page-url-kv-tokens.md`
 - `.aaw/tasks/done/T-0014-readme-shorter-paragraphs.md`
 - `.aaw/tasks/done/T-0013-resolver-shorts-api-nav.md`
 - `.aaw/milestones/M-0003-filter-topbar-settings.md`
 - `README.md`
 - `worker.js`
+- `wrangler.toml`
+- `ARCHITECTURE-MAP.md`
+- `.aaw/project.md`
+- `.aaw/constraints.md`
 - `public/tools.html`
 - `public/index.html`
 - `public/settings.html`
@@ -57,7 +63,7 @@ None. M-0003 is closed and the AAW 0.8.2 upgrade is applied.
 
 ## Verification Snapshot
 
-Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. AAW 0.8.2 upgrade applied 2026-11-09 (control-plane only). No active task.
+Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. AAW 0.8.2 upgrade applied 2026-11-09 (control-plane only). T-0015 (2026-11-09) COMPLETE + HDT PASS (user report "all test pass"): 14/14 worker harness (KV page map, TTL 604800, hash, clamp, fallback, legacy token, playlist, cache HIT = no KV) + 10/10 Playwright (page URL/reload/Back/Forward/fallback/mobile, 0 console errors) + `node --check` + inline scripts + dry-run (`PAGE_TOKENS` = real id) + wrangler dev smoke. Committed.
 
 Evidence:
 
@@ -90,11 +96,11 @@ See `.aaw/commit-policy.md`.
 
 ## Last Checkpoint
 
-chore: upgrade adaptive agent workflow to 0.8.2
+feat: remember search pagination with ?page= and KV page tokens
 
 ## README Status
 
-README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapped at ≤100 chars (widest rendered line 665.9px), troubleshooting converted from a wide table to a scannable list, same topics/facts/links preserved (features, shortcuts, tools, settings, how it works, setup A/B/C, key setup, everyday use, quotas, troubleshooting, layout, contributors, notes, disclaimer, license); stale `#add-your-api-key-all-methods` anchor fixed. Earlier T-0013 details remain accurate.
+README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapped at ≤100 chars (widest rendered line 665.9px), troubleshooting converted from a wide table to a scannable list, same topics/facts/links preserved (features, shortcuts, tools, settings, how it works, setup A/B/C, key setup, everyday use, quotas, troubleshooting, layout, contributors, notes, disclaimer, license); stale `#add-your-api-key-all-methods` anchor fixed. T-0015 updated the share/bookmark lines to mention the result page (`?page=`) and unvisited pages. Earlier T-0013 details remain accurate.
 
 ## Important Context
 
@@ -105,7 +111,8 @@ README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapp
 - B-0001 COMPLETE in `.aaw/bug-fixes/done/` (results-card meta RTL order; fixed in the same review as T-0012 rev 7; HDT PASS 2026-10-19).
 - AAW migrated 0.7.4 -> 0.8.0 on 2026-10-22: AAW-managed state/policies moved from `dev/` to `.aaw/`; manifest schema 2; no product task created.
 - AAW upgraded 0.8.0 -> 0.8.2 on 2026-11-09: routine control-plane upgrade; `.aaw/` layout and schema 2 preserved; lifecycle now requires `AWAITING_USER_REVIEW` before closing any task; no product task created.
-- Product work is committed. The AAW 0.8.2 upgrade is a control-plane checkpoint only (ignored local `.env`, `data/`, and `.wrangler/` state remain).
+- T-0015 COMPLETE: pseudonymous server-side storage (param hash + opaque page token, 7-day TTL, no identity/IP); `.aaw/constraints.md` and `.aaw/security.md` are updated. The real `PAGE_TOKENS` namespace id is in `wrangler.toml`.
+- All product work through T-0015 is committed. The AAW 0.8.2 upgrade is a control-plane checkpoint only (ignored local `.env`, `data/`, and `.wrangler/` state remain).
 
 ## Do Not Change
 

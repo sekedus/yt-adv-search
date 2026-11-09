@@ -1231,7 +1231,7 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
 
 @media (max-width: 700px) {
   .jumpbtns {
-    right: 12px;
-    bottom: 12px;
+    bottom: 0;
+    flex-direction: row;
   }
 }

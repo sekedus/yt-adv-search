@@ -466,6 +466,9 @@
       return raw.trim() || raw;
     }
     var scopedChannel = "";
+    /* T-0015: current result page (1-based). The URL carries ?page=N only
+     * when N > 1; page tokens stay server-side in KV. */
+    var currentPage = 1;
     var resultBar = $(".resultbar");
     var viewBar = $(".view"), pagerEl = $(".pager");
     /* Read q the same way as the Worker: only %20/literal spaces are spaces;
@@ -497,6 +500,12 @@
       } else {
         qInput.value = "";
       }
+
+      /* T-0015: page number from the URL (clamped like the Worker). */
+      var pageV = parseInt(qs.get("page") || "1", 10);
+      if (isNaN(pageV) || pageV < 1) pageV = 1;
+      if (pageV > 20) pageV = 20;
+      currentPage = pageV;
 
       scopedChannel = (qs.get("channel") || qs.get("channelId") || "").trim();
       var pick = function (k, fb) { var v = qs.get(k); return v === null || v === "" ? fb : v; };
@@ -575,6 +584,7 @@
       var u = new URLSearchParams();
       var q = keywordValue();
       if (q) u.set("q", q);
+      if (currentPage > 1) u.set("page", String(currentPage));
       if (scopedChannel) u.set("channel", scopedChannel);
       var dateV = checkedRadio("date"), typeV = checkedRadio("type");
       var durV = checkedRadio("dur"), orderV = checkedRadio("order");
@@ -843,7 +853,7 @@
       return { q: q, scoped: false };
     }
 
-    function buildParams(pageToken) {
+    function buildParams(page) {
       var p = new URLSearchParams();
       var q = keywordValue();
       if (q) p.set("q", q);
@@ -960,7 +970,10 @@
       if (region) p.set("regionCode", region);
       if (lang) p.set("relevanceLanguage", lang);
       if (enrichBox.checked) p.set("enrich", "true");
-      if (pageToken) p.set("pageToken", pageToken);
+      /* T-0015: page numbers replace opaque tokens. The API request always
+       * carries the page (the Worker stores the page-2 token on page 1);
+       * the browser URL stores it only when it is > 1. */
+      if (page) p.set("page", String(page));
 
       storeSet("ytas.maxResults", maxSel.value);
       storeSet("ytas.order", orderV);
@@ -1095,6 +1108,8 @@
 
     /* Reset every filter control to its default (keyword kept). */
     function resetFilters() {
+      /* A reset starts a fresh result set; the next search is page 1. */
+      currentPage = 1;
       setRadio("date", "any", "any");
       setRadio("type", "any", "any");
       setRadio("dur", "any", "any");
@@ -1145,8 +1160,13 @@
       return "/api/search?" + urlQueryString(params);
     }
 
-    function runSearch(pageToken, opts) {
-      var built = buildParams(pageToken);
+    /* T-0015: `page` is a 1-based number; tokens stay on the Worker. */
+    function runSearch(page, opts) {
+      var n = parseInt(page, 10);
+      if (isNaN(n) || n < 1) n = 1;
+      if (n > 20) n = 20;
+      currentPage = n;
+      var built = buildParams(n);
       var fresh = !!(opts && opts.fresh);
       if (fresh) built.params.set("fresh", "1");
       if (!hasKeyword() && !built.playlistScoped) {
@@ -1178,14 +1198,28 @@
           var items = out.data.items || [];
           pageTokens.prev = out.data.prevPageToken || null;
           pageTokens.next = out.data.nextPageToken || null;
-          prevBtn.disabled = !pageTokens.prev;
-          nextBtn.disabled = !pageTokens.next;
+          var shownPage = parseInt(out.data.page, 10);
+          if (!isNaN(shownPage) && shownPage > 0) currentPage = Math.min(20, shownPage);
+          var fallbackPage = 0;
+          if (out.data.pageFallback) {
+            fallbackPage = parseInt(out.data.pageFallback, 10) || 0;
+            currentPage = 1;
+            // The requested page could not be resolved; drop it from the URL.
+            syncURL("replace");
+          }
+          // Old responses only carry tokens; new ones carry hasPrev/hasNext.
+          var hasPrev = out.data.hasPrev !== undefined ? !!out.data.hasPrev : !!pageTokens.prev;
+          var hasNext = out.data.hasNext !== undefined ? !!out.data.hasNext : !!pageTokens.next;
+          prevBtn.disabled = !hasPrev;
+          nextBtn.disabled = !hasNext;
           if (items.length === 0) {
             setStatus("No results.", false);
             return;
           }
           var shown = items;
           var note = shown.length + " result" + (shown.length === 1 ? "" : "s") + ".";
+          if (currentPage > 1) note += " (page " + currentPage + ")";
+          if (fallbackPage) note += " (page " + fallbackPage + " unavailable — showing page 1)";
           if (built.coerced) note += " (Video-only filters: type set to Video.)";
           if (built.channeled) note += " (Channel-type filter: type set to Channel.)";
           if (built.scoped || scopedChannel) note += " (channel-scoped)";
@@ -1209,7 +1243,7 @@
       ev.preventDefault();
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
       syncSearchBtn();
-      runSearch(null, { push: true });
+      runSearch(1, { push: true });
       try {
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       } catch (e2) { /* blur is best-effort */ }
@@ -1217,15 +1251,22 @@
     $(".apply-btn").addEventListener("click", function () {
       try { filtersPanel.open = false; } catch (e) { /* no details support */ }
       syncSearchBtn();
-      runSearch(null, { push: true });
+      runSearch(1, { push: true });
     });
     $(".reset-btn").addEventListener("click", function () {
       resetFilters();
     });
-    prevBtn.addEventListener("click", function () { if (pageTokens.prev) runSearch(pageTokens.prev); });
-    nextBtn.addEventListener("click", function () { if (pageTokens.next) runSearch(pageTokens.next); });
+    /* T-0015: page navigation is a number, pushed to history so Back works. */
+    prevBtn.addEventListener("click", function () {
+      if (currentPage > 1) runSearch(currentPage - 1, { push: true });
+    });
+    nextBtn.addEventListener("click", function () {
+      if (!nextBtn.disabled) runSearch(currentPage + 1, { push: true });
+    });
     /* T-0010: hot reload bypasses the worker result cache (?fresh=1). */
-    refreshBtn.addEventListener("click", function () { runSearch(null, { push: false, fresh: true }); });
+    refreshBtn.addEventListener("click", function () {
+      runSearch(currentPage, { push: false, fresh: true });
+    });
     /* T-0010: floating top/bottom jump buttons (bottom-right). Each button
      * stays hidden until it is useful: Top after scrolling down, Bottom
      * while more page sits below. Uses the `hidden` property (CSS already
@@ -1265,7 +1306,7 @@
       if (hasKeyword() || hasPlaylistScope()) {
         try { filtersPanel.open = false; } catch (e) { /* no details support */ }
         syncSearchBtn();
-        runSearch(null);
+        runSearch(currentPage);
       } else {
         // Homepage (no usable q, with or without a query string):
         // mobile closes the filter, desktop opens it.
@@ -1286,7 +1327,7 @@
       if (ev && ev.persisted) applyHistoryState();
     });
 
-    if (hasKeyword() || hasPlaylistScope()) runSearch(null);
+    if (hasKeyword() || hasPlaylistScope()) runSearch(currentPage);
     })();
   </script>
   <script src="/input-clear.js"></script>

@@ -27,7 +27,8 @@ Open **Filters** to narrow results by:
 - video quality: definitions, captions, licenses, and dimensions;
 - sort order.
 
-Filters are kept in the page URL, so you can bookmark or share a search.
+Filters and the result page are kept in the page URL, so you can bookmark or share a
+search (for example `/?q=pixel&page=3`).
 
 Inside a channel or playlist, videos that YouTube treats as Shorts get a **Shorts** badge.
 
@@ -194,8 +195,8 @@ Put the key in `.env` as shown above.
 ## Everyday use
 
 - **First search to try:** `handle:@madebygoogle pixel` with the **This month** filter.
-- **Share a search:** copy the page URL after searching. Filters and shortcuts are in
-  the link.
+- **Share a search:** copy the page URL after searching. Filters, shortcuts, and the
+  result page are in the link. Pages with no stored token yet show page 1 instead.
 - **Save quota:** leave **Extra duration + views** off in Settings unless you need it.
   Raise **Max cache time** if you repeat searches (30 minutes by default). Search
   results follow that setting; channel lookups (7 days) and categories (1 month) are
