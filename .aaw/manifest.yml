@@ -1,6 +1,7 @@
 # Adaptive Agent Workflow project manifest
 # Authoritative installed-workflow metadata.
+# AAW_SCHEMA 2 identifies the 0.8.x workflow-state layout rooted at .aaw/.
 AAW_ID: adaptive-agent-workflow
 AAW_SOURCE: https://github.com/sekedus/adaptive-agent-workflow
-AAW_VERSION: 0.8.0
+AAW_VERSION: 0.8.2
 AAW_SCHEMA: 2

@@ -18,14 +18,16 @@ HDT is normally `NOT_REQUIRED` for docs-only, typo-only, formatting-only, intern
 implementation
   -> agent runs applicable automated checks
   -> decide HDT requirement
-  -> NOT_REQUIRED: record evidence, mark COMPLETE, move to done/, then commit checkpoint
+  -> NOT_REQUIRED: record evidence, set AWAITING_USER_REVIEW; keep task active
   -> REQUIRED: set AWAITING_HDT; keep task active; provide manual/runtime steps
   -> user reports observations
-  -> PASS: record evidence, mark COMPLETE, move to done/, then commit checkpoint
+  -> PASS: record evidence, set AWAITING_USER_REVIEW; keep task active
   -> FAIL/unclear: keep task active; investigate/fix or request missing evidence; repeat relevant test
+  -> user review: no further changes -> COMPLETE, move to done/, then commit checkpoint
+  -> user review: related small change -> update task, implement, re-verify, then return to the appropriate gate
 ```
 
-A required-HDT task must not be marked `COMPLETE`, moved into a `done/` folder, or offered the normal completed-task commit checkpoint while HDT is pending or failed. The active task remains the current task in `.aaw/now.md`. If the user declines a required HDT, set HDT status to `DECLINED`, record the gap, and leave the task active as `AWAITING_HDT` (or `BLOCKED` if an actual blocker prevents testing). Do not silently waive the gate or repeatedly ask the same question in every response. An explicitly requested partial checkpoint commit does not change task completion or verification status.
+A task must not be marked `COMPLETE`, moved into a `done/` folder, or offered the normal completed-task commit checkpoint while HDT is pending/failed or the pre-close user review is unanswered. This applies even when HDT is `NOT_REQUIRED`. The active task remains the current task in `.aaw/now.md`. If the user declines a required HDT, set HDT status to `DECLINED`, record the gap, and leave the task active as `AWAITING_HDT` (or `BLOCKED` if an actual blocker prevents testing). Do not silently waive the gate or repeatedly ask the same question in every response. An explicitly requested partial checkpoint commit does not change task completion or verification status.
 
 ## Automated Verification Is Agent-Owned
 
@@ -45,9 +47,9 @@ Automated verification (run by agent):
 - npm test — PASS (159/159)
 - npm run compile — PASS
 
-HDT: NOT_REQUIRED — the project verification contract says these checks cover this toolchain-only change.
-Task: COMPLETE; moved to done/.
-[Offer/perform commit according to policy.]
+HDT: NOT_REQUIRED — the project verification contract says these checks cover this change.
+Task: AWAITING_USER_REVIEW; task remains active.
+Ask whether the user wants any related revisions/additions before closing. Do not move to done/ or offer the normal completion commit yet.
 ```
 
 Do not append "How to verify" instructions asking the user to rerun the same commands.
@@ -83,6 +85,6 @@ Do not make the user translate internal implementation details into a test plan.
 
 Treat the user's report as evidence, not as an unconditional status command.
 
-- Clear PASS evidence completes the HDT gate.
+- Clear PASS evidence completes the HDT gate and moves the task to `AWAITING_USER_REVIEW`; it does not itself close the task.
 - Clear FAIL evidence requires investigation/fix and another relevant verification step.
 - Incomplete or ambiguous evidence requires one targeted follow-up.

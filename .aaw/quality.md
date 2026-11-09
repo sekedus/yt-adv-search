@@ -343,15 +343,19 @@ Never convert "no obvious issue found" into "secure", "bug-free", or "production
 A task is not considered operationally complete until the agent has:
 
 ```text
-run applicable automated checks
+run applicable automated checks and record results
   -> resolve HDT requirement
-  -> if required: user HDT report PASS
-  -> only then mark COMPLETE and move to done/
-  -> synchronize task/roadmap/now
+  -> if required: keep active as AWAITING_HDT until user reports PASS
   -> review README impact
+  -> set AWAITING_USER_REVIEW and ask about related revisions/additions
+  -> if changes requested: triage them and re-verify affected checks
+  -> if no changes requested: mark COMPLETE and move to done/
+  -> synchronize task/milestone/roadmap/now
   -> state-integrity check
   -> offer/perform commit according to policy
 ```
+
+`HDT: NOT_REQUIRED` skips the human test round, not the user-review gate. Do not mark the task complete, move it to `done/`, or offer the normal completed-task commit before the user answers the pre-close review.
 
 If HDT is `REQUIRED` but pending, failed, or declined, the task remains active as `AWAITING_HDT` (or `BLOCKED` for an actual blocker). Do not offer the normal completed-task commit checkpoint yet. Do not ask the user to rerun automated checks that the agent already executed successfully.
 

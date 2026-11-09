@@ -1,6 +1,6 @@
 # Adaptive Agent Workflow
 
-**Workflow version: 0.8.0**
+**Workflow version: 0.8.2**
 
 ## 0. AAW Maintenance and Migration
 
@@ -9,13 +9,13 @@ AAW installation, upgrade, downgrade, repair, and migration are control-plane op
 Examples:
 
 ```text
-update adaptive-agent-workflow to 0.8.0
-update AAW to v0.8.0
+update adaptive-agent-workflow to 0.8.2
+update AAW to v0.8.2
 upgrade aaw
-migrate this project to AAW 0.8.0
+migrate this project to AAW 0.8.2
 ```
 
-Legacy labels normalize as `v6 -> 0.6.0` and `v7 -> 0.7.0`. The installed version is read from `.aaw/manifest.yml`, where `AAW_VERSION` is authoritative. Older projects without the manifest must be identified from concrete repository evidence; uncertain versions are a reason to stop rather than guess.
+Legacy labels normalize as `v6 -> 0.6.0`, `v7 -> 0.7.0`, `v7.1 -> 0.7.1`, and so on. The installed version is read from `.aaw/manifest.yml`, where `AAW_VERSION` is authoritative. Older projects without the manifest must be identified from concrete repository evidence; uncertain versions are a reason to stop rather than guess.
 
 During migration:
 
@@ -38,7 +38,7 @@ First triage multiple requested items into the smallest coherent deliverables. S
 
 ## Completion and HDT Gate
 
-The agent runs applicable automated checks and reports their actual results. Do not ask the user to rerun an automated command that the agent already executed successfully. Use `.aaw/verification.md` to set each task's effective HDT requirement to `REQUIRED` or `NOT_REQUIRED`. If required, the task remains active as `AWAITING_HDT` until a sufficient user-reported PASS is recorded. Only then may the task be marked `COMPLETE`, moved to `.aaw/tasks/done/`, and enter the normal commit policy. Failed, unclear, or declined required HDT leaves the task active and the evidence gap explicit. If HDT is not required and automated evidence is sufficient, complete/move/commit without an unnecessary human verification round.
+The agent runs applicable automated checks and reports their actual results. Do not ask the user to rerun an automated command that the agent already executed successfully. Use `.aaw/verification.md` to set each task's effective HDT requirement to `REQUIRED` or `NOT_REQUIRED`. After the verification gate passes, every task enters `AWAITING_USER_REVIEW`; this applies even when HDT is `NOT_REQUIRED`. If required, the task remains active as `AWAITING_HDT` until a sufficient user-reported PASS is recorded. Only then may the task be marked `COMPLETE`, moved to `.aaw/tasks/done/`, and enter the normal commit policy. Failed, unclear, or declined required HDT leaves the task active and the evidence gap explicit. If HDT is not required and automated evidence is sufficient, skip the human test round but still enter `AWAITING_USER_REVIEW`; do not complete, move, or commit the task until the user review finds no further changes are needed.
 
 ## Harness Portability
 
@@ -391,7 +391,7 @@ If implementation depends on a meaningful user decision, record a `Pending Decis
 
 ### Human Development Test
 
-Resolve HDT as `REQUIRED` or `NOT_REQUIRED` using the project's verification contract. If required, the task remains active as `AWAITING_HDT` until a sufficient user report passes; do not mark it `COMPLETE`, move it to `done/`, advance the current task, or offer the normal completion commit checkpoint before then. On FAIL/unclear evidence, investigate/fix or ask a targeted follow-up. See `.aaw/hdt.md`.
+Resolve HDT as `REQUIRED` or `NOT_REQUIRED` using the project's verification contract. If required, the task remains active as `AWAITING_HDT` until a sufficient user report passes. After PASS—or after automated checks when HDT is `NOT_REQUIRED`—set `AWAITING_USER_REVIEW` and ask whether the user wants related revisions/additions before closing. Do not mark the task `COMPLETE`, move it to `done/`, or offer the normal completion commit checkpoint until the user confirms no further changes are needed. On FAIL/unclear evidence, investigate/fix or ask a targeted follow-up. See `.aaw/hdt.md`.
 
 ### Canonical record metadata and cancellation
 
@@ -409,7 +409,7 @@ Successful test evidence remains valid if the relevant implementation, tests, de
 
 After meaningful implementation, briefly explain what changed and why, then choose one consistent verification report:
 
-- `NOT_REQUIRED`: report automated checks the agent actually ran and their outcomes. Do not ask the user to rerun them or provide duplicate manual verification steps.
+- `NOT_REQUIRED`: report automated checks the agent actually ran and their outcomes. Do not ask the user to rerun them or provide duplicate manual HDT steps. The task still enters `AWAITING_USER_REVIEW` before closure.
 - `REQUIRED`: provide concise, beginner-friendly human/runtime steps, expected behavior, and what to report if it fails. Keep the task active until PASS.
 
 Do not say HDT is not required and then ask the user to verify the same change manually. The `/wait-what` skill is optional; this communication contract is core AAW behavior.
@@ -532,7 +532,7 @@ Active work belongs in `.aaw/tasks/`. Standalone meaningful bug-fix records belo
 
 A task is a bounded work unit, not one user message or one bullet point. Before creating records, group related small changes when they share an outcome, acceptance criteria, and verification boundary. Do not split work just to mirror the user's bullet list, and do not create a milestone when the final decomposition is one task. A single task completes/cancels on its own without any milestone status.
 
-A new small request may join an active task when scope, domain, acceptance criteria, and verification boundary genuinely align. Otherwise, create a separate task or park it. Small task files should stay small; do not fill a tiny task with large planning/history sections merely because a template contains them.
+A new small request may join an active task when scope, domain, acceptance criteria, and verification boundary genuinely align. If unrelated to an unfinished task, add it to `.aaw/parking-lot.md`; if the current task is ready to close, close it first and create a separate task for unrelated work when the user wants to proceed. Small task files should stay small; do not fill a tiny task with large planning/history sections merely because a template contains them.
 
 ### Milestones
 
@@ -575,7 +575,7 @@ Task completion is also a state transaction: verify the task, synchronize affect
 
 At AAW 0.5.0, commit policy had only `initial` and `task` settings. Current releases use three independent settings—`initial`, `planning`, and `task`—as defined in `.aaw/commit-policy.md`. Auto-commit requires checkpoint-appropriate checks, state-integrity checks, and a commit scope containing only attributable checkpoint changes.
 
-The template repository's own root README is agent-facing documentation and is not copied verbatim into target projects. For an empty/new project, the agent generates a user-facing README from the actual project state. Existing project READMEs are preserved and updated only when project understanding materially changes.
+The template repository's root README is a human-friendly introduction to AAW and includes a short agent-routing section. It is not copied verbatim into target projects. For an empty/new project, generate a user-facing README from actual project facts; preserve an existing project README and update it only when project understanding materially changes.
 
 ## Historical: 0.7.0 Engineering Discipline Summary
 
@@ -632,3 +632,8 @@ The 0.7.3 layer clarifies two lifecycle boundaries:
 ## 0.7.4 Lifecycle Integrity
 
 The 0.7.4 layer adds explicit task/milestone/bug-record frontmatter, `CANCELLED` task handling, reason-preserving milestone strikethroughs, linked-milestone reconciliation on each task transition, a `planning` commit checkpoint, and evidence reuse for metadata/documentation-only state transactions. A milestone whose non-empty task list is entirely cancelled is `CANCELLED`; it is not reported as successfully completed. Version 0.8.0 moves workflow-managed state under `.aaw/` and requires task-first triage: no milestone when one task file is enough.
+
+
+### Missing referenced inputs
+
+When a prompt refers to an attached file, image, screenshot, archive, or other supplied input, verify that it is accessible. If a required input is missing, do not guess its contents or ask the user to repeat the whole prompt. Ask directly for the missing input, preserve the existing request/task context, and continue the same work when it is supplied. Continue only independent work that does not depend on it.

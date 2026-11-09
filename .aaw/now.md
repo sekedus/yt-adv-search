@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-IDLE (AAW 0.8.0 migration applied 2026-10-22; M-0003 COMPLETE; T-0014 COMMITTED; no active task)
+IDLE (AAW 0.8.2 upgrade applied 2026-11-09; M-0003 COMPLETE; T-0014 COMMITTED; no active task)
 
 ## State Integrity
 
@@ -21,7 +21,7 @@ None — no active task. Last task: T-0014 (README rewrite, docs-only, COMPLETE 
 
 ## Current Step
 
-M-0003 is closed and product work is committed. The AAW 0.8.0 control-plane migration is committed; no product task is in progress.
+M-0003 is closed and product work is committed. The AAW 0.8.2 control-plane upgrade is applied; no product task is in progress.
 
 ## Objective
 
@@ -33,7 +33,7 @@ Await the user's next request. Do not start new product work unprompted.
 
 ## Current Blocker
 
-None. M-0003 is closed and the AAW 0.8.0 migration is committed.
+None. M-0003 is closed and the AAW 0.8.2 upgrade is applied.
 
 ## Relevant Files
 
@@ -57,9 +57,11 @@ None. M-0003 is closed and the AAW 0.8.0 migration is committed.
 
 ## Verification Snapshot
 
-Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. No active task.
+Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. AAW 0.8.2 upgrade applied 2026-11-09 (control-plane only). No active task.
 
 Evidence:
+
+- AAW 0.8.2 upgrade (2026-11-09): workflow-owned files reconciled against the official 0.8.2 template (`AGENTS.md`, Copilot adapter, workflow spec/migration/installation docs, `.aaw` policies, task template, manifest); project state, tasks, milestones, bug records, and README preserved; manifest reports `AAW_VERSION: 0.8.2` / `AAW_SCHEMA: 2`; no live workflow reference points at the legacy `dev/` state layout or an older control-plane version (historical migration tables and version history remain intentionally); state integrity checked; no product task created or executed.
 
 - T-0014 automated PASS (2026-10-22): README structure check 0 prose lines >100 chars, 12 fences balanced, `<details>` 1/1, `<picture>` 2/2, 26 headings, 16 links / 0 broken anchors or relative targets, 27/27 required topic keywords; Chromium line-width probe (GitHub-like 16px) 138 lines measured, widest 665.9px (< ~900px target); diff vs `HEAD:README.md` 0 URLs added/removed, no numeric facts lost, commands unchanged (only Project layout descriptions shortened); GitHub-API render + 4 Chromium screenshots at 1280px reviewed. Fixed stale `#add-your-api-key-all-methods` anchor to `#add-your-api-key`.
 
@@ -88,7 +90,7 @@ See `.aaw/commit-policy.md`.
 
 ## Last Checkpoint
 
-chore: migrate adaptive agent workflow to 0.8.0 (schema 2)
+chore: upgrade adaptive agent workflow to 0.8.2
 
 ## README Status
 
@@ -102,7 +104,8 @@ README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapp
 - T-0014 COMPLETE (standalone docs; README beginner rewrite; no milestone).
 - B-0001 COMPLETE in `.aaw/bug-fixes/done/` (results-card meta RTL order; fixed in the same review as T-0012 rev 7; HDT PASS 2026-10-19).
 - AAW migrated 0.7.4 -> 0.8.0 on 2026-10-22: AAW-managed state/policies moved from `dev/` to `.aaw/`; manifest schema 2; no product task created.
-- No uncommitted product changes remain. The AAW 0.8.0 migration was committed as a control-plane checkpoint (ignored local `.env`, `data/`, and `.wrangler/` state remain).
+- AAW upgraded 0.8.0 -> 0.8.2 on 2026-11-09: routine control-plane upgrade; `.aaw/` layout and schema 2 preserved; lifecycle now requires `AWAITING_USER_REVIEW` before closing any task; no product task created.
+- Product work is committed. The AAW 0.8.2 upgrade is a control-plane checkpoint only (ignored local `.env`, `data/`, and `.wrangler/` state remain).
 
 ## Do Not Change
 

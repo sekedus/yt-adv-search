@@ -66,3 +66,7 @@ HDT is REQUIRED for T-0002, T-0003, T-0004 (real UI/runtime behavior). NOT_REQUI
 - `UNVERIFIED` — evidence is incomplete.
 
 Resolve each task's `hdt_requirement` from this contract and record the reason in the task. A `REQUIRED` HDT blocks completion until PASS. Run agent checks yourself; do not ask users to repeat passed commands.
+
+## Pre-Close User Review
+
+After the verification gate passes, every task enters `AWAITING_USER_REVIEW` and remains active until the user confirms no related revisions or additions are needed. This applies to both `REQUIRED` and `NOT_REQUIRED` HDT paths; `HDT: NOT_REQUIRED` skips the human test round, not the pre-close review. Only after that confirmation may the task be marked `COMPLETE`, moved to `.aaw/tasks/done/`, and offered the task commit checkpoint.

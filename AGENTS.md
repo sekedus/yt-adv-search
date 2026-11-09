@@ -1,6 +1,6 @@
 # Adaptive Agent Workflow — Project Rules
 
-> AAW_VERSION: 0.8.0
+> AAW_VERSION: 0.8.2
 > Canonical version metadata: `.aaw/manifest.yml`
 > Canonical AAW source: `https://github.com/sekedus/adaptive-agent-workflow`
 
@@ -20,10 +20,10 @@ Adaptive Agent Workflow maintenance is a **control-plane operation**, not produc
 Before routing a natural-language request into normal project work, detect whether the user is asking to install, upgrade, downgrade, repair, migrate, or otherwise maintain AAW itself. Examples:
 
 ```text
-update adaptive-agent-workflow to 0.8.0
-update AAW to v0.8.0
+update adaptive-agent-workflow to 0.8.2
+update AAW to v0.8.2
 upgrade aaw
-migrate this project to AAW 0.8.0
+migrate this project to AAW 0.8.2
 ```
 
 Normalize legacy release labels:
@@ -125,10 +125,12 @@ After bootstrap:
 - no product task should be invented merely to populate `.aaw/tasks/`;
 - task IDs begin at `T-0001` only after the first real product/work requirement is defined.
 
+For installation into a project that does not already use AAW, follow `docs/workflow/aaw-installation.md`. For an existing AAW installation, use `docs/workflow/aaw-migration.md`; do not treat an upgrade as a fresh install.
+
 For an empty/new project:
 
 1. Install the workflow files.
-2. Create a user-facing root `README.md` describing the actual project state. Do not copy the template repository's agent-oriented root README verbatim.
+2. Create a user-facing root `README.md` describing the actual project state. The template repository README is a human-friendly introduction to AAW plus a short agent-routing section, but it is still template documentation—not the target project's README.
 3. Initialize `.aaw/project.md`, `.aaw/constraints.md`, `.aaw/quality.md`, `.aaw/security.md`, `.aaw/roadmap.md`, `.aaw/now.md`, and `.aaw/verification.md` to reflect the real project.
 4. Initialize `ARCHITECTURE-MAP.md` as the project's living codebase map.
 5. Set the workflow state to `DISCOVERY_PENDING` until a real project objective exists.
@@ -140,7 +142,7 @@ For an existing project:
 - merge workflow files with existing project-specific instructions;
 - reconcile project state before claiming installation is complete, including `ARCHITECTURE-MAP.md` and `.aaw/verification.md` when applicable.
 
-Never copy the template source repository's root `README.md` into an existing project merely because it exists in the template. That README is documentation for agents and for the template itself.
+Never copy the template source repository's root `README.md` into a target project merely because it exists in the template. Preserve an existing project README; for a new project, write one from the actual project facts.
 
 ---
 
@@ -254,6 +256,17 @@ Clear action-oriented requests normally permit implementation within scope.
 
 When intent is uncertain, prefer the least destructive interpretation.
 
+### Missing referenced inputs
+
+If the user says to use an attached/provided file, image, screenshot, archive, or other input, verify that it is actually accessible in the current conversation or workspace before relying on it. If a required input is missing:
+
+- do not infer its contents from its filename, the user's description, or unrelated context;
+- do not begin changes whose correctness depends on that input;
+- ask one direct question requesting the missing input, without asking the user to repeat the rest of the prompt;
+- preserve the original request and current task context, then continue the same work when the input is supplied.
+
+Continue only independent work that does not depend on the missing input. Do not create a speculative task solely to represent a missing attachment.
+
 ---
 
 ## 8. Scope Control
@@ -269,7 +282,12 @@ Do not silently:
 - add nice-to-have features;
 - rewrite working code without evidence.
 
-Unrelated ideas go to `.aaw/parking-lot.md` or become a separate task.
+Handle requests unrelated to the active task according to its lifecycle:
+
+- If the active task is still unfinished, do not interrupt it or silently expand its scope. Add the unrelated idea/request to `.aaw/parking-lot.md` with a concise description and why it is deferred. Tell the user it has been parked.
+- If the active task has already reached the pre-close user-review stage and the user explicitly wants to pursue the unrelated request, recommend closing the current task first and then create a separate task for the new request.
+- Do not create a separate active task for unrelated work while another task is unfinished unless the user explicitly asks to plan it; in that case, create it as `PLANNED` and do not start it.
+- Remove a parking-lot entry when it is promoted into a task, rejected, or deliberately dropped. Do not leave duplicate copies in the parking lot after promotion.
 
 A bare confirmation such as `yes`, `do that`, or `go ahead` refers only to the immediately preceding actionable proposal. Resolve exactly what that proposal means before executing it.
 
@@ -448,10 +466,9 @@ IMPLEMENT
 
 NOT_REQUIRED:
   -> record automated evidence
-  -> COMPLETE
-  -> move task to done/
-  -> reconcile state
-  -> offer/perform commit according to policy
+  -> set task status AWAITING_USER_REVIEW
+  -> keep task active and current in now.md
+  -> ask whether the user wants any related revisions/additions before closing
 
 REQUIRED:
   -> record automated evidence
@@ -459,15 +476,21 @@ REQUIRED:
   -> keep task in the active folder and as the current task in now.md
   -> give the user concise manual/runtime steps and expected result
   -> evaluate the user's report
-  -> PASS: record evidence, mark COMPLETE, move to done/, reconcile state, then commit checkpoint
+  -> PASS: record evidence, set AWAITING_USER_REVIEW, and ask whether related revisions/additions are needed
   -> FAIL/unclear: keep task active; investigate/fix or request only the missing evidence; repeat the relevant HDT
+
+AWAITING_USER_REVIEW:
+  -> no additions: mark COMPLETE, move to done/, reconcile state, then commit checkpoint
+  -> small related addition within the same acceptance boundary: update scope/criteria, implement, re-verify affected checks, and return to the appropriate gate
+  -> large related addition: explain why a separate task is safer and ask whether to split
+  -> unrelated addition: if current task is unfinished, park it; if current task is ready to close, close it and create a separate task for the new request when the user wants to proceed
 ```
 
 Do not mark a required-HDT task `COMPLETE`, move it to `done/`, advance the current task, or offer the normal completed-task commit checkpoint before HDT passes. If the user declines a required HDT, set the task's HDT status to `DECLINED`, keep the task active as `AWAITING_HDT` (or `BLOCKED` when there is a concrete blocker), and record the evidence gap; do not silently waive it or repeatedly ask the same question in every response. If the user explicitly asks for a partial checkpoint commit, that commit does not make the task complete or verified.
 
-A task or standalone bug-fix record with `HDT: NOT_REQUIRED` does not need a user verification round. Run the applicable commands/checks yourself when tools and environment allow, record actual outcomes, and report them. **Do not ask the user to rerun the same `lint`, `test`, `compile`, type-check, or other automated command that you already executed successfully.** Reuse successful evidence if no relevant implementation/test input changed. Status/frontmatter edits, moving a Markdown record, and synchronizing roadmap/milestone/now do not by themselves require application tests to run again. Run only documentation/state-integrity checks appropriate to documentation-only changes. If relevant source, tests, dependencies, or config changed after verification, rerun only the affected checks. If you cannot run an applicable check, state exactly why and mark it unverified; only ask the user to run it when their environment is genuinely required or tool access is unavailable.
+A task or standalone bug-fix record with `HDT: NOT_REQUIRED` does not need a human test round. Run the applicable commands/checks yourself when tools and environment allow and record actual outcomes. It must still enter `AWAITING_USER_REVIEW`; `NOT_REQUIRED` skips HDT, not the pre-close user review. **Do not ask the user to rerun the same `lint`, `test`, `compile`, type-check, or other automated command that you already executed successfully.** Reuse successful evidence if no relevant implementation/test input changed. Status/frontmatter edits, moving a Markdown record, and synchronizing roadmap/milestone/now do not by themselves require application tests to run again. Run only documentation/state-integrity checks appropriate to documentation-only changes. If relevant source, tests, dependencies, or config changed after verification, rerun only the affected checks. If you cannot run an applicable check, state exactly why and mark it unverified; only ask the user to run it when their environment is genuinely required or tool access is unavailable.
 
-When a task is complete and verified, move its tracked file to `.aaw/tasks/done/` using `git mv` when possible. Preserve the existing content and make only necessary metadata/state edits; verify the move with `git diff --summary --find-renames`. Git infers rename presentation from content similarity; do not create extra commits just to force a displayed rename. If the task file has never existed in the parent commit, adding it directly at its final path is correct.
+When a task has passed its verification gate and the user has answered the pre-close review with no further changes, mark it complete and move its tracked file to `.aaw/tasks/done/` using `git mv` when possible. Preserve the existing content and make only necessary metadata/state edits; verify the move with `git diff --summary --find-renames`. Git infers rename presentation from content similarity; do not create extra commits just to force a displayed rename. If the task file has never existed in the parent commit, adding it directly at its final path is correct.
 
 A cancelled task is never moved to `done/`. A standalone bug-fix record follows the same verification gate: it cannot be marked complete/closed or moved to `done/` until all required checks pass and required HDT has a recorded PASS. Cancelled standalone bug records use `.aaw/bug-fixes/cancelled/`.
 
@@ -486,7 +509,7 @@ Active folders should remain easy to scan. Git preserves historical movement.
 
 ### Verification Completed
 
-Use the project-specific contract in `.aaw/verification.md`. Decide and record whether HDT is `REQUIRED` or `NOT_REQUIRED` for this task. If required, use `.aaw/hdt.md` and keep the task active until the user's report provides sufficient PASS evidence. Only after all required evidence is complete may the task be marked `COMPLETE`, moved to `done/`, and enter the normal commit checkpoint. Do not ask the user to repeat automated checks that the agent already ran successfully. Reuse test evidence across documentation/metadata-only closeout if relevant code/test inputs are unchanged. Whenever a task tied to a milestone changes state, reconcile that milestone's task list, exit criteria, and status in the same state transaction.
+Use the project-specific contract in `.aaw/verification.md`. Decide and record whether HDT is `REQUIRED` or `NOT_REQUIRED` for this task. If required, use `.aaw/hdt.md` and keep the task active until the user's report provides sufficient PASS evidence. Only after all required evidence is complete may the task enter `AWAITING_USER_REVIEW`. Mark it `COMPLETE`, move it to `done/`, and enter the normal commit checkpoint only after the user review finds no further work to add. Do not ask the user to repeat automated checks that the agent already ran successfully. Reuse test evidence across documentation/metadata-only closeout if relevant code/test inputs are unchanged. Whenever a task tied to a milestone changes state, reconcile that milestone's task list, exit criteria, and status in the same state transaction.
 
 ### Commit Created
 
@@ -525,9 +548,9 @@ Do not update the README for every internal implementation detail, small bug fix
 
 `README.md` is not a changelog and not a task diary. When the project maintains `CHANGELOG.md`, use it for meaningful release-facing history instead of putting release history into the README.
 
-After task completion, explicitly check whether the README needs an update. If not, leave it unchanged.
+After implementation and verification, explicitly check whether the README needs an update. Then enter `AWAITING_USER_REVIEW` regardless of whether HDT was required. If the user requests no further changes, close the task; if they request changes, triage them before closing.
 
-The template repository's own root README is agent-facing documentation. When installing into an actual project, create or update the target project's README from the project's real state instead of copying template-only instructions.
+The template repository's own root README introduces AAW to humans and provides a short agent-routing section. It is not an application README and must not be copied verbatim into a target project. When installing into an actual project, preserve the project's existing README or create one from the project's real state.
 
 ---
 
@@ -587,7 +610,7 @@ Do not run this completion/commit sequence while required HDT is still pending o
 
 If `task: ask`, offer a commit:
 
-> `T-xxxx` is complete and verified. A commit is recommended as a checkpoint for review, recovery, and safe continuation. Commit now?
+> `T-xxxx` has passed verification and the user review found no further changes. A commit is recommended as a checkpoint for review, recovery, and safe continuation. Commit now?
 
 If `task: auto`, create the checkpoint automatically after the safety checks pass.
 
@@ -666,7 +689,7 @@ HDT is a completion gate when the project verification contract or task's runtim
 
 After meaningful implementation, provide a concise, human-readable report. Always explain what changed and why. Then distinguish the verification path:
 
-- `HDT: NOT_REQUIRED`: report the automated checks the agent actually ran and their outcomes. Do not present already-passed commands as instructions for the user to repeat; no manual verification request is needed.
+- `HDT: NOT_REQUIRED`: report the automated checks the agent actually ran and their outcomes. Do not present already-passed commands as instructions for the user to repeat; no manual HDT is needed. The task must still enter `AWAITING_USER_REVIEW` before closure.
 - `HDT: REQUIRED`: provide concise, beginner-friendly human/runtime steps, expected behavior, and what to report if it differs. The task remains `AWAITING_HDT` until the report passes.
 
 These paths are mutually exclusive for a given task completion report. Do not claim `HDT: NOT_REQUIRED` and then offer a manual verification checklist for the same behavior.

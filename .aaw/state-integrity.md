@@ -85,7 +85,7 @@ Milestone status rules:
 - Otherwise, keep an appropriate non-terminal status such as `PLANNED`, `IN_PROGRESS`, or `BLOCKED`.
 - Preserve struck-through task and criterion entries as decision history. Do not remove them.
 
-Whenever a linked task changes status—including `AWAITING_HDT`, `COMPLETE`, `BLOCKED`, or `CANCELLED`—inspect and reconcile its milestone. Do not update only `now.md` and the roadmap while leaving the milestone stale.
+Whenever a linked task changes status—including `AWAITING_HDT`, `AWAITING_USER_REVIEW`, `COMPLETE`, `BLOCKED`, or `CANCELLED`—inspect and reconcile its milestone. Do not update only `now.md` and the roadmap while leaving the milestone stale.
 
 For a task with `HDT: REQUIRED`, `AWAITING_HDT` is an active, non-complete state. Keep its task file in `.aaw/tasks/` and keep it pointed to by `.aaw/now.md` until a PASS report is recorded. Never move it to `done/` before then. Do not ask the user to rerun automated checks already executed successfully by the agent.
 
@@ -114,7 +114,7 @@ At minimum verify:
 1. `now.md` current task exists.
 2. The same task exists in the roadmap.
 3. Task objective matches roadmap objective.
-4. A task is not marked complete while required HDT is pending, failed, or declined.
+4. A task is not marked complete while required HDT is pending, failed, or declined. A task is not marked complete while `AWAITING_USER_REVIEW` is unanswered.
 5. A task with required HDT stays active and in `.aaw/tasks/` until a PASS result is recorded.
 6. Completed task is not still active.
 7. Task IDs are unique.
@@ -124,7 +124,7 @@ At minimum verify:
 11. Commit claims match Git.
 12. README reflects material project-understanding changes.
 13. A completed task is not left in the active task folder; a standalone completed bug record is not left in the active bug folder.
-14. A pending decision is explicit; it is never inferred from session continuity or silence.
+14. A pending decision is explicit; it is never inferred from session continuity or silence. A task in `AWAITING_USER_REVIEW` is not implicitly approved by silence or a new session.
 15. If a project maintains `CHANGELOG.md`, release-facing changes are recorded there when applicable.
 16. If `.aaw/migration.yml` is active, no product task is being executed or created.
 17. After migration completion, `.aaw/manifest.yml` reports the verified target version and `.aaw/migration.yml` is absent.

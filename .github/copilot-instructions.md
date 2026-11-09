@@ -1,6 +1,6 @@
 # Project Copilot Adapter
 
-> AAW_VERSION: 0.8.0
+> AAW_VERSION: 0.8.2
 
 This file is an optional VS Code Copilot adapter. The portable workflow source of truth is the root `AGENTS.md`.
 
@@ -16,7 +16,7 @@ Before working on a task:
 
 Do not require the user to provide workflow labels such as `MODE: BUILD`.
 
-Before normal intent routing, detect AAW maintenance requests. Requests such as `update AAW to v0.8.0` or `migrate this project to AAW 0.8.0` must enter `MIGRATION` mode. If `.aaw/migration.yml` exists with `status: ACTIVE`, resume and reconcile that migration first. Product tasks are frozen during migration. Do not create or execute product work, and do not continue into application work after migration completes. See `docs/workflow/aaw-migration.md`.
+Before normal intent routing, detect AAW maintenance requests. Requests such as `update AAW to v0.8.2` or `migrate this project to AAW 0.8.2` must enter `MIGRATION` mode. If `.aaw/migration.yml` exists with `status: ACTIVE`, resume and reconcile that migration first. Product tasks are frozen during migration. Do not create or execute product work, and do not continue into application work after migration completes. For a new installation, follow `docs/workflow/aaw-installation.md`. For an existing installation, follow `docs/workflow/aaw-migration.md`.
 
 Installation/bootstrap is not product development. Do not invent product tasks during workflow installation. For an empty/new project, create a concise project README, initialize project state, and offer an `Initial commit` checkpoint.
 
@@ -28,14 +28,16 @@ When work becomes large or likely to exceed the current context, prefer bounded 
 
 Do not modify production code for questions, explanations, or review requests unless the user clearly requests implementation/fixing.
 
-Before calling a task complete:
+Before closing a task:
 
 - run applicable automated checks yourself and report the results; do not ask the user to repeat checks that already passed;
 - resolve HDT as `REQUIRED` or `NOT_REQUIRED` using `.aaw/verification.md`;
-- when HDT is required, keep the task active as `AWAITING_HDT` until the user's report passes; do not move it to `done/` or offer the normal completion commit early;
-- only after all required gates pass, mark the task complete, move it to `done/`, synchronize affected state artifacts, check README impact, verify state integrity, and apply `.aaw/commit-policy.md`.
+- if HDT is required, keep the task active as `AWAITING_HDT` until the user's report passes;
+- after the verification gate passes, set `AWAITING_USER_REVIEW` for both `REQUIRED` and `NOT_REQUIRED` tasks and ask whether the user wants related revisions/additions before closing;
+- if the user asks for no further changes, mark the task complete, move it to `done/`, synchronize affected state artifacts, check README impact, verify state integrity, and apply `.aaw/commit-policy.md`;
+- if the user requests an unrelated addition while the current task remains unfinished, park it in `.aaw/parking-lot.md`; do not silently expand the task.
 
-Triage work before creating records. Several related small changes that share one acceptance/verification boundary belong in one task file and do not need a milestone. Create a milestone only for a broad outcome requiring at least two independently trackable tasks. If one task is enough, do not create a one-task milestone. For a genuine milestone-planning-only request, create the planned milestone and child tasks, update roadmap/now, run state-integrity checks, apply the `planning` checkpoint, then stop without implementation.
+Triage work before creating records. Several related small changes that share one acceptance/verification boundary belong in one task file and do not need a milestone. Create a milestone only for a genuinely large/broad outcome that needs coordinated work across multiple independently trackable task files—usually three or more. Two tasks may justify a milestone when real dependencies, distinct phases, or shared exit criteria require coordination; two small tasks alone are not enough. If one task is enough, do not create a one-task milestone. For a genuine milestone-planning-only request, create the planned milestone and child tasks, update roadmap/now, run state-integrity checks, apply the `planning` checkpoint, then stop without implementation.
 
 When a task changes state, reconcile its linked milestone as well as roadmap/now. For cancellation, ask for a reason if missing, never guess, mark `CANCELLED`, record the reason, move it to `.aaw/tasks/cancelled/`, and strike through its milestone entry (and a solely dependent exit criterion). A milestone whose tasks are all cancelled is `CANCELLED`, not `COMPLETE`. Reuse successful automated verification evidence if relevant implementation/test inputs have not changed; metadata and Markdown moves alone do not require rerunning application tests.
 
