@@ -30,7 +30,7 @@
         <a href="/" aria-current="page">Adv Search</a>
         <a href="/tools">Tools</a>
         <a href="/settings">Settings</a>
-        <a href="https://github.com/sekedus/yt-adv-search" target="_blank" rel="noopener">GitHub ↗</a>
+        <a href="https://github.com/sekedus/yt-adv-search" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
       </nav>
       <div class="nav-backdrop" hidden aria-hidden="true"></div>
       <div class="topbar-actions">
@@ -252,7 +252,7 @@
                     <label class="qbtn" for="qh-cat" title="What is Category?">?</label>
                   </div>
                   <input type="checkbox" class="qtoggle" id="qh-cat">
-                  <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region – see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener">videoCategories/list</a>.</p>
+                  <p class="qinfo">Keep videos in one category. Uses the API <code>videoCategoryId</code> (forces type Video). Common IDs shown; full list varies by region – see <a href="https://developers.google.com/youtube/v3/docs/videoCategories/list" target="_blank" rel="noopener noreferrer">videoCategories/list</a>.</p>
                 </div>
                 <div class="advrow">
                   <label class="advlabel" for="f-topic">Topic id</label>
@@ -261,7 +261,7 @@
                     <label class="qbtn" for="qh-topic" title="What is Topic id?">?</label>
                   </div>
                   <input type="checkbox" class="qtoggle" id="qh-topic">
-                  <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener">topic id reference</a>.</p>
+                  <p class="qinfo">Keep results about one topic, e.g. <code>/m/04rlf</code> (Music). Uses the API <code>topicId</code>. ID list: <a href="https://rentry.co/yt-api-v3-search-topic-id" target="_blank" rel="noopener noreferrer">topic id reference</a>.</p>
                 </div>
                 <div class="advrow">
                   <label class="advlabel" for="f-loc">Location (lat,lon)</label>
@@ -1006,19 +1006,19 @@
         var card = document.createElement("article");
         card.className = "card kind-" + kind + ((act.embed || act.invidious) ? " has-actions" : "");
         var html = '<div class="thumb">' +
-          '<a class="thumb-link" target="_blank" rel="noopener">' +
-          (turl ? '<img loading="lazy" alt="">' : "") +
+          '<a class="thumb-link" target="_blank" rel="noopener noreferrer">' +
+          (turl ? '<img loading="lazy" alt="" referrerpolicy="no-referrer">' : "") +
           (kind === "playlist" ? '<span class="badge">☰ Playlist</span>' :
             ((kind === "video" && it.shorts ? '<span class="badge shorts">Shorts</span>' : "") +
               (it.enrichment && it.enrichment.duration ? '<span class="badge duration"></span>' : ""))) +
           "</a>" +
           "</div>" +
-          '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener"></a></h3>' +
+          '<div class="card-body"><h3 class="card-title"><a target="_blank" rel="noopener noreferrer"></a></h3>' +
           '<p class="card-meta"></p>' +
           (it.enrichment && it.enrichment.viewCount ? '<p class="views"></p>' : "") +
           ((act.embed || act.invidious) ? '<p class="card-actions">' +
             (act.embed ? '<a data-act="embed" target="_blank" rel="noopener" title="Open embed URL">Embed &nearr;</a>' : "") +
-            (act.invidious ? '<a data-act="invidious" target="_blank" rel="noopener" title="Open in Invidious">Invidious &nearr;</a>' : "") +
+            (act.invidious ? '<a data-act="invidious" target="_blank" rel="noopener noreferrer" title="Open in Invidious">Invidious &nearr;</a>' : "") +
             '</p>' : "") +
           '<p class="card-desc"></p></div>';
         card.innerHTML = html;
@@ -1033,7 +1033,7 @@
         if (act.embed || act.invidious) {
           var acts = card.querySelectorAll('.card-actions a[data-act]');
           for (var a = 0; a < acts.length; a++) {
-            acts[a].href = acts[a].getAttribute("data-act") === "embed" ? act.embed : act.invidious;
+            acts[a].href = acts[a].getAttribute("data-act") === "embed" ? ('https://anonymz.github.io/?' + act.embed) : act.invidious;
             acts[a].removeAttribute("data-act");
           }
         }

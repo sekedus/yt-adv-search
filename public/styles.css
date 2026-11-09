@@ -1226,7 +1226,7 @@ fieldset:has(> .qtoggle:checked) > legend .qbtn {
 .jumpbtns button {
   border-radius: 0;
   padding: 8px 14px;
-  border-color: var(--text);
+  border-color: var(--text-dim);
 }
 
 @media (max-width: 700px) {
