@@ -17,7 +17,10 @@ Do not use this file as a task list, implementation log, or general project diar
 ## Important User/Business Concepts
 
 - **Opt-in enrichment** — Extra `videos.list` call for duration/view count is OFF by default and only runs when the user enables it, to save quota.
-- **Settings page** — Separate `/settings` route opened by the gear button; holds theme, defaults, and the enrichment opt-in. Persisted in `localStorage`.
+- **Settings page** — Separate `/settings` route opened by the gear button; holds theme, defaults, the enrichment opt-in, and video-link preferences. Persisted in `localStorage`.
+- **Video link target** — What a result title/thumbnail opens: YouTube web, YouTube embed, or Invidious. The other two formats stay as card action buttons.
+- **Anonymz** — Optional `https://anonymz.github.io/?` wrapper for YouTube web and embed links; off by default and never applied to Invidious.
+- **Invidious source** — Auto picks the healthiest public HTTPS instance from `api.invidious.io`; manual means `redirect.invidious.io`. Auto is the default and the setting is shown only when Invidious is the video link target.
 
 ## Naming Decisions
 

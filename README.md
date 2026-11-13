@@ -32,6 +32,10 @@ search (for example `/?q=pixel&page=3`).
 
 Inside a channel or playlist, videos that YouTube treats as Shorts get a **Shorts** badge.
 
+A result title opens YouTube web by default. In Settings you can make it open the YouTube embed player or an Invidious page instead.
+
+The other two formats stay as buttons on each card, so you can always switch.
+
 ### Search shortcuts
 
 Type these straight into the search box:
@@ -63,6 +67,19 @@ The **Refresh** button next to it skips the 7-day resolver cache.
 ### Settings page (`/settings`)
 
 Pick a theme (Auto, Dark, or Light), page size, SafeSearch, region, language, and how long search results may be cached (30 minutes by default).
+
+**Video links** chooses what a video title and thumbnail open: YouTube web (default), YouTube embed, or Invidious. The other formats stay as buttons on each card.
+
+Turn on **Anonymz** to open YouTube web and embed links through `anonymz.github.io`. It is off by default and does not change Invidious links.
+
+When the default is Invidious, choose its source:
+
+- **Auto** uses the healthiest public instance from `api.invidious.io`, with `redirect.invidious.io` as the fallback.
+- **Manual** always uses `redirect.invidious.io`.
+
+Auto is the default. Choosing Invidious from a web or embed default starts at
+Auto. If Invidious is already the saved default, switching to web or embed and
+back keeps the saved source.
 
 Channel lookups use a fixed 7-day cache and categories a fixed 1-month cache. Settings are stored only in your browser.
 

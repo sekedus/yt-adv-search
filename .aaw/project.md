@@ -15,7 +15,7 @@ YouTube.com removed useful search filters (Last Hour, Sort by Rating/Date) and I
 - All `search.list` parameters implemented; re-added Last Hour, Sort Rating/Date, Movie/Episode (Show) via API mappings; unmappable features shown disabled with tooltip.
 - Operators resolved server-side: `channel:UC...`, `handle:@x`/`handle:x` via `channels.list forHandle`, `before:`/`after:` to `publishedBefore/After`.
 - Tools page: paste URL / `@handle` / `UC...` / username → `channels.list` → ID + title + channel/Invidious links + `Use in search`.
-- Settings page (gear): theme, max results, safeSearch, region, language, enrichment opt-in, key-index status. `localStorage` persisted.
+- Settings page (gear): theme, max results, safeSearch, region, language, enrichment opt-in, video link target (web/embed/Invidious), optional anonymz wrapper, Invidious auto/manual source, key-index status. `localStorage` persisted.
 - Key rotation server-side: `YOUTUBE_API_KEYS=k1,k2` in `.env` local / Worker secrets prod, rotate on non-200.
 - Page tokens for `?page=N` live in the `PAGE_TOKENS` KV namespace (SHA-256 param hash, 7-day TTL, no identity); missing pages fall back to page 1.
 

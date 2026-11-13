@@ -5,7 +5,7 @@
 
 ## Workflow Phase
 
-IDLE (AAW 0.8.2 upgrade applied 2026-11-09; M-0003 COMPLETE; T-0015 COMPLETE + COMMITTED; no active task)
+IDLE (T-0016 COMPLETE + HDT PASS; committed; M-0003 COMPLETE; no active task)
 
 ## State Integrity
 
@@ -17,12 +17,12 @@ None — M-0003 COMPLETE (closed 2026-10-22 by explicit user instruction). See `
 
 ## Current Task
 
-None — no active task. Last task: T-0015 (pagination in the URL + KV page-token store; COMPLETE + COMMITTED; record: `.aaw/tasks/done/T-0015-page-url-kv-tokens.md`).
-Earlier: T-0014 (README rewrite, docs-only, COMPLETE + COMMITTED). Last milestone task: T-0013 (resolver links/Invidious + multi-check, scoped Shorts badges + `/shorts/` links, `/api/*` origin gate, mobile nav backdrop/outside close, channel 7-day/category 1-month caches + search default 30 min, q `%20`/literal-plus parsing, clear-button aria fix). See `.aaw/tasks/done/T-0013-resolver-shorts-api-nav.md`.
+None — no active task. Last completed: T-0016 (flexible video links + dirty-guard revert fix + Invidious source Auto-reset/preserve; COMPLETE + HDT PASS + COMMITTED; record: `.aaw/tasks/done/T-0016-flexible-video-links.md`).
+Earlier: T-0015 (pagination in the URL + KV page-token store; COMPLETE + COMMITTED; record: `.aaw/tasks/done/T-0015-page-url-kv-tokens.md`).
 
 ## Current Step
 
-T-0015 is complete and committed: `?page=N` pagination with the KV page-token store, docs, and the real `PAGE_TOKENS` namespace id in `wrangler.toml`. No product task is in progress.
+T-0016 is complete and committed: configurable default video links (web/embed/Invidious), anonymz wrapper, auto/manual Invidious source, dirty-guard revert fix, and saved-baseline source behavior. Automated 15/15 Playwright + 6/6 inline scripts; all required HDT rounds passed. No active task or milestone.
 
 ## Objective
 
@@ -34,10 +34,11 @@ Await the user's next request. Do not start new product work unprompted.
 
 ## Current Blocker
 
-None. The `PAGE_TOKENS` namespace id is configured in `wrangler.toml`; deploy with `npx wrangler deploy` when ready. Local `wrangler dev` uses local Miniflare KV.
+None. The `PAGE_TOKENS` namespace id remains configured in `wrangler.toml`; deploy with `npx wrangler deploy` when ready. Local `wrangler dev` uses local Miniflare KV.
 
 ## Relevant Files
 
+- `.aaw/tasks/done/T-0016-flexible-video-links.md`
 - `.aaw/tasks/done/T-0015-page-url-kv-tokens.md`
 - `.aaw/tasks/done/T-0014-readme-shorter-paragraphs.md`
 - `.aaw/tasks/done/T-0013-resolver-shorts-api-nav.md`
@@ -60,12 +61,18 @@ None. The `PAGE_TOKENS` namespace id is configured in `wrangler.toml`; deploy wi
 - Read `.aaw/constraints.md` before compatibility/platform decisions.
 - Keys server-only; enrichment OFF default; only /settings Save writes `ytas.enrich`.
 - Keep `.container`/filter/topbar class contracts; keep `ytas.*` keys.
+- Video links: `ytas.videoLink` web/embed/invidious (web default), `ytas.anonymz` 0/1 (0 default, YouTube web/embed only), `ytas.invidiousMode` auto/manual (auto default; auto reads `api.invidious.io`, manual uses `redirect.invidious.io`).
 
 ## Verification Snapshot
 
-Status: M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. AAW 0.8.2 upgrade applied 2026-11-09 (control-plane only). T-0015 (2026-11-09) COMPLETE + HDT PASS (user report "all test pass"): 14/14 worker harness (KV page map, TTL 604800, hash, clamp, fallback, legacy token, playlist, cache HIT = no KV) + 10/10 Playwright (page URL/reload/Back/Forward/fallback/mobile, 0 console errors) + `node --check` + inline scripts + dry-run (`PAGE_TOKENS` = real id) + wrangler dev smoke. Committed.
+Status: T-0016 COMPLETE (HDT PASS 2026-11-13; automated 15/15 Playwright + 6/6 inline scripts; no Worker change) and COMMITTED. M-0003 COMPLETE (closed 2026-10-22, explicit user instruction); T-0014 COMPLETE (docs-only, HDT NOT_REQUIRED) and COMMITTED; T-0013 COMPLETE + HDT PASS (2026-10-22) and COMMITTED. AAW 0.8.2 upgrade applied 2026-11-09 (control-plane only). T-0015 (2026-11-09) COMPLETE + HDT PASS (user report "all test pass"): 14/14 worker harness (KV page map, TTL 604800, hash, clamp, fallback, legacy token, playlist, cache HIT = no KV) + 10/10 Playwright (page URL/reload/Back/Forward/fallback/mobile, 0 console errors) + `node --check` + inline scripts + dry-run (`PAGE_TOKENS` = real id) + wrangler dev smoke. Committed.
 
 Evidence:
+
+- T-0016 automated PASS (2026-11-12): `node --check worker.js`; 6/6 inline scripts; Playwright/Chromium 14/14 with mocked search/categories/instances (settings defaults + save/reload/reset; web/embed/Invidious primary + the other two actions; Shorts `/shorts/`; channel/playlist unchanged; anonymz scope; auto highest-uptime HTTPS + invalid-data/fetch fallback; 360px settings/results/paging; 0 console/page errors; all API calls carry `page`); live `api.invidious.io` auto smoke selected `https://yt.chocolatemoo53.com/watch?v=vid1`; screenshots at 360px/1280px reviewed. Original HDT PASS (user: "all test pass").
+- T-0016 follow-up automated PASS (2026-11-12): dirty guard now compares current form state with the saved baseline; theme Auto → Light → Auto, video Web → Embed → Web, anonymz on → off, and region typed → cleared are clean; header theme toggle/Save/Reset update the baseline; a real change still warns. Dirty-guard HDT PASS (user: "test pass").
+- T-0016 Invidious-source follow-up automated PASS (2026-11-12): saved web + manual → choosing Invidious selects Auto; switching back to web restores manual and is clean; saved Invidious + manual → web/embed detour and return keeps manual; saving web from an Invidious+Manual baseline keeps manual hidden and a later Invidious selection resets to Auto. 15/15 Playwright + 6/6 inline scripts pass.
+- T-0016 HDT PASS (2026-11-13): original feature "all test pass"; dirty guard "test pass"; Invidious source behavior "pass". Task COMPLETE and committed.
 
 - AAW 0.8.2 upgrade (2026-11-09): workflow-owned files reconciled against the official 0.8.2 template (`AGENTS.md`, Copilot adapter, workflow spec/migration/installation docs, `.aaw` policies, task template, manifest); project state, tasks, milestones, bug records, and README preserved; manifest reports `AAW_VERSION: 0.8.2` / `AAW_SCHEMA: 2`; no live workflow reference points at the legacy `dev/` state layout or an older control-plane version (historical migration tables and version history remain intentionally); state integrity checked; no product task created or executed.
 
@@ -96,11 +103,11 @@ See `.aaw/commit-policy.md`.
 
 ## Last Checkpoint
 
-feat: remember search pagination with ?page= and KV page tokens
+feat: flexible video links with anonymz and Invidious source options
 
 ## README Status
 
-README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapped at ≤100 chars (widest rendered line 665.9px), troubleshooting converted from a wide table to a scannable list, same topics/facts/links preserved (features, shortcuts, tools, settings, how it works, setup A/B/C, key setup, everyday use, quotas, troubleshooting, layout, contributors, notes, disclaimer, license); stale `#add-your-api-key-all-methods` anchor fixed. T-0015 updated the share/bookmark lines to mention the result page (`?page=`) and unvisited pages. Earlier T-0013 details remain accurate.
+README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapped at ≤100 chars (widest rendered line 665.9px), troubleshooting converted from a wide table to a scannable list, same topics/facts/links preserved (features, shortcuts, tools, settings, how it works, setup A/B/C, key setup, everyday use, quotas, troubleshooting, layout, contributors, notes, disclaimer, license); stale `#add-your-api-key-all-methods` anchor fixed. T-0015 updated the share/bookmark lines to mention the result page (`?page=`) and unvisited pages. T-0016 added the default video link, anonymz, and Invidious source behavior. Earlier T-0013 details remain accurate.
 
 ## Important Context
 
@@ -112,7 +119,8 @@ README rewritten in T-0014 for beginners: short one-idea paragraphs, prose wrapp
 - AAW migrated 0.7.4 -> 0.8.0 on 2026-10-22: AAW-managed state/policies moved from `dev/` to `.aaw/`; manifest schema 2; no product task created.
 - AAW upgraded 0.8.0 -> 0.8.2 on 2026-11-09: routine control-plane upgrade; `.aaw/` layout and schema 2 preserved; lifecycle now requires `AWAITING_USER_REVIEW` before closing any task; no product task created.
 - T-0015 COMPLETE: pseudonymous server-side storage (param hash + opaque page token, 7-day TTL, no identity/IP); `.aaw/constraints.md` and `.aaw/security.md` are updated. The real `PAGE_TOKENS` namespace id is in `wrangler.toml`.
-- All product work through T-0015 is committed. The AAW 0.8.2 upgrade is a control-plane checkpoint only (ignored local `.env`, `data/`, and `.wrangler/` state remain).
+- T-0016 COMPLETE: flexible video links (`ytas.videoLink` web/embed/invidious), anonymz wrapper (`ytas.anonymz`, YouTube web/embed only), Invidious source (`ytas.invidiousMode` auto/manual), dirty-guard revert fix, and saved-baseline source reset/preserve behavior. HDT PASS 2026-11-13.
+- All product work through T-0016 is committed. The AAW 0.8.2 upgrade is a control-plane checkpoint only (ignored local `.env`, `data/`, and `.wrangler/` state remain).
 
 ## Do Not Change
 

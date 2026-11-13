@@ -23,6 +23,7 @@ Use this file for constraints that materially affect technical decisions.
 - CPU: no client build step; vanilla JS parsing only.
 - Offline requirements: none (requires live YouTube API).
 - External service limitations: YouTube Data API v3 quotas — `search.list` 100 calls/day bucket, `channels.list`/`videos.list` from 10k pool; enrichment OFF by default; rotate keys on non-200.
+- Browser-side external links: video cards open user-selected YouTube/Invidious targets; Invidious auto reads the public `https://api.invidious.io/instances.json` list (CORS-enabled, no key, no user data) and accepts only plain HTTPS instance origins. The Worker egress allow-list is unchanged.
 
 ## Security Constraints
 

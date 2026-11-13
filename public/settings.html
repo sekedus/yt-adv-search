@@ -109,6 +109,37 @@
           </div>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>Video links</legend>
+        <div class="advgrid">
+          <div class="advrow">
+            <span class="advlabel" id="videoLinkLabel">Default link</span>
+            <div class="advcontrol">
+              <div class="radiorow video-group" role="radiogroup" aria-labelledby="videoLinkLabel">
+                <label><input type="radio" name="videoLink" value="web"> YouTube web</label>
+                <label><input type="radio" name="videoLink" value="embed"> YouTube embed</label>
+                <label><input type="radio" name="videoLink" value="invidious"> Invidious</label>
+              </div>
+            </div>
+            <p class="hint">Where a video title and thumbnail open. The other two formats stay available as buttons on each result card.</p>
+          </div>
+          <div class="advrow">
+            <span class="advlabel">Anonymz</span>
+            <div class="advcontrol"><label><input type="checkbox" class="anonymz"> YouTube links through anonymz.github.io</label></div>
+            <p class="hint">Adds <code>https://anonymz.github.io/?</code> before YouTube web and embed URLs.</p>
+          </div>
+          <div class="advrow invopts" hidden>
+            <span class="advlabel" id="invModeLabel">Invidious source</span>
+            <div class="advcontrol">
+              <div class="radiorow inv-group" role="radiogroup" aria-labelledby="invModeLabel">
+                <label><input type="radio" name="invidiousMode" value="auto"> Auto (most healthy instance)</label>
+                <label><input type="radio" name="invidiousMode" value="manual"> Manual (redirect.invidious.io)</label>
+              </div>
+            </div>
+            <p class="hint"><strong>Auto</strong> reads the <a href="https://api.invidious.io/instances.json?sort_by=type,health" target="_blank" rel="noopener">public instance list</a> and picks the most healthy instance, falling back to <code>https://redirect.invidious.io</code>.<br><strong>Manual</strong> always uses <code>https://redirect.invidious.io/watch?v=</code>.</p>
+          </div>
+        </div>
+      </fieldset>
       <div class="actions">
         <button class="save-btn primary" type="button">Save</button>
         <button class="reset-btn danger hover" type="button">Reset all to defaults</button>
@@ -149,7 +180,10 @@
       "ytas.region": "",
       "ytas.lang": "",
       "ytas.enrich": "0",
-      "ytas.cacheTtl": "1800"
+      "ytas.cacheTtl": "1800",
+      "ytas.videoLink": "web",
+      "ytas.anonymz": "0",
+      "ytas.invidiousMode": "auto"
     };
 
     /* Theme toggle (same contract as / and /tools). Emoji-only button. */
@@ -177,6 +211,12 @@
       theme = t;
       storeSet("ytas.theme", t);
       paintTheme(t);
+      /* The header toggle saves the theme immediately, so it also becomes
+       * part of the saved baseline. Other unsaved fields still warn. */
+      if (savedState) {
+        savedState.theme = t;
+        syncDirty();
+      }
     }
     var menuBtn = $(".menu-btn"), primaryNav = $("#primaryNav");
     var navBackdrop = $(".nav-backdrop");
@@ -227,6 +267,36 @@
     var maxSel = $("#maxResults");
     var regionInput = $("#region"), langInput = $("#lang"), enrichBox = $(".enrich");
     var cacheTtlSel = $("#cacheTtl");
+    var anonymzBox = $(".anonymz"), invOpts = $(".invopts");
+
+    /* T-0016: video link target + optional anonymz wrapper + Invidious source.
+     * The auto/manual row is only relevant while Invidious is the default. */
+    function checkedVideoLink() {
+      var r = document.querySelector('input[name="videoLink"]:checked');
+      var v = r ? r.value : "web";
+      return v === "embed" || v === "invidious" ? v : "web";
+    }
+    function syncVideoLinkUI() {
+      if (invOpts) invOpts.hidden = checkedVideoLink() !== "invidious";
+    }
+    function setVideoLink(v) {
+      if (v !== "web" && v !== "embed" && v !== "invidious") v = "web";
+      var nodes = document.querySelectorAll('input[name="videoLink"]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].checked = (nodes[i].value === v);
+      syncVideoLinkUI();
+      return v;
+    }
+    function checkedInvMode() {
+      var r = document.querySelector('input[name="invidiousMode"]:checked');
+      return r && r.value === "manual" ? "manual" : "auto";
+    }
+    function setInvMode(v) {
+      if (v !== "auto" && v !== "manual") v = "auto";
+      var nodes = document.querySelectorAll('input[name="invidiousMode"]');
+      for (var i = 0; i < nodes.length; i++) nodes[i].checked = (nodes[i].value === v);
+      return v;
+    }
+    var videoRadios = document.querySelectorAll('input[name="videoLink"]');
 
     function checkedSafe() {
       var r = document.querySelector('input[name="safeSearch"]:checked');
@@ -247,19 +317,71 @@
     regionInput.value = storeGet("ytas.region", "");
     langInput.value = storeGet("ytas.lang", "");
     enrichBox.checked = storeGet("ytas.enrich", "0") === "1";
+    setVideoLink(storeGet("ytas.videoLink", "web"));
+    anonymzBox.checked = storeGet("ytas.anonymz", "0") === "1";
+    setInvMode(storeGet("ytas.invidiousMode", "auto"));
 
-    /* Unsaved-changes guard (T-0009): leaving with unsaved edits warns via
-     * beforeunload. Save/Reset clear the flag. Programmatic sets above and
-     * in paintTheme/reset never fire change, so they stay clean. */
+    /* Unsaved-changes guard (T-0009/T-0016): compare the current controls with
+     * the last saved state. Changing a value and changing it back no longer
+     * warns. Save/Reset (and the immediate header theme toggle) move the
+     * baseline. Programmatic sets above never fire change, so they stay clean. */
     var dirty = false;
-    function markDirty() { dirty = true; }
-    function clearDirty() { dirty = false; }
+    var savedState = null;
+    function readFormState() {
+      return {
+        theme: checkedTheme(),
+        maxResults: maxSel.value,
+        safeSearch: checkedSafe(),
+        region: regionInput.value.trim().toUpperCase(),
+        lang: langInput.value.trim().toLowerCase().slice(0, 10),
+        enrich: enrichBox.checked,
+        cacheTtl: cacheTtlSel.value,
+        videoLink: checkedVideoLink(),
+        anonymz: anonymzBox.checked,
+        invidiousMode: checkedInvMode()
+      };
+    }
+    function sameState(a, b) {
+      if (!a || !b) return true;
+      return a.theme === b.theme && a.maxResults === b.maxResults &&
+        a.safeSearch === b.safeSearch && a.region === b.region &&
+        a.lang === b.lang && a.enrich === b.enrich &&
+        a.cacheTtl === b.cacheTtl && a.videoLink === b.videoLink &&
+        a.anonymz === b.anonymz && a.invidiousMode === b.invidiousMode;
+    }
+    function syncDirty() {
+      dirty = !sameState(readFormState(), savedState);
+    }
+    function captureSavedState() {
+      savedState = readFormState();
+      dirty = false;
+    }
+    captureSavedState();
+    /* T-0016 follow-up: choosing Invidious from a saved web/embed default
+     * starts at Auto. A saved Invidious default keeps its saved/selected
+     * source when the user temporarily switches to web/embed and back.
+     * Switching back to a saved web/embed default restores the saved source so
+     * a temporary detour does not leave the page dirty. */
+    function syncInvidiousSourceForLink() {
+      var link = checkedVideoLink();
+      syncVideoLinkUI();
+      if (!savedState) return;
+      if (savedState.videoLink !== "invidious") {
+        setInvMode(link === "invidious" ? "auto" : savedState.invidiousMode);
+      }
+      syncDirty();
+    }
+    for (var vr = 0; vr < videoRadios.length; vr++) {
+      videoRadios[vr].addEventListener("change", syncInvidiousSourceForLink);
+    }
     try {
       var watched = document.querySelectorAll(
-        ".theme-group input, #maxResults, .safe-group input, #region, #lang, .enrich, #cacheTtl"
+        ".theme-group input, #maxResults, .safe-group input, #region, #lang, .enrich, #cacheTtl, " +
+        ".video-group input, .anonymz, .inv-group input"
       );
       for (var wi = 0; wi < watched.length; wi++) {
-        watched[wi].addEventListener("change", markDirty);
+        watched[wi].addEventListener("change", syncDirty);
+        watched[wi].addEventListener("input", syncDirty);
       }
     } catch (e) { /* guard is best-effort */ }
     window.addEventListener("beforeunload", function (ev) {
@@ -290,7 +412,11 @@
       if (["60", "300", "900", "1800", "3600"].indexOf(ttl) < 0) ttl = "1800";
       cacheTtlSel.value = ttl;
       storeSet("ytas.cacheTtl", ttl);
-      clearDirty();
+      storeSet("ytas.videoLink", checkedVideoLink());
+      storeSet("ytas.anonymz", anonymzBox.checked ? "1" : "0");
+      storeSet("ytas.invidiousMode", checkedInvMode());
+      syncVideoLinkUI();
+      captureSavedState();
       note("Settings saved.");
     });
 
@@ -304,8 +430,11 @@
       langInput.value = "";
       enrichBox.checked = false;
       cacheTtlSel.value = "1800";
+      setVideoLink("web");
+      anonymzBox.checked = false;
+      setInvMode("auto");
       if (window.syncInputClear) window.syncInputClear();
-      clearDirty();
+      captureSavedState();
       note("Defaults restored.");
     });
 

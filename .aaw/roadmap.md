@@ -29,6 +29,7 @@ None — M-0003 COMPLETE (closed 2026-10-22 by explicit user instruction).
 - T-0013 — Resolver image/title channel links + Invidious + bare-name multi-check (`/@`, `/user`, `/c`; explicit forms exact) + found/cached status + Refresh next to status, scoped Shorts badge + `/shorts/` links (HEAD-first + 1-day cache, UUSH API fallback), `/api/*` own-origin gate, mobile nav transparent backdrop + outside close, channel 7-day/category 1-month caches + search default 30 min, no browser category list + region-fresh refetch, clear × focus/aria-hidden fix, q `%20`/literal-space vs literal-plus parsing (whitespace-only q accepted; app q encoded `%20`/`%2B`) - COMPLETE (M-0003; HDT PASS 2026-10-22)
 - T-0014 — Root README beginner rewrite (short paragraphs, ~900px reading width, same content) - COMPLETE (standalone docs task; HDT NOT_REQUIRED)
 - T-0015 — Search pagination in the URL (`?page=N`, no tokens in the URL) + server-side page-token store in Cloudflare KV (SHA-256 param hash, 7-day TTL, 20-page cap, page-1 fallback) - COMPLETE (standalone; no milestone; HDT PASS 2026-11-09)
+- T-0016 — Flexible video links (default YouTube web/embed/Invidious, optional anonymz wrapper, auto/manual Invidious source, dirty-guard revert fix, source Auto-reset/preserve) - COMPLETE (standalone; no milestone; HDT PASS 2026-11-13)
 
 ## Roadmap Rules
 
